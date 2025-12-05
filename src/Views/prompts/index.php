@@ -36,23 +36,23 @@
 </div>
 
 <!-- Filters -->
-<div class="filters-row">
-    <select class="select-field" style="width: auto; min-width: 150px;">
-        <option>Все LLM</option>
-        <option>ChatGPT</option>
-        <option>DeepSeek</option>
-        <option>Grok</option>
-        <option>Gemini</option>
-        <option>Perplexity</option>
+<div class="filters-row" id="prompts-filters">
+    <select class="select-field" id="llm-filter" style="width: auto; min-width: 150px;">
+        <option value="all">Все LLM</option>
+        <option value="chatgpt">ChatGPT</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="grok">Grok</option>
+        <option value="gemini">Gemini</option>
+        <option value="perplexity">Perplexity</option>
     </select>
-    <select class="select-field" style="width: auto; min-width: 150px;">
-        <option>Все тональности</option>
-        <option>Позитивная</option>
-        <option>Нейтральная</option>
-        <option>Негативная</option>
+    <select class="select-field" id="tone-filter" style="width: auto; min-width: 150px;">
+        <option value="all">Все тональности</option>
+        <option value="positive">Позитивная</option>
+        <option value="neutral">Нейтральная</option>
+        <option value="negative">Негативная</option>
     </select>
     <div class="search-filter" style="flex: 1; max-width: 300px;">
-        <input type="text" class="input-field" placeholder="Поиск по промтам...">
+        <input type="text" class="input-field" id="prompts-search" placeholder="Поиск по промтам...">
     </div>
 </div>
 
@@ -70,9 +70,9 @@
                 <th class="sortable">Дата</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="prompts-table">
             <?php foreach ($prompts as $prompt): ?>
-            <tr>
+            <tr data-llm="<?= strtolower($prompt['llm']) ?>" data-tone="<?= $prompt['tone'] ?>" data-text="<?= strtolower(htmlspecialchars($prompt['prompt'])) ?>">
                 <td>
                     <div style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         <?= htmlspecialchars($prompt['prompt']) ?>
@@ -171,7 +171,32 @@ function initPromptsCharts() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', initPromptsCharts);
+document.addEventListener('DOMContentLoaded', function() {
+    initPromptsCharts();
+
+    // Filter functionality
+    const llmFilter = document.getElementById('llm-filter');
+    const toneFilter = document.getElementById('tone-filter');
+    const searchInput = document.getElementById('prompts-search');
+    const rows = document.querySelectorAll('#prompts-table tr');
+
+    llmFilter.addEventListener('change', applyFilters);
+    toneFilter.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+
+    function applyFilters() {
+        const llm = llmFilter.value;
+        const tone = toneFilter.value;
+        const search = searchInput.value.toLowerCase();
+
+        rows.forEach(row => {
+            const matchesLlm = llm === 'all' || row.dataset.llm === llm;
+            const matchesTone = tone === 'all' || row.dataset.tone === tone;
+            const matchesSearch = !search || row.dataset.text.includes(search);
+            row.style.display = matchesLlm && matchesTone && matchesSearch ? '' : 'none';
+        });
+    }
+});
 </script>
 SCRIPTS;
 ?>

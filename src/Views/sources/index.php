@@ -84,14 +84,14 @@
 </div>
 
 <!-- Filters -->
-<div class="filters-row">
-    <button class="filter-btn active" data-group="type">Все типы</button>
-    <button class="filter-btn" data-group="type">Гос. сайты</button>
-    <button class="filter-btn" data-group="type">СМИ</button>
-    <button class="filter-btn" data-group="type">Аналитика</button>
-    <button class="filter-btn" data-group="type">Wiki</button>
+<div class="filters-row" id="source-filters">
+    <button class="filter-btn active" data-filter="all">Все типы</button>
+    <button class="filter-btn" data-filter="gov">Гос. сайты</button>
+    <button class="filter-btn" data-filter="media">СМИ</button>
+    <button class="filter-btn" data-filter="analytics">Аналитика</button>
+    <button class="filter-btn" data-filter="wiki">Wiki</button>
     <div style="flex: 1;"></div>
-    <input type="text" class="input-field" placeholder="Поиск по домену..." style="width: auto; min-width: 200px;">
+    <input type="text" class="input-field" id="source-search" placeholder="Поиск по домену..." style="width: auto; min-width: 200px;">
 </div>
 
 <!-- Sources Table -->
@@ -112,9 +112,9 @@
                 <th>HTTPS</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="sources-table">
             <?php foreach ($sources as $source): ?>
-            <tr>
+            <tr data-type="<?= $source['type'] ?>" data-domain="<?= strtolower($source['domain']) ?>">
                 <td>
                     <a href="https://<?= htmlspecialchars($source['domain']) ?>" target="_blank" style="color: var(--accent-primary); text-decoration: none;">
                         <?= htmlspecialchars($source['domain']) ?>
@@ -241,7 +241,35 @@ function initSourcesCharts() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', initSourcesCharts);
+document.addEventListener('DOMContentLoaded', function() {
+    initSourcesCharts();
+
+    // Filter functionality
+    const filterBtns = document.querySelectorAll('#source-filters .filter-btn');
+    const searchInput = document.getElementById('source-search');
+    const rows = document.querySelectorAll('#sources-table tr');
+    let currentFilter = 'all';
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            applyFilters();
+        });
+    });
+
+    searchInput.addEventListener('input', applyFilters);
+
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        rows.forEach(row => {
+            const matchesType = currentFilter === 'all' || row.dataset.type === currentFilter;
+            const matchesSearch = !searchTerm || row.dataset.domain.includes(searchTerm);
+            row.style.display = matchesType && matchesSearch ? '' : 'none';
+        });
+    }
+});
 </script>
 SCRIPTS;
 ?>

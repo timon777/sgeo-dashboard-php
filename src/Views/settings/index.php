@@ -6,16 +6,16 @@
         </div>
     </div>
 
-    <div class="tabs-container">
-        <button class="tab active">Основные</button>
-        <button class="tab">Мониторинг</button>
-        <button class="tab">API ключи</button>
-        <button class="tab">Безопасность</button>
+    <div class="tabs-container" id="settings-tabs">
+        <button class="tab active" data-tab="general">Основные</button>
+        <button class="tab" data-tab="monitoring">Мониторинг</button>
+        <button class="tab" data-tab="api">API ключи</button>
+        <button class="tab" data-tab="security">Безопасность</button>
     </div>
 </div>
 
 <!-- General Settings -->
-<div class="settings-section">
+<div class="settings-section tab-content active" id="tab-general">
     <div class="settings-card">
         <h3 class="settings-title">Общие настройки</h3>
         <p class="settings-description">Основные параметры работы системы</p>
@@ -80,6 +80,94 @@
             </svg>
             Добавить API ключ
         </button>
+    </div>
+</div>
+
+<!-- Monitoring Settings -->
+<div class="settings-section tab-content" id="tab-monitoring">
+    <div class="settings-card">
+        <h3 class="settings-title">Настройки мониторинга</h3>
+        <p class="settings-description">Параметры отслеживания и анализа</p>
+
+        <div class="form-group">
+            <label class="form-label">Частота проверки</label>
+            <select class="select-field">
+                <option>Каждый час</option>
+                <option selected>Каждые 6 часов</option>
+                <option>Раз в день</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Минимальный порог оценки</label>
+            <input type="number" class="input-field" value="70">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Уведомлять при изменении рейтинга на (%)</label>
+            <input type="number" class="input-field" value="5">
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 8px;">Сохранить изменения</button>
+    </div>
+</div>
+
+<!-- API Settings -->
+<div class="settings-section tab-content" id="tab-api">
+    <div class="settings-card">
+        <h3 class="settings-title">API ключи LLM</h3>
+        <p class="settings-description">Управление ключами доступа к языковым моделям</p>
+
+        <div class="api-keys-list">
+            <?php foreach ($apiKeys as $key): ?>
+            <div class="api-key-item">
+                <div class="api-key-info">
+                    <div class="api-key-name"><?= htmlspecialchars($key['name']) ?></div>
+                    <div class="api-key-value"><?= htmlspecialchars($key['key']) ?>****</div>
+                </div>
+                <div class="api-key-status <?= $key['status'] ?>">
+                    <?= $key['status'] === 'active' ? 'Активен' : 'Неактивен' ?>
+                </div>
+                <div class="api-key-actions">
+                    <button class="btn btn-secondary btn-sm">Изменить</button>
+                    <button class="btn btn-secondary btn-sm" style="color: var(--danger);">Удалить</button>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Добавить API ключ
+        </button>
+    </div>
+</div>
+
+<!-- Security Settings -->
+<div class="settings-section tab-content" id="tab-security">
+    <div class="settings-card">
+        <h3 class="settings-title">Безопасность</h3>
+        <p class="settings-description">Настройки безопасности аккаунта</p>
+
+        <div class="form-group">
+            <label class="form-label">Текущий пароль</label>
+            <input type="password" class="input-field" placeholder="Введите текущий пароль">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Новый пароль</label>
+            <input type="password" class="input-field" placeholder="Введите новый пароль">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Подтвердите пароль</label>
+            <input type="password" class="input-field" placeholder="Повторите новый пароль">
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 8px;">Изменить пароль</button>
     </div>
 </div>
 
@@ -235,4 +323,34 @@
         grid-template-columns: 1fr;
     }
 }
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: grid;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('#settings-tabs .tab');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetId = 'tab-' + this.dataset.tab;
+
+            // Update active tab
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            // Show target content
+            contents.forEach(content => {
+                content.classList.toggle('active', content.id === targetId);
+            });
+        });
+    });
+});
+</script>
