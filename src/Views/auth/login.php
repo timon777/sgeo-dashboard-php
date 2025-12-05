@@ -191,7 +191,6 @@
                         <span>S</span>
                     </div>
                     <h1 class="login-title">Вход в SGEO</h1>
-                    <p class="login-subtitle">Система мониторинга LLM-ответов</p>
                 </div>
 
                 <?php if (!empty($error)): ?>
