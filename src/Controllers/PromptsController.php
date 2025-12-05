@@ -6,74 +6,69 @@ use App\Models\AiResponse;
 use App\Models\Evaluation;
 use App\Models\PromptSet;
 use App\Models\Project;
+use App\Services\Cache;
 
 class PromptsController extends BaseController
 {
     public function index(): void
     {
-        $aiResponseModel = new AiResponse();
         $evaluationModel = new Evaluation();
-        $promptSetModel = new PromptSet();
-        $projectModel = new Project();
 
         // Pagination parameters
         $page = max(1, (int)($_GET['page'] ?? 1));
         $perPage = 20;
         $offset = ($page - 1) * $perPage;
 
-        // Get total count for pagination
-        $stats = $aiResponseModel->getStats();
-        $totalPrompts = $stats['total'] ?? 0;
+        // Get total count from cache
+        $totalPrompts = Cache::remember('prompts_total_count', function() {
+            $aiResponseModel = new AiResponse();
+            $stats = $aiResponseModel->getStats();
+            return $stats['total'] ?? 0;
+        }, 300);
+
         $totalPages = max(1, ceil($totalPrompts / $perPage));
 
-        // Get responses with evaluations from DB with pagination
-        $responsesResult = $aiResponseModel->all($perPage, $offset);
+        // Get evaluations with pagination (main data source)
         $evaluationsResult = $evaluationModel->recentDetailed($perPage, $offset);
 
-        // Format prompts for display
+        // Format prompts for display - no full_response in main load
         $prompts = [];
         if (isset($evaluationsResult['data']) && is_array($evaluationsResult['data'])) {
             foreach ($evaluationsResult['data'] as $eval) {
                 $prompts[] = [
                     'id' => $eval['ai_response_id'],
-                    'prompt' => $eval['prompt'] ?? '',
+                    'prompt' => $this->truncateText($eval['prompt'] ?? '', 200),
+                    'full_prompt' => $eval['prompt'] ?? '',
                     'llm' => $this->mapModelToShortName($eval['model_name'] ?? ''),
-                    'response' => $this->truncateText($eval['response'] ?? '', 150),
-                    'full_response' => $eval['response'] ?? '',
+                    'response' => $this->truncateText($eval['response'] ?? '', 100),
                     'tone' => $eval['tone'] ?? 'neutral',
                     'score' => (int)($eval['avg_score'] ?? 0),
                     'risk' => $eval['risk_level'] ?? 'low',
                     'date' => $this->formatDate($eval['evaluated_at'] ?? ''),
-                    'project' => $eval['project_name'] ?? '',
                 ];
             }
         }
 
-        // If no evaluations, try to get raw responses
-        if (empty($prompts) && isset($responsesResult['data']) && is_array($responsesResult['data'])) {
-            foreach ($responsesResult['data'] as $resp) {
-                $prompts[] = [
-                    'id' => $resp['id'],
-                    'prompt' => $resp['prompt'] ?? '',
-                    'llm' => $this->mapModelToShortName($resp['model_name'] ?? ''),
-                    'response' => $this->truncateText($resp['response'] ?? '', 150),
-                    'full_response' => $resp['response'] ?? '',
-                    'tone' => $resp['tone'] ?? 'neutral',
-                    'score' => 0,
-                    'risk' => $resp['risk_level'] ?? 'low',
-                    'date' => $this->formatDate($resp['created_at'] ?? ''),
-                    'project' => '',
-                ];
+        // Fallback to ai_responses if no evaluations
+        if (empty($prompts)) {
+            $aiResponseModel = new AiResponse();
+            $responsesResult = $aiResponseModel->all($perPage, $offset);
+            if (isset($responsesResult['data']) && is_array($responsesResult['data'])) {
+                foreach ($responsesResult['data'] as $resp) {
+                    $prompts[] = [
+                        'id' => $resp['id'],
+                        'prompt' => $this->truncateText($resp['prompt'] ?? '', 200),
+                        'full_prompt' => $resp['prompt'] ?? '',
+                        'llm' => $this->mapModelToShortName($resp['model_name'] ?? ''),
+                        'response' => $this->truncateText($resp['response'] ?? '', 100),
+                        'tone' => $resp['tone'] ?? 'neutral',
+                        'score' => 0,
+                        'risk' => $resp['risk_level'] ?? 'low',
+                        'date' => $this->formatDate($resp['created_at'] ?? ''),
+                    ];
+                }
             }
         }
-
-        // Get projects for filter
-        $projectsResult = $projectModel->all();
-        $projects = $projectsResult['data'] ?? [];
-
-        // Get prompt sets
-        $promptSetsResult = $promptSetModel->all(20);
-        $promptSets = $promptSetsResult['data'] ?? [];
 
         $this->render('prompts/index', [
             'pageTitle' => 'Промты и ответы LLM',
@@ -84,8 +79,34 @@ class PromptsController extends BaseController
             'paginationPage' => $page,
             'totalPages' => $totalPages,
             'perPage' => $perPage,
-            'projects' => $projects,
-            'promptSets' => $promptSets,
+        ]);
+    }
+
+    // AJAX endpoint for getting full prompt details
+    public function getDetail(string $id): void
+    {
+        header('Content-Type: application/json');
+
+        $evaluationModel = new Evaluation();
+        $aiResponseModel = new AiResponse();
+
+        // Try to get from evaluations first
+        $response = $aiResponseModel->find($id);
+
+        if (!$response) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Not found']);
+            return;
+        }
+
+        echo json_encode([
+            'id' => $response['id'],
+            'prompt' => $response['prompt'] ?? '',
+            'response' => $response['response'] ?? '',
+            'llm' => $this->mapModelToShortName($response['model_name'] ?? ''),
+            'tone' => $response['tone'] ?? 'neutral',
+            'risk' => $response['risk_level'] ?? 'low',
+            'date' => $this->formatDate($response['created_at'] ?? ''),
         ]);
     }
 
