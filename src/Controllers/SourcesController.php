@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Source;
+use App\Services\Cache;
 
 class SourcesController extends BaseController
 {
@@ -15,6 +16,7 @@ class SourcesController extends BaseController
         if (isset($result['data']) && is_array($result['data'])) {
             foreach ($result['data'] as $s) {
                 $sources[] = [
+                    'id' => $s['id'],
                     'domain' => $s['domain'],
                     'type' => $s['type'],
                     'country' => $s['country'],
@@ -39,6 +41,134 @@ class SourcesController extends BaseController
             'sources' => $sources,
             'totalSources' => $totalSources,
         ]);
+    }
+
+    public function store(): void
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (empty($data['domain'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Domain is required']);
+            return;
+        }
+
+        $sourceModel = new Source();
+
+        // Calculate E-E-A-T combined score
+        $expertise = (int)($data['expertise_score'] ?? 0);
+        $experience = (int)($data['experience_score'] ?? 0);
+        $authority = (int)($data['authority_score'] ?? 0);
+        $trust = (int)($data['trust_score'] ?? 0);
+        $eeatCombined = round(($expertise + $experience + $authority + $trust) / 4);
+
+        $result = $sourceModel->create([
+            'domain' => $data['domain'],
+            'type' => $data['type'] ?? 'media',
+            'country' => $data['country'] ?? 'KZ',
+            'expertise_score' => $expertise,
+            'experience_score' => $experience,
+            'authority_score' => $authority,
+            'trust_score' => $trust,
+            'eeat_combined' => $eeatCombined,
+            'share_percent' => (float)($data['share_percent'] ?? 0),
+            'has_author' => (bool)($data['has_author'] ?? false),
+            'has_https' => (bool)($data['has_https'] ?? true),
+        ]);
+
+        if ($result['status'] >= 200 && $result['status'] < 300) {
+            Cache::forget('sources_list');
+            http_response_code(201);
+            echo json_encode(['success' => true, 'data' => $result['data']]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to create source']);
+        }
+    }
+
+    public function update(string $id): void
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'PUT' && $_SERVER['REQUEST_METHOD'] !== 'PATCH') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $sourceModel = new Source();
+
+        $source = $sourceModel->find($id);
+        if (!$source) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Source not found']);
+            return;
+        }
+
+        $updateData = [];
+        if (isset($data['domain'])) $updateData['domain'] = $data['domain'];
+        if (isset($data['type'])) $updateData['type'] = $data['type'];
+        if (isset($data['country'])) $updateData['country'] = $data['country'];
+        if (isset($data['expertise_score'])) $updateData['expertise_score'] = (int)$data['expertise_score'];
+        if (isset($data['experience_score'])) $updateData['experience_score'] = (int)$data['experience_score'];
+        if (isset($data['authority_score'])) $updateData['authority_score'] = (int)$data['authority_score'];
+        if (isset($data['trust_score'])) $updateData['trust_score'] = (int)$data['trust_score'];
+        if (isset($data['share_percent'])) $updateData['share_percent'] = (float)$data['share_percent'];
+        if (isset($data['has_author'])) $updateData['has_author'] = (bool)$data['has_author'];
+        if (isset($data['has_https'])) $updateData['has_https'] = (bool)$data['has_https'];
+
+        // Recalculate E-E-A-T if any score changed
+        if (isset($data['expertise_score']) || isset($data['experience_score']) ||
+            isset($data['authority_score']) || isset($data['trust_score'])) {
+            $e = $updateData['expertise_score'] ?? $source['expertise_score'];
+            $x = $updateData['experience_score'] ?? $source['experience_score'];
+            $a = $updateData['authority_score'] ?? $source['authority_score'];
+            $t = $updateData['trust_score'] ?? $source['trust_score'];
+            $updateData['eeat_combined'] = round(($e + $x + $a + $t) / 4);
+        }
+
+        $updateData['updated_at'] = date('c');
+
+        $result = $sourceModel->update($id, $updateData);
+
+        if ($result['status'] >= 200 && $result['status'] < 300) {
+            Cache::forget('sources_list');
+            echo json_encode(['success' => true, 'data' => $result['data']]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to update source']);
+        }
+    }
+
+    public function destroy(string $id): void
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            return;
+        }
+
+        $sourceModel = new Source();
+        $result = $sourceModel->delete($id);
+
+        if ($result['status'] >= 200 && $result['status'] < 300) {
+            Cache::forget('sources_list');
+            echo json_encode(['success' => true]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to delete source']);
+        }
     }
 
     public function exportCsv(): void
