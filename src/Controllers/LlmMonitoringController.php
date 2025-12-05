@@ -5,74 +5,73 @@ namespace App\Controllers;
 use App\Models\ModelPerformance;
 use App\Models\AiResponse;
 use App\Models\Evaluation;
+use App\Services\SupabaseClient;
 
 class LlmMonitoringController extends BaseController
 {
+    private array $modelConfig = [
+        'ChatGPT' => ['shortName' => 'gpt', 'icon' => '🤖', 'color' => '#10a37f'],
+        'GPT-4' => ['shortName' => 'gpt', 'icon' => '🤖', 'color' => '#10a37f'],
+        'DeepSeek' => ['shortName' => 'deepseek', 'icon' => '🔍', 'color' => '#4d6bfe'],
+        'Grok' => ['shortName' => 'grok', 'icon' => '⚡', 'color' => '#1d9bf0'],
+        'Gemini' => ['shortName' => 'gemini', 'icon' => '💎', 'color' => '#4285f4'],
+        'Perplexity' => ['shortName' => 'perplexity', 'icon' => '🌐', 'color' => '#8b5cf6'],
+        'Claude' => ['shortName' => 'claude', 'icon' => '🎭', 'color' => '#d97706'],
+        'Copilot' => ['shortName' => 'copilot', 'icon' => '✈️', 'color' => '#f59e0b'],
+    ];
+
     public function index(): void
     {
         $performanceModel = new ModelPerformance();
         $aiResponseModel = new AiResponse();
 
+        // Get model performance from DB
         $modelPerformance = $performanceModel->getMetricsComparison();
+        $performanceData = $performanceModel->all();
 
-        // LLM data for display
-        $llmData = [
-            [
-                'name' => 'ChatGPT',
-                'shortName' => 'gpt',
-                'icon' => '🤖',
-                'color' => '#10a37f',
-                'accuracy' => 92,
-                'responses' => 1247,
-                'avgTime' => '1.2s',
-                'trend' => '+5%',
-                'trendUp' => true,
-            ],
-            [
-                'name' => 'DeepSeek',
-                'shortName' => 'deepseek',
-                'icon' => '🔍',
-                'color' => '#4d6bfe',
-                'accuracy' => 88,
-                'responses' => 856,
-                'avgTime' => '0.8s',
-                'trend' => '+12%',
-                'trendUp' => true,
-            ],
-            [
-                'name' => 'Grok',
-                'shortName' => 'grok',
-                'icon' => '⚡',
-                'color' => '#1d9bf0',
-                'accuracy' => 85,
-                'responses' => 634,
-                'avgTime' => '1.5s',
-                'trend' => '+8%',
-                'trendUp' => true,
-            ],
-            [
-                'name' => 'Gemini',
-                'shortName' => 'gemini',
-                'icon' => '💎',
-                'color' => '#4285f4',
-                'accuracy' => 87,
-                'responses' => 723,
-                'avgTime' => '1.1s',
-                'trend' => '-2%',
-                'trendUp' => false,
-            ],
-            [
-                'name' => 'Perplexity',
-                'shortName' => 'perplexity',
-                'icon' => '🌐',
-                'color' => '#8b5cf6',
-                'accuracy' => 84,
-                'responses' => 412,
-                'avgTime' => '2.1s',
-                'trend' => '+3%',
-                'trendUp' => true,
-            ],
-        ];
+        // Build LLM data from real database
+        $llmData = [];
+
+        if (isset($performanceData['data']) && is_array($performanceData['data'])) {
+            foreach ($performanceData['data'] as $model) {
+                $modelName = $model['model_name'] ?? 'Unknown';
+                $config = $this->modelConfig[$modelName] ?? [
+                    'shortName' => strtolower($modelName),
+                    'icon' => '🤖',
+                    'color' => '#6366f1'
+                ];
+
+                $avgScore = (float)($model['overall_avg_score'] ?? 0);
+                $totalResponses = (int)($model['total_responses'] ?? 0);
+                $avgTime = (int)($model['avg_response_time'] ?? 0);
+
+                $llmData[] = [
+                    'name' => $modelName,
+                    'shortName' => $config['shortName'],
+                    'icon' => $config['icon'],
+                    'color' => $config['color'],
+                    'accuracy' => round($avgScore),
+                    'responses' => $totalResponses,
+                    'avgTime' => $avgTime > 0 ? round($avgTime / 1000, 1) . 's' : 'N/A',
+                    'trend' => $this->calculateTrend($modelName),
+                    'trendUp' => $this->isTrendUp($modelName),
+                    'metrics' => [
+                        'coherence' => round((float)($model['avg_coherence'] ?? 0)),
+                        'consistency' => round((float)($model['avg_consistency'] ?? 0)),
+                        'fluency' => round((float)($model['avg_fluency'] ?? 0)),
+                        'relevance' => round((float)($model['avg_relevance'] ?? 0)),
+                    ],
+                ];
+            }
+        }
+
+        // If no data from DB, use fallback from llm_models table
+        if (empty($llmData)) {
+            $llmData = $this->getFallbackLlmData();
+        }
+
+        // Get recent responses for activity feed
+        $recentResponses = $aiResponseModel->all(10);
 
         $this->render('llm-monitoring/index', [
             'pageTitle' => 'LLM Мониторинг',
@@ -80,6 +79,56 @@ class LlmMonitoringController extends BaseController
             'breadcrumb' => 'LLM Мониторинг',
             'llmData' => $llmData,
             'modelPerformance' => $modelPerformance,
+            'recentResponses' => $recentResponses['data'] ?? [],
+            'totalModels' => count($llmData),
+            'totalEvaluations' => array_sum(array_column($llmData, 'responses')),
         ]);
+    }
+
+    private function calculateTrend(string $modelName): string
+    {
+        // In production, calculate from historical data
+        // For now, return placeholder
+        return '+0%';
+    }
+
+    private function isTrendUp(string $modelName): bool
+    {
+        // In production, calculate from historical data
+        return true;
+    }
+
+    private function getFallbackLlmData(): array
+    {
+        $db = new SupabaseClient();
+        $result = $db->from('llm_models')
+            ->select('*')
+            ->eq('is_active', 'true')
+            ->get();
+
+        $llmData = [];
+        if (isset($result['data']) && is_array($result['data'])) {
+            foreach ($result['data'] as $model) {
+                $llmData[] = [
+                    'name' => $model['name'],
+                    'shortName' => $model['short_name'],
+                    'icon' => $model['icon'] ?? '🤖',
+                    'color' => $model['color'] ?? '#6366f1',
+                    'accuracy' => 0,
+                    'responses' => 0,
+                    'avgTime' => 'N/A',
+                    'trend' => '+0%',
+                    'trendUp' => true,
+                    'metrics' => [
+                        'coherence' => 0,
+                        'consistency' => 0,
+                        'fluency' => 0,
+                        'relevance' => 0,
+                    ],
+                ];
+            }
+        }
+
+        return $llmData;
     }
 }

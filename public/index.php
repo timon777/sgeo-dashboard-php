@@ -3,6 +3,8 @@
  * SGEO Dashboard - Main Entry Point
  */
 
+session_start();
+
 // Autoloader
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';
@@ -48,19 +50,54 @@ if (in_array($extension, $staticExtensions)) {
 // Routes
 $routes = [
     'GET' => [
+        // Pages
         '/' => ['App\\Controllers\\DashboardController', 'index'],
         '/projects' => ['App\\Controllers\\ProjectsController', 'index'],
+        '/projects/create' => ['App\\Controllers\\ProjectsController', 'create'],
         '/projects/{id}' => ['App\\Controllers\\ProjectsController', 'show'],
         '/prompts' => ['App\\Controllers\\PromptsController', 'index'],
+        '/prompts/{id}' => ['App\\Controllers\\PromptsController', 'show'],
         '/sources' => ['App\\Controllers\\SourcesController', 'index'],
         '/llm-monitoring' => ['App\\Controllers\\LlmMonitoringController', 'index'],
         '/trends' => ['App\\Controllers\\TrendsController', 'index'],
         '/reports' => ['App\\Controllers\\ReportsController', 'index'],
         '/settings' => ['App\\Controllers\\SettingsController', 'index'],
+
+        // Auth pages
+        '/login' => ['App\\Controllers\\AuthController', 'loginForm'],
+        '/logout' => ['App\\Controllers\\AuthController', 'logout'],
+
+        // API endpoints
+        '/api/projects' => ['App\\Controllers\\ProjectsController', 'apiList'],
+        '/api/projects/{id}' => ['App\\Controllers\\ProjectsController', 'apiShow'],
+        '/api/prompts' => ['App\\Controllers\\PromptsController', 'apiList'],
+        '/api/sources' => ['App\\Controllers\\SourcesController', 'apiList'],
+        '/api/reports/export/{id}' => ['App\\Controllers\\ReportsController', 'export'],
     ],
     'POST' => [
-        '/api/prompts' => ['App\\Controllers\\Api\\PromptsApiController', 'store'],
-        '/api/evaluations' => ['App\\Controllers\\Api\\EvaluationsApiController', 'store'],
+        // Auth
+        '/login' => ['App\\Controllers\\AuthController', 'login'],
+
+        // API CRUD
+        '/api/projects' => ['App\\Controllers\\ProjectsController', 'store'],
+        '/api/prompts' => ['App\\Controllers\\PromptsController', 'store'],
+        '/api/sources' => ['App\\Controllers\\SourcesController', 'store'],
+        '/api/reports' => ['App\\Controllers\\ReportsController', 'store'],
+    ],
+    'PUT' => [
+        '/api/projects/{id}' => ['App\\Controllers\\ProjectsController', 'update'],
+        '/api/prompts/{id}' => ['App\\Controllers\\PromptsController', 'update'],
+        '/api/sources/{id}' => ['App\\Controllers\\SourcesController', 'update'],
+    ],
+    'PATCH' => [
+        '/api/projects/{id}' => ['App\\Controllers\\ProjectsController', 'update'],
+        '/api/prompts/{id}' => ['App\\Controllers\\PromptsController', 'update'],
+        '/api/sources/{id}' => ['App\\Controllers\\SourcesController', 'update'],
+    ],
+    'DELETE' => [
+        '/api/projects/{id}' => ['App\\Controllers\\ProjectsController', 'destroy'],
+        '/api/prompts/{id}' => ['App\\Controllers\\PromptsController', 'delete'],
+        '/api/sources/{id}' => ['App\\Controllers\\SourcesController', 'destroy'],
     ],
 ];
 
