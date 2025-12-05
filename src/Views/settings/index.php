@@ -92,9 +92,9 @@
         <div class="form-group">
             <label class="form-label">Частота проверки</label>
             <select class="select-field">
-                <option>Каждый час</option>
-                <option selected>Каждые 6 часов</option>
-                <option>Раз в день</option>
+                <option value="daily" selected>Раз в день</option>
+                <option value="weekly">Раз в неделю</option>
+                <option value="monthly">Раз в месяц</option>
             </select>
         </div>
 
