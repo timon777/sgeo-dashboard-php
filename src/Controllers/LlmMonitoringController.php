@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\ModelPerformance;
 use App\Models\AiResponse;
 use App\Models\Evaluation;
+use App\Services\Cache;
 use App\Services\SupabaseClient;
 
 class LlmMonitoringController extends BaseController
@@ -25,9 +26,14 @@ class LlmMonitoringController extends BaseController
         $performanceModel = new ModelPerformance();
         $aiResponseModel = new AiResponse();
 
-        // Get model performance from DB
-        $modelPerformance = $performanceModel->getMetricsComparison();
-        $performanceData = $performanceModel->all();
+        // Get model performance from DB with caching
+        $modelPerformance = Cache::remember('llm_model_performance', function() use ($performanceModel) {
+            return $performanceModel->getMetricsComparison();
+        }, 300);
+
+        $performanceData = Cache::remember('llm_performance_data', function() use ($performanceModel) {
+            return $performanceModel->all();
+        }, 300);
 
         // Build LLM data from real database
         $llmData = [];
@@ -70,8 +76,10 @@ class LlmMonitoringController extends BaseController
             $llmData = $this->getFallbackLlmData();
         }
 
-        // Get recent responses for activity feed
-        $recentResponses = $aiResponseModel->all(10);
+        // Get recent responses for activity feed with caching (1 minute)
+        $recentResponses = Cache::remember('llm_recent_responses', function() use ($aiResponseModel) {
+            return $aiResponseModel->all(10);
+        }, 60);
 
         $this->render('llm-monitoring/index', [
             'pageTitle' => 'LLM Мониторинг',

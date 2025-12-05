@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\Project;
 use App\Models\AiResponse;
 use App\Models\Source;
+use App\Services\Cache;
 use App\Services\SupabaseClient;
 
 class ProjectsController extends BaseController
@@ -12,7 +13,9 @@ class ProjectsController extends BaseController
     public function index(): void
     {
         $projectModel = new Project();
-        $result = $projectModel->all();
+        $result = Cache::remember('projects_list', function() use ($projectModel) {
+            return $projectModel->all();
+        }, 180);
 
         $projects = [];
         if (isset($result['data']) && is_array($result['data'])) {
@@ -125,6 +128,11 @@ class ProjectsController extends BaseController
         ]);
 
         if ($result['status'] >= 200 && $result['status'] < 300) {
+            // Clear projects cache
+            Cache::forget('projects_list');
+            Cache::forget('dashboard_project_count');
+            Cache::forget('dashboard_project_chart_data');
+
             http_response_code(201);
             echo json_encode(['success' => true, 'data' => $result['data']]);
         } else {
@@ -166,6 +174,10 @@ class ProjectsController extends BaseController
         $result = $projectModel->update($id, $updateData);
 
         if ($result['status'] >= 200 && $result['status'] < 300) {
+            // Clear projects cache
+            Cache::forget('projects_list');
+            Cache::forget('dashboard_project_chart_data');
+
             echo json_encode(['success' => true, 'data' => $result['data']]);
         } else {
             http_response_code(500);
@@ -185,6 +197,11 @@ class ProjectsController extends BaseController
         $result = $projectModel->delete($id); // Soft delete (sets is_active to false)
 
         if ($result['status'] >= 200 && $result['status'] < 300) {
+            // Clear projects cache
+            Cache::forget('projects_list');
+            Cache::forget('dashboard_project_count');
+            Cache::forget('dashboard_project_chart_data');
+
             echo json_encode(['success' => true]);
         } else {
             http_response_code(500);

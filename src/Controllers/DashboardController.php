@@ -7,6 +7,7 @@ use App\Models\Evaluation;
 use App\Models\ModelPerformance;
 use App\Models\Project;
 use App\Models\Source;
+use App\Services\Cache;
 use App\Services\SupabaseClient;
 
 class DashboardController extends BaseController
@@ -19,15 +20,32 @@ class DashboardController extends BaseController
         $projectModel = new Project();
         $sourceModel = new Source();
 
-        // Get real statistics from database
-        $recentResponses = $aiResponseModel->all(10);
-        $recentEvaluations = $evaluationModel->recentDetailed(5);
-        $modelPerformance = $performanceModel->getMetricsComparison();
+        // Cache expensive queries for 5 minutes
+        $modelPerformance = Cache::remember('dashboard_model_performance', function() use ($performanceModel) {
+            return $performanceModel->getMetricsComparison();
+        }, 300);
 
-        // Calculate dashboard stats from real data
-        $projectCount = $projectModel->count();
-        $sourceCount = $sourceModel->count();
-        $responseStats = $aiResponseModel->getStats();
+        $recentResponses = Cache::remember('dashboard_recent_responses', function() use ($aiResponseModel) {
+            return $aiResponseModel->all(10);
+        }, 60);
+
+        $recentEvaluations = Cache::remember('dashboard_recent_evaluations', function() use ($evaluationModel) {
+            return $evaluationModel->recentDetailed(5);
+        }, 60);
+
+        // Calculate dashboard stats from real data with caching
+        $projectCount = Cache::remember('dashboard_project_count', function() use ($projectModel) {
+            return $projectModel->count();
+        }, 300);
+
+        $sourceCount = Cache::remember('dashboard_source_count', function() use ($sourceModel) {
+            return $sourceModel->count();
+        }, 300);
+
+        $responseStats = Cache::remember('dashboard_response_stats', function() use ($aiResponseModel) {
+            return $aiResponseModel->getStats();
+        }, 300);
+
         $promptCount = $responseStats['total'] ?? 0;
 
         // Calculate average accuracy from model performance
@@ -98,47 +116,52 @@ class DashboardController extends BaseController
 
     private function buildProjectChartData(Project $projectModel): array
     {
-        $result = $projectModel->all();
-        $projectData = [];
+        return Cache::remember('dashboard_project_chart_data', function() use ($projectModel) {
+            $result = $projectModel->all();
+            $projectData = [];
 
-        if (isset($result['data']) && is_array($result['data'])) {
-            // Get response counts per project
-            $db = new SupabaseClient();
+            if (isset($result['data']) && is_array($result['data'])) {
+                // Get all response counts in one query using project_stats view
+                $db = new SupabaseClient();
+                $statsResult = $db->from('project_stats')->select('*')->get();
 
-            foreach ($result['data'] as $project) {
-                $projectId = $project['id'];
-                $projectName = $project['name'];
-
-                // Truncate long names
-                if (mb_strlen($projectName) > 20) {
-                    $projectName = mb_substr($projectName, 0, 17) . '...';
+                $statsByProject = [];
+                if (isset($statsResult['data'])) {
+                    foreach ($statsResult['data'] as $stat) {
+                        $statsByProject[$stat['project_id']] = $stat;
+                    }
                 }
 
-                // Count responses for this project
-                $countResult = $db->from('ai_responses')
-                    ->select('*')
-                    ->eq('project_id', $projectId)
-                    ->get();
+                foreach ($result['data'] as $project) {
+                    $projectId = $project['id'];
+                    $projectName = $project['name'];
 
-                $mentions = count($countResult['data'] ?? []);
+                    // Truncate long names
+                    if (mb_strlen($projectName) > 20) {
+                        $projectName = mb_substr($projectName, 0, 17) . '...';
+                    }
 
-                $projectData[] = [
-                    'name' => $projectName,
-                    'mentions' => $mentions,
-                    'accuracy' => (float)($project['accuracy_score'] ?? 0),
-                ];
+                    // Get mentions from cached stats
+                    $mentions = $statsByProject[$projectId]['total_responses'] ?? 0;
+
+                    $projectData[] = [
+                        'name' => $projectName,
+                        'mentions' => (int)$mentions,
+                        'accuracy' => (float)($project['accuracy_score'] ?? 0),
+                    ];
+                }
+
+                // Sort by mentions descending
+                usort($projectData, function($a, $b) {
+                    return $b['mentions'] - $a['mentions'];
+                });
+
+                // Limit to top 6
+                $projectData = array_slice($projectData, 0, 6);
             }
 
-            // Sort by mentions descending
-            usort($projectData, function($a, $b) {
-                return $b['mentions'] - $a['mentions'];
-            });
-
-            // Limit to top 6
-            $projectData = array_slice($projectData, 0, 6);
-        }
-
-        return $projectData;
+            return $projectData;
+        }, 300);
     }
 
     private function calculateTrends(): array
