@@ -47,6 +47,22 @@ if (in_array($extension, $staticExtensions)) {
     return false;
 }
 
+// Public routes (no auth required)
+$publicRoutes = [
+    '/login',
+    '/logout',
+];
+
+// Check authentication for protected routes
+$isAuthenticated = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+$isPublicRoute = in_array($requestUri, $publicRoutes);
+
+if (!$isAuthenticated && !$isPublicRoute) {
+    // Redirect to login page
+    header('Location: /login');
+    exit;
+}
+
 // Routes
 $routes = [
     'GET' => [

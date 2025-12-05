@@ -129,6 +129,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update chart defaults
     updateChartDefaults();
+
+    // User menu toggle
+    const userMenuTrigger = document.querySelector('.user-menu-trigger');
+    const userMenu = document.querySelector('.user-menu');
+
+    if (userMenuTrigger && userMenu) {
+        userMenuTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userMenu.classList.toggle('open');
+        });
+
+        // Close on click outside
+        document.addEventListener('click', function(e) {
+            if (!userMenu.contains(e.target)) {
+                userMenu.classList.remove('open');
+            }
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                userMenu.classList.remove('open');
+            }
+        });
+    }
 });
 
 // Export functions globally

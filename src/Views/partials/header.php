@@ -51,5 +51,38 @@
             <span class="status-dot"></span>
             Система активна
         </div>
+        <div class="user-menu">
+            <button class="user-menu-trigger" aria-label="Меню пользователя">
+                <div class="user-avatar">
+                    <?= htmlspecialchars($_SESSION['user_avatar'] ?? 'U') ?>
+                </div>
+                <span class="user-name"><?= htmlspecialchars($_SESSION['user_name'] ?? 'Пользователь') ?></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="m6 9 6 6 6-6"/>
+                </svg>
+            </button>
+            <div class="user-dropdown">
+                <div class="user-dropdown-header">
+                    <div class="user-avatar"><?= htmlspecialchars($_SESSION['user_avatar'] ?? 'U') ?></div>
+                    <div class="user-info">
+                        <div class="user-name"><?= htmlspecialchars($_SESSION['user_name'] ?? 'Пользователь') ?></div>
+                        <div class="user-email"><?= htmlspecialchars($_SESSION['user_email'] ?? '') ?></div>
+                    </div>
+                </div>
+                <div class="user-dropdown-divider"></div>
+                <a href="/settings" class="user-dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    Настройки
+                </a>
+                <a href="/logout" class="user-dropdown-item user-dropdown-logout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Выйти
+                </a>
+            </div>
+        </div>
     </div>
 </header>
