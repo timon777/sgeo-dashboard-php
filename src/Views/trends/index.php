@@ -5,11 +5,11 @@
             <p class="page-subtitle">Аналитика изменений и тенденций в работе системы</p>
         </div>
         <div class="page-actions">
-            <div class="tabs-container">
-                <button class="tab active">24ч</button>
-                <button class="tab">7д</button>
-                <button class="tab">30д</button>
-                <button class="tab">90д</button>
+            <div class="tabs-container" id="period-tabs">
+                <button class="tab <?= $currentPeriod === '24h' ? 'active' : '' ?>" data-period="24h">24ч</button>
+                <button class="tab <?= $currentPeriod === '7d' ? 'active' : '' ?>" data-period="7d">7д</button>
+                <button class="tab <?= $currentPeriod === '30d' ? 'active' : '' ?>" data-period="30d">30д</button>
+                <button class="tab <?= $currentPeriod === '90d' ? 'active' : '' ?>" data-period="90d">90д</button>
             </div>
         </div>
     </div>
@@ -188,38 +188,51 @@
 </style>
 
 <?php
-$pageScripts = <<<'SCRIPTS'
+$chartDataJson = json_encode($chartData);
+$pageScripts = <<<SCRIPTS
 <script>
+const initialChartData = {$chartDataJson};
+
+const colors = {
+    primary: '#6366f1',
+    secondary: '#8b5cf6',
+    success: '#22c55e',
+    warning: '#f59e0b',
+    danger: '#ef4444'
+};
+
+const datasetColors = [colors.primary, colors.success, colors.secondary, colors.warning];
+
 function initTrendsCharts() {
     const themeColors = getChartColors();
     updateChartDefaults();
 
-    const colors = {
-        primary: '#6366f1',
-        secondary: '#8b5cf6',
-        success: '#22c55e',
-        warning: '#f59e0b',
-        danger: '#ef4444'
-    };
+    const mainTrendData = initialChartData.mainTrend;
+    const llmDistData = initialChartData.llmDistribution;
 
     // Main Trend Line Chart
+    const datasets = mainTrendData.datasets.map((ds, i) => ({
+        label: ds.label,
+        data: ds.data,
+        borderColor: datasetColors[i % datasetColors.length],
+        backgroundColor: datasetColors[i % datasetColors.length] + '20',
+        fill: true,
+        tension: 0.4,
+        borderWidth: 2
+    }));
+
     pageCharts.mainTrend = new Chart(document.getElementById('mainTrendChart'), {
         type: 'line',
         data: {
-            labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-            datasets: [
-                { label: 'Имидж Президента', data: [68, 70, 72, 74, 75, 77, 78], borderColor: colors.primary, backgroundColor: colors.primary + '20', fill: true, tension: 0.4, borderWidth: 2 },
-                { label: 'Январь 2022', data: [65, 67, 68, 70, 71, 71, 72], borderColor: colors.success, backgroundColor: colors.success + '10', fill: true, tension: 0.4, borderWidth: 2 },
-                { label: 'Цифровой Казахстан', data: [80, 81, 82, 83, 84, 84, 85], borderColor: colors.secondary, backgroundColor: colors.secondary + '10', fill: true, tension: 0.4, borderWidth: 2 },
-                { label: 'АЭС', data: [72, 71, 70, 70, 69, 69, 69], borderColor: colors.warning, backgroundColor: colors.warning + '10', fill: true, tension: 0.4, borderWidth: 2 },
-            ]
+            labels: mainTrendData.labels,
+            datasets: datasets
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } } },
             scales: {
-                y: { beginAtZero: false, min: 60, max: 90, grid: { color: themeColors.grid }, ticks: { color: themeColors.text } },
+                y: { beginAtZero: false, min: 40, max: 90, grid: { color: themeColors.grid }, ticks: { color: themeColors.text } },
                 x: { grid: { display: false }, ticks: { color: themeColors.text } }
             },
             interaction: { mode: 'index', intersect: false }
@@ -230,10 +243,10 @@ function initTrendsCharts() {
     pageCharts.llmDist = new Chart(document.getElementById('llmDistributionChart'), {
         type: 'bar',
         data: {
-            labels: ['ChatGPT', 'DeepSeek', 'Gemini', 'Grok', 'Perplexity'],
+            labels: llmDistData.labels,
             datasets: [{
                 label: 'Количество запросов',
-                data: [1247, 856, 723, 634, 412],
+                data: llmDistData.data,
                 backgroundColor: [colors.success, colors.primary, colors.warning, colors.secondary, colors.danger],
                 borderRadius: 8,
                 borderSkipped: false,
@@ -249,6 +262,104 @@ function initTrendsCharts() {
             }
         }
     });
+
+    // Period tabs handler
+    initPeriodTabs();
+}
+
+function initPeriodTabs() {
+    const tabs = document.querySelectorAll('#period-tabs .tab');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', async function() {
+            const period = this.dataset.period;
+
+            // Update active tab
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            // Update URL
+            const url = new URL(window.location);
+            url.searchParams.set('period', period);
+            window.history.pushState({}, '', url);
+
+            // Load new data
+            await loadPeriodData(period);
+        });
+    });
+}
+
+async function loadPeriodData(period) {
+    try {
+        const resp = await fetch('/api/trends/data?period=' + period);
+        if (!resp.ok) throw new Error('Network error');
+
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.error || 'Error loading data');
+
+        // Update stats
+        updateStats(data.stats);
+
+        // Update top projects
+        updateTopProjects(data.topProjects);
+
+        // Update charts
+        updateCharts(data.chartData);
+
+    } catch (e) {
+        console.error('Error loading period data:', e);
+    }
+}
+
+function updateStats(stats) {
+    const statCards = document.querySelectorAll('.stats-grid .stat-card');
+    if (statCards.length >= 4) {
+        statCards[0].querySelector('.stat-value').textContent = stats.avgAccuracy + '%';
+        statCards[1].querySelector('.stat-value').textContent = stats.processedRequests.toLocaleString();
+        statCards[2].querySelector('.stat-value').textContent = stats.problematicResponses.toLocaleString();
+        statCards[3].querySelector('.stat-value').textContent = stats.newSources.toLocaleString();
+    }
+}
+
+function updateTopProjects(projects) {
+    const container = document.querySelector('.top-projects-list');
+    if (!container) return;
+
+    container.innerHTML = projects.map((project, index) =>
+        '<div class="top-project-item">' +
+            '<div class="top-project-rank">' + (index + 1) + '</div>' +
+            '<div class="top-project-icon">' + project.icon + '</div>' +
+            '<div class="top-project-name">' + project.name + '</div>' +
+            '<div class="top-project-growth" style="color: var(--success);">' + project.growth + '</div>' +
+        '</div>'
+    ).join('');
+}
+
+function updateCharts(chartData) {
+    const themeColors = getChartColors();
+
+    // Update main trend chart
+    if (pageCharts.mainTrend) {
+        const mainTrendData = chartData.mainTrend;
+
+        pageCharts.mainTrend.data.labels = mainTrendData.labels;
+        pageCharts.mainTrend.data.datasets = mainTrendData.datasets.map((ds, i) => ({
+            label: ds.label,
+            data: ds.data,
+            borderColor: datasetColors[i % datasetColors.length],
+            backgroundColor: datasetColors[i % datasetColors.length] + '20',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2
+        }));
+        pageCharts.mainTrend.update();
+    }
+
+    // Update LLM distribution chart
+    if (pageCharts.llmDist) {
+        pageCharts.llmDist.data.datasets[0].data = chartData.llmDistribution.data;
+        pageCharts.llmDist.update();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', initTrendsCharts);

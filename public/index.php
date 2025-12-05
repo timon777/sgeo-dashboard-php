@@ -89,6 +89,7 @@ $routes = [
         '/api/prompts' => ['App\\Controllers\\PromptsController', 'apiList'],
         '/api/prompts/{id}' => ['App\\Controllers\\PromptsController', 'getDetail'],
         '/api/sources' => ['App\\Controllers\\SourcesController', 'apiList'],
+        '/api/trends/data' => ['App\\Controllers\\TrendsController', 'apiChartData'],
         '/api/reports/export/{id}' => ['App\\Controllers\\ReportsController', 'export'],
 
         // Export endpoints
