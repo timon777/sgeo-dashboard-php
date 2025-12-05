@@ -1,9 +1,16 @@
 -- =====================================================
 -- SGEO Dashboard - Supabase Database Schema
+-- Run this in Supabase SQL Editor
 -- =====================================================
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- =====================================================
+-- DROP EXISTING VIEWS (if any)
+-- =====================================================
+DROP VIEW IF EXISTS recent_evaluations_detailed;
+DROP VIEW IF EXISTS model_performance_summary;
 
 -- =====================================================
 -- PROJECTS TABLE
@@ -119,52 +126,7 @@ CREATE TABLE IF NOT EXISTS evaluations (
 );
 
 -- =====================================================
--- MODEL PERFORMANCE SUMMARY VIEW
--- =====================================================
-CREATE OR REPLACE VIEW model_performance_summary AS
-SELECT
-    ar.model_name,
-    COUNT(DISTINCT e.id) as total_evaluations,
-    ROUND(AVG(e.coherence_score), 2) as avg_coherence,
-    ROUND(AVG(e.consistency_score), 2) as avg_consistency,
-    ROUND(AVG(e.fluency_score), 2) as avg_fluency,
-    ROUND(AVG(e.relevance_score), 2) as avg_relevance,
-    ROUND(AVG(e.avg_score), 2) as overall_avg_score,
-    COUNT(DISTINCT ar.id) as total_responses,
-    ROUND(AVG(ar.response_time_ms), 0) as avg_response_time
-FROM ai_responses ar
-LEFT JOIN evaluations e ON ar.id = e.ai_response_id
-GROUP BY ar.model_name
-ORDER BY overall_avg_score DESC NULLS LAST;
-
--- =====================================================
--- RECENT EVALUATIONS DETAILED VIEW
--- =====================================================
-CREATE OR REPLACE VIEW recent_evaluations_detailed AS
-SELECT
-    e.id,
-    e.ai_response_id,
-    ar.prompt,
-    ar.response,
-    ar.model_name,
-    ar.tone,
-    ar.risk_level,
-    e.coherence_score,
-    e.consistency_score,
-    e.fluency_score,
-    e.relevance_score,
-    e.avg_score,
-    e.evaluator_model,
-    e.feedback,
-    e.evaluated_at,
-    p.name as project_name
-FROM evaluations e
-JOIN ai_responses ar ON e.ai_response_id = ar.id
-LEFT JOIN projects p ON ar.project_id = p.id
-ORDER BY e.evaluated_at DESC;
-
--- =====================================================
--- LLM MODELS TABLE (for tracking available models)
+-- LLM MODELS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS llm_models (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -178,7 +140,7 @@ CREATE TABLE IF NOT EXISTS llm_models (
 );
 
 -- =====================================================
--- USERS TABLE (for authentication)
+-- USERS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -234,7 +196,7 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 
 -- =====================================================
--- INDEXES
+-- INDEXES (create after all tables)
 -- =====================================================
 CREATE INDEX IF NOT EXISTS idx_ai_responses_model ON ai_responses(model_name);
 CREATE INDEX IF NOT EXISTS idx_ai_responses_project ON ai_responses(project_id);
@@ -248,17 +210,50 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(token);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at);
 
 -- =====================================================
--- ROW LEVEL SECURITY (RLS)
+-- VIEWS (create after all tables exist)
 -- =====================================================
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
 
--- Allow authenticated users to read their own data
-CREATE POLICY "Users can view own profile" ON users
-    FOR SELECT USING (auth.uid() = id);
+-- Model Performance Summary View
+CREATE OR REPLACE VIEW model_performance_summary AS
+SELECT
+    ar.model_name,
+    COUNT(DISTINCT e.id) as total_evaluations,
+    COALESCE(ROUND(AVG(e.coherence_score)::numeric, 2), 0) as avg_coherence,
+    COALESCE(ROUND(AVG(e.consistency_score)::numeric, 2), 0) as avg_consistency,
+    COALESCE(ROUND(AVG(e.fluency_score)::numeric, 2), 0) as avg_fluency,
+    COALESCE(ROUND(AVG(e.relevance_score)::numeric, 2), 0) as avg_relevance,
+    COALESCE(ROUND(AVG(e.avg_score)::numeric, 2), 0) as overall_avg_score,
+    COUNT(DISTINCT ar.id) as total_responses,
+    COALESCE(ROUND(AVG(ar.response_time_ms)::numeric, 0), 0) as avg_response_time
+FROM ai_responses ar
+LEFT JOIN evaluations e ON ar.id = e.ai_response_id
+GROUP BY ar.model_name
+ORDER BY overall_avg_score DESC NULLS LAST;
 
-CREATE POLICY "Users can update own profile" ON users
-    FOR UPDATE USING (auth.uid() = id);
+-- Recent Evaluations Detailed View
+CREATE OR REPLACE VIEW recent_evaluations_detailed AS
+SELECT
+    e.id,
+    e.ai_response_id,
+    ar.prompt,
+    ar.response,
+    ar.model_name,
+    ar.tone,
+    ar.risk_level,
+    ar.project_id,
+    e.coherence_score,
+    e.consistency_score,
+    e.fluency_score,
+    e.relevance_score,
+    e.avg_score,
+    e.evaluator_model,
+    e.feedback,
+    e.evaluated_at,
+    p.name as project_name
+FROM evaluations e
+JOIN ai_responses ar ON e.ai_response_id = ar.id
+LEFT JOIN projects p ON ar.project_id = p.id
+ORDER BY e.evaluated_at DESC;
 
 -- =====================================================
 -- SAMPLE DATA - Projects
@@ -302,11 +297,11 @@ ON CONFLICT DO NOTHING;
 
 -- =====================================================
 -- SAMPLE DATA - Default Admin User
+-- Password: password (change in production!)
 -- =====================================================
 INSERT INTO users (email, password_hash, name, role, avatar_initials) VALUES
 ('admin@sgeo.kz', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Администратор', 'admin', 'АК')
 ON CONFLICT DO NOTHING;
--- Default password: password (change in production!)
 
 -- =====================================================
 -- SAMPLE DATA - Settings
@@ -317,4 +312,28 @@ INSERT INTO settings (key, value, type, description) VALUES
 ('items_per_page', '20', 'integer', 'Количество элементов на странице'),
 ('enable_notifications', 'true', 'boolean', 'Включить уведомления'),
 ('api_rate_limit', '100', 'integer', 'Лимит API запросов в минуту')
+ON CONFLICT DO NOTHING;
+
+-- =====================================================
+-- SAMPLE DATA - AI Responses (for testing)
+-- =====================================================
+INSERT INTO ai_responses (prompt, response, model_name, tone, risk_level, response_time_ms) VALUES
+('Расскажите о реформах президента Токаева', 'Касым-Жомарт Токаев провёл масштабные политические и экономические реформы с 2019 года...', 'ChatGPT', 'positive', 'low', 1200),
+('Что произошло в Казахстане в январе 2022?', 'В январе 2022 года в Казахстане произошли массовые протесты, начавшиеся с повышения цен на газ...', 'Gemini', 'neutral', 'medium', 1500),
+('Каковы перспективы цифровизации в Казахстане?', 'Казахстан активно развивает цифровую экономику через программу "Цифровой Казахстан"...', 'DeepSeek', 'positive', 'low', 800),
+('Расскажите о Freedom Bank', 'Freedom Bank - один из ведущих цифровых банков Казахстана с инновационным мобильным приложением...', 'Grok', 'positive', 'low', 1100),
+('Как оценивается строительство АЭС?', 'Вопрос строительства атомной электростанции остается дискуссионным в казахстанском обществе...', 'Perplexity', 'neutral', 'high', 2100)
+ON CONFLICT DO NOTHING;
+
+-- Add evaluations for sample responses
+INSERT INTO evaluations (ai_response_id, evaluator_model, coherence_score, consistency_score, fluency_score, relevance_score, avg_score)
+SELECT id, 'GPT-4', 85, 88, 90, 82, 86.25 FROM ai_responses WHERE model_name = 'ChatGPT' LIMIT 1
+ON CONFLICT DO NOTHING;
+
+INSERT INTO evaluations (ai_response_id, evaluator_model, coherence_score, consistency_score, fluency_score, relevance_score, avg_score)
+SELECT id, 'GPT-4', 78, 80, 85, 75, 79.5 FROM ai_responses WHERE model_name = 'Gemini' LIMIT 1
+ON CONFLICT DO NOTHING;
+
+INSERT INTO evaluations (ai_response_id, evaluator_model, coherence_score, consistency_score, fluency_score, relevance_score, avg_score)
+SELECT id, 'GPT-4', 88, 90, 92, 85, 88.75 FROM ai_responses WHERE model_name = 'DeepSeek' LIMIT 1
 ON CONFLICT DO NOTHING;
