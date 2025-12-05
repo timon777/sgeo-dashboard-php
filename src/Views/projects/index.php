@@ -4,13 +4,23 @@
             <h1 class="page-title">Проекты и аналитические направления</h1>
             <p class="page-subtitle">Мониторинг ключевых тематик в ответах языковых моделей</p>
         </div>
-        <button class="btn btn-primary">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Создать проект
-        </button>
+        <div class="page-actions">
+            <a href="/export/projects" class="btn btn-secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7,10 12,15 17,10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Экспорт CSV
+            </a>
+            <button class="btn btn-primary" id="create-project-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Создать проект
+            </button>
+        </div>
     </div>
 
     <div class="tabs-container" id="project-tabs">
@@ -213,7 +223,81 @@
 .project-card.hidden {
     display: none;
 }
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+}
+.modal-title { font-size: 20px; font-weight: 600; margin-bottom: 24px; color: var(--text-primary); }
+.toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 16px 24px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1001;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--success); color: white; }
+.toast.error { background: var(--danger); color: white; }
 </style>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Create Project Modal -->
+<div class="modal-overlay" id="create-modal">
+    <div class="modal">
+        <h3 class="modal-title">Создать проект</h3>
+        <form id="create-project-form">
+            <div class="form-group">
+                <label class="form-label">Название проекта</label>
+                <input type="text" class="input-field" id="project-name" required placeholder="Например: Имидж компании">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Описание</label>
+                <textarea class="input-field" id="project-description" rows="3" placeholder="Краткое описание проекта"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Тип</label>
+                <select class="select-field" id="project-type">
+                    <option value="gov">Государственный</option>
+                    <option value="private">Частный</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Иконка (эмодзи)</label>
+                <input type="text" class="input-field" id="project-icon" value="📊" maxlength="2">
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Создать</button>
+                <button type="button" class="btn btn-secondary" id="cancel-modal">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -223,22 +307,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get initial filter from URL
     const urlParams = new URLSearchParams(window.location.search);
     const initialFilter = urlParams.get('type') || 'all';
-
-    // Apply initial filter
     filterProjects(initialFilter);
 
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
             const filter = this.dataset.filter;
-
-            // Update active tab
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
-
-            // Filter projects
             filterProjects(filter);
-
-            // Update URL without reload
             const url = new URL(window.location);
             if (filter === 'all') {
                 url.searchParams.delete('type');
@@ -258,5 +334,47 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Toast
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast ' + type + ' show';
+        setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    }
+
+    // Modal
+    const modal = document.getElementById('create-modal');
+    document.getElementById('create-project-btn').addEventListener('click', () => modal.classList.add('show'));
+    document.getElementById('cancel-modal').addEventListener('click', () => modal.classList.remove('show'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+
+    // Create project
+    document.getElementById('create-project-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const data = {
+            name: document.getElementById('project-name').value,
+            description: document.getElementById('project-description').value,
+            type: document.getElementById('project-type').value,
+            icon: document.getElementById('project-icon').value,
+            badge: document.getElementById('project-type').value === 'gov' ? 'Гос. партнёр' : 'Частный партнёр'
+        };
+        try {
+            const resp = await fetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await resp.json();
+            if (result.success) {
+                showToast('Проект создан', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast(result.error || 'Ошибка создания', 'error');
+            }
+        } catch (err) {
+            showToast('Ошибка сети', 'error');
+        }
+    });
 });
 </script>

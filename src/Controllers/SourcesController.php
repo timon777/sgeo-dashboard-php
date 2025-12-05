@@ -40,4 +40,38 @@ class SourcesController extends BaseController
             'totalSources' => $totalSources,
         ]);
     }
+
+    public function exportCsv(): void
+    {
+        $sourceModel = new Source();
+        $result = $sourceModel->all(1000);
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="sources_' . date('Y-m-d') . '.csv"');
+
+        $output = fopen('php://output', 'w');
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        fputcsv($output, ['Домен', 'Тип', 'Страна', 'Экспертиза', 'Опыт', 'Авторитетность', 'Доверие', 'E-E-A-T', 'Доля (%)', 'Автор', 'HTTPS']);
+
+        if (isset($result['data'])) {
+            foreach ($result['data'] as $s) {
+                fputcsv($output, [
+                    $s['domain'],
+                    $s['type'],
+                    $s['country'],
+                    $s['expertise_score'],
+                    $s['experience_score'],
+                    $s['authority_score'],
+                    $s['trust_score'],
+                    $s['eeat_combined'],
+                    $s['share_percent'],
+                    $s['has_author'] ? 'Да' : 'Нет',
+                    $s['has_https'] ? 'Да' : 'Нет'
+                ]);
+            }
+        }
+
+        fclose($output);
+    }
 }

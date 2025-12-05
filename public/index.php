@@ -89,10 +89,21 @@ $routes = [
         '/api/prompts' => ['App\\Controllers\\PromptsController', 'apiList'],
         '/api/sources' => ['App\\Controllers\\SourcesController', 'apiList'],
         '/api/reports/export/{id}' => ['App\\Controllers\\ReportsController', 'export'],
+
+        // Export endpoints
+        '/export/projects' => ['App\\Controllers\\ProjectsController', 'exportCsv'],
+        '/export/prompts' => ['App\\Controllers\\PromptsController', 'exportCsv'],
+        '/export/sources' => ['App\\Controllers\\SourcesController', 'exportCsv'],
     ],
     'POST' => [
         // Auth
         '/login' => ['App\\Controllers\\AuthController', 'login'],
+
+        // Settings
+        '/api/settings/general' => ['App\\Controllers\\SettingsController', 'saveGeneral'],
+        '/api/settings/monitoring' => ['App\\Controllers\\SettingsController', 'saveMonitoring'],
+        '/api/settings/clear-cache' => ['App\\Controllers\\SettingsController', 'clearCache'],
+        '/api/settings/api-keys' => ['App\\Controllers\\SettingsController', 'createApiKey'],
 
         // API CRUD
         '/api/projects' => ['App\\Controllers\\ProjectsController', 'store'],
@@ -114,6 +125,7 @@ $routes = [
         '/api/projects/{id}' => ['App\\Controllers\\ProjectsController', 'destroy'],
         '/api/prompts/{id}' => ['App\\Controllers\\PromptsController', 'delete'],
         '/api/sources/{id}' => ['App\\Controllers\\SourcesController', 'destroy'],
+        '/api/settings/api-keys/{id}' => ['App\\Controllers\\SettingsController', 'deleteApiKey'],
     ],
 ];
 

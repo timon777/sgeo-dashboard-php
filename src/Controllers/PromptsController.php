@@ -199,4 +199,36 @@ class PromptsController extends BaseController
         }
         return date('Y-m-d', strtotime($date));
     }
+
+    public function exportCsv(): void
+    {
+        $evaluationModel = new Evaluation();
+        $result = $evaluationModel->recentDetailed(1000);
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="prompts_' . date('Y-m-d') . '.csv"');
+
+        $output = fopen('php://output', 'w');
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        fputcsv($output, ['ID', 'Промт', 'LLM', 'Ответ', 'Тональность', 'Балл', 'Риск', 'Проект', 'Дата']);
+
+        if (isset($result['data'])) {
+            foreach ($result['data'] as $eval) {
+                fputcsv($output, [
+                    $eval['ai_response_id'] ?? '',
+                    $eval['prompt'] ?? '',
+                    $eval['model_name'] ?? '',
+                    mb_substr($eval['response'] ?? '', 0, 500),
+                    $eval['tone'] ?? '',
+                    $eval['avg_score'] ?? 0,
+                    $eval['risk_level'] ?? '',
+                    $eval['project_name'] ?? '',
+                    $eval['evaluated_at'] ?? ''
+                ]);
+            }
+        }
+
+        fclose($output);
+    }
 }

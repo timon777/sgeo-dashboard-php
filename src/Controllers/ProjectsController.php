@@ -293,4 +293,38 @@ class ProjectsController extends BaseController
         }
         return '0.00';
     }
+
+    public function exportCsv(): void
+    {
+        $projectModel = new Project();
+        $result = $projectModel->all();
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="projects_' . date('Y-m-d') . '.csv"');
+
+        $output = fopen('php://output', 'w');
+
+        // UTF-8 BOM for Excel compatibility
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Header row
+        fputcsv($output, ['ID', 'Название', 'Описание', 'Тип', 'Точность (%)', 'Тренд', 'Направление', 'Создан']);
+
+        if (isset($result['data'])) {
+            foreach ($result['data'] as $p) {
+                fputcsv($output, [
+                    $p['id'],
+                    $p['name'],
+                    $p['description'],
+                    $p['type'],
+                    $p['accuracy_score'],
+                    $p['trend_percent'],
+                    $p['trend_direction'],
+                    $p['created_at'] ?? ''
+                ]);
+            }
+        }
+
+        fclose($output);
+    }
 }
