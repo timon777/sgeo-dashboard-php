@@ -1,0 +1,238 @@
+<div class="page-header animate-on-scroll">
+    <div class="page-header-top">
+        <div class="page-title-group">
+            <h1 class="page-title">Настройки</h1>
+            <p class="page-subtitle">Конфигурация системы и управление интеграциями</p>
+        </div>
+    </div>
+
+    <div class="tabs-container">
+        <button class="tab active">Основные</button>
+        <button class="tab">Мониторинг</button>
+        <button class="tab">API ключи</button>
+        <button class="tab">Безопасность</button>
+    </div>
+</div>
+
+<!-- General Settings -->
+<div class="settings-section">
+    <div class="settings-card">
+        <h3 class="settings-title">Общие настройки</h3>
+        <p class="settings-description">Основные параметры работы системы</p>
+
+        <div class="form-group">
+            <label class="form-label">Название организации</label>
+            <input type="text" class="input-field" value="SGEO Analytics">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Email администратора</label>
+            <input type="email" class="input-field" value="admin@sgeo.kz">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Часовой пояс</label>
+            <select class="select-field">
+                <option selected>Asia/Almaty (UTC+5)</option>
+                <option>Asia/Astana (UTC+6)</option>
+                <option>Europe/Moscow (UTC+3)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Язык интерфейса</label>
+            <select class="select-field">
+                <option selected>Русский</option>
+                <option>English</option>
+                <option>Қазақша</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 8px;">Сохранить изменения</button>
+    </div>
+
+    <div class="settings-card">
+        <h3 class="settings-title">API ключи LLM</h3>
+        <p class="settings-description">Управление ключами доступа к языковым моделям</p>
+
+        <div class="api-keys-list">
+            <?php foreach ($apiKeys as $key): ?>
+            <div class="api-key-item">
+                <div class="api-key-info">
+                    <div class="api-key-name"><?= htmlspecialchars($key['name']) ?></div>
+                    <div class="api-key-value"><?= htmlspecialchars($key['key']) ?>****</div>
+                </div>
+                <div class="api-key-status <?= $key['status'] ?>">
+                    <?= $key['status'] === 'active' ? 'Активен' : 'Неактивен' ?>
+                </div>
+                <div class="api-key-actions">
+                    <button class="btn btn-secondary btn-sm">Изменить</button>
+                    <button class="btn btn-secondary btn-sm" style="color: var(--danger);">Удалить</button>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Добавить API ключ
+        </button>
+    </div>
+</div>
+
+<!-- Danger Zone -->
+<div class="settings-section danger-zone">
+    <div class="settings-card" style="border-color: var(--danger); border-width: 2px;">
+        <h3 class="settings-title" style="color: var(--danger);">⚠️ Опасная зона</h3>
+        <p class="settings-description">Необратимые действия с системой</p>
+
+        <div class="danger-actions">
+            <div class="danger-action">
+                <div>
+                    <div class="danger-action-title">Очистить кэш</div>
+                    <div class="danger-action-desc">Удалит все кэшированные данные</div>
+                </div>
+                <button class="btn btn-secondary">Очистить</button>
+            </div>
+
+            <div class="danger-action">
+                <div>
+                    <div class="danger-action-title">Сбросить статистику</div>
+                    <div class="danger-action-desc">Удалит историю запросов и метрики</div>
+                </div>
+                <button class="btn btn-secondary" style="color: var(--danger);">Сбросить</button>
+            </div>
+
+            <div class="danger-action">
+                <div>
+                    <div class="danger-action-title">Удалить все данные</div>
+                    <div class="danger-action-desc">Полное удаление всех данных системы</div>
+                </div>
+                <button class="btn" style="background: var(--danger); color: white;">Удалить всё</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.settings-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 28px;
+}
+
+.settings-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.settings-description {
+    font-size: 14px;
+    color: var(--text-tertiary);
+    margin-bottom: 24px;
+}
+
+.api-keys-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.api-key-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-md);
+}
+
+.api-key-info {
+    flex: 1;
+}
+
+.api-key-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.api-key-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.api-key-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.api-key-status.active {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.api-key-status.inactive {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-tertiary);
+}
+
+.api-key-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.danger-zone .settings-section {
+    grid-template-columns: 1fr;
+}
+
+.danger-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.danger-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: var(--radius-md);
+}
+
+.danger-action-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.danger-action-desc {
+    font-size: 13px;
+    color: var(--text-tertiary);
+}
+
+@media (max-width: 768px) {
+    .settings-section {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
