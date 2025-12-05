@@ -90,23 +90,16 @@
 
         <div class="nav-section">
             <div class="nav-section-title">Партнёры</div>
-            <a href="#" class="nav-item" onclick="toggleSubmenu('private-menu', event)">
+            <a href="/projects?type=private" class="nav-item">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
                     <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                Частный партнёр
-                <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m6 9 6 6 6-6"/>
-                </svg>
+                Частные партнёры
             </a>
-            <div id="private-menu" class="nav-submenu">
-                <a href="/projects/freedom-bank" class="nav-item">Freedom Bank</a>
-                <a href="/projects/freedom-broker" class="nav-item">Freedom Broker</a>
-            </div>
-            <a href="#" class="nav-item" onclick="toggleSubmenu('gov-menu', event)">
+            <a href="/projects?type=gov" class="nav-item">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 21h18"/>
                     <path d="M5 21V7l8-4v18"/>
@@ -116,28 +109,23 @@
                     <path d="M9 15v.01"/>
                     <path d="M9 18v.01"/>
                 </svg>
-                Государственный партнёр
-                <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m6 9 6 6 6-6"/>
-                </svg>
+                Гос. партнёры
             </a>
-            <div id="gov-menu" class="nav-submenu">
-                <a href="/projects/ministry-info" class="nav-item">Министерство информации</a>
-                <a href="/projects/president-image" class="nav-item">Имидж Президента</a>
-            </div>
         </div>
     </nav>
 
     <div class="user-section">
         <div class="user-card">
-            <div class="user-avatar">АК</div>
+            <div class="user-avatar"><?= htmlspecialchars($_SESSION['user_avatar'] ?? 'U') ?></div>
             <div class="user-info">
-                <div class="user-name">Администратор</div>
-                <div class="user-role">Super Admin</div>
+                <div class="user-name"><?= htmlspecialchars($_SESSION['user_name'] ?? 'Пользователь') ?></div>
+                <div class="user-role"><?= htmlspecialchars(ucfirst($_SESSION['user_role'] ?? 'user')) ?></div>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-tertiary)">
-                <path d="m6 9 6 6 6-6"/>
-            </svg>
+            <a href="/logout" title="Выйти" style="color: var(--text-tertiary)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </a>
         </div>
     </div>
 </aside>
