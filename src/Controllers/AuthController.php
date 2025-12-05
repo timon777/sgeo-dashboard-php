@@ -27,24 +27,24 @@ class AuthController extends BaseController
             return;
         }
 
-        $email = $_POST['email'] ?? '';
+        $login = $_POST['login'] ?? '';
         $password = $_POST['password'] ?? '';
 
-        if (empty($email) || empty($password)) {
+        if (empty($login) || empty($password)) {
             $this->render('auth/login', [
                 'pageTitle' => 'Вход в систему',
                 'hideLayout' => true,
-                'error' => 'Введите email и пароль',
+                'error' => 'Введите логин и пароль',
             ]);
             return;
         }
 
         $db = new SupabaseClient();
 
-        // Find user by email
+        // Find user by login
         $result = $db->from('users')
             ->select('*')
-            ->eq('email', $email)
+            ->eq('login', $login)
             ->eq('is_active', 'true')
             ->single();
 
@@ -52,7 +52,7 @@ class AuthController extends BaseController
             $this->render('auth/login', [
                 'pageTitle' => 'Вход в систему',
                 'hideLayout' => true,
-                'error' => 'Неверный email или пароль',
+                'error' => 'Неверный логин или пароль',
             ]);
             return;
         }

@@ -12,6 +12,12 @@ abstract class BaseController
         include __DIR__ . '/../Views/' . $view . '.php';
         $content = ob_get_clean();
 
+        // If hideLayout is set, just output content without layout (for login page)
+        if (!empty($hideLayout)) {
+            echo $content;
+            return;
+        }
+
         include __DIR__ . '/../Views/layouts/base.php';
     }
 

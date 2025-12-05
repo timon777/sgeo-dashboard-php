@@ -202,13 +202,13 @@
 
                 <form class="login-form" method="POST" action="/login">
                     <div class="form-group">
-                        <label class="form-label" for="email">Email</label>
+                        <label class="form-label" for="login">Логин</label>
                         <input
-                            type="email"
-                            id="email"
-                            name="email"
+                            type="text"
+                            id="login"
+                            name="login"
                             class="form-input"
-                            placeholder="admin@sgeo.kz"
+                            placeholder="admin"
                             required
                             autofocus
                         >
