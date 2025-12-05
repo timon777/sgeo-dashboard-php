@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGEO — Имидж Президента Токаева</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0b0d;
+            --bg-secondary: #111216;
+            --bg-card: #1a1c22;
+            --bg-card-hover: #1f2128;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-medium: rgba(255, 255, 255, 0.1);
+            
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-tertiary: rgba(255, 255, 255, 0.45);
+            --text-muted: rgba(255, 255, 255, 0.3);
+            
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+            
+            --success: #22c55e;
+            --success-bg: rgba(34, 197, 94, 0.12);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.12);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --info: #3b82f6;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.25s ease;
+        }
+        /* Light Theme */
+        :root.light-theme {
+            --bg-primary: #f5f6fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #eef0f5;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8f9fc;
+            --border-subtle: rgba(0, 0, 0, 0.06);
+            --border-medium: rgba(0, 0, 0, 0.12);
+            --text-primary: #1a1c22;
+            --text-secondary: rgba(26, 28, 34, 0.75);
+            --text-tertiary: rgba(26, 28, 34, 0.55);
+            --text-muted: rgba(26, 28, 34, 0.35);
+            --accent-primary: #5558e3;
+            --accent-secondary: #7c5cd6;
+            --accent-gradient: linear-gradient(135deg, #5558e3 0%, #7c5cd6 50%, #9878ea 100%);
+            --success: #16a34a;
+            --success-bg: rgba(22, 163, 74, 0.1);
+            --warning: #d97706;
+            --warning-bg: rgba(217, 119, 6, 0.1);
+            --danger: #dc2626;
+            --danger-bg: rgba(220, 38, 38, 0.1);
+            --info: #2563eb;
+            --info-bg: rgba(37, 99, 235, 0.1);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Light theme component overrides */
+        :root.light-theme .sidebar { background: rgba(255, 255, 255, 0.95); }
+        :root.light-theme .header { background: rgba(255, 255, 255, 0.85); }
+        :root.light-theme .bg-gradient-orb { opacity: 0.12; }
+        :root.light-theme .bg-grid {
+            background-image: linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+        }
+        :root.light-theme .page-title,
+        :root.light-theme .logo-text,
+        :root.light-theme .stat-value {
+            background: linear-gradient(135deg, #1a1c22 0%, rgba(26, 28, 34, 0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        :root.light-theme .card,
+        :root.light-theme .chart-card,
+        :root.light-theme .stat-card,
+        :root.light-theme .project-card,
+        :root.light-theme .llm-card,
+        :root.light-theme .metric-card,
+        :root.light-theme .settings-card,
+        :root.light-theme .report-card { 
+            background: var(--bg-card); 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); 
+        }
+        :root.light-theme .card:hover,
+        :root.light-theme .project-card:hover,
+        :root.light-theme .llm-card:hover { 
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); 
+        }
+        :root.light-theme .nav-item:hover { background: rgba(0, 0, 0, 0.05); }
+        :root.light-theme .nav-item.active { background: rgba(85, 88, 227, 0.1); }
+        :root.light-theme .user-card { background: rgba(0, 0, 0, 0.03); }
+        :root.light-theme .user-card:hover { background: rgba(0, 0, 0, 0.06); }
+        :root.light-theme .btn-secondary { background: rgba(0, 0, 0, 0.05); border-color: var(--border-medium); }
+        :root.light-theme .btn-secondary:hover { background: rgba(0, 0, 0, 0.08); }
+        :root.light-theme .global-search-trigger { background: rgba(0, 0, 0, 0.04); }
+        :root.light-theme .global-search-trigger:hover { background: rgba(0, 0, 0, 0.06); }
+        :root.light-theme .header-btn { background: rgba(0, 0, 0, 0.04); }
+        :root.light-theme .header-btn:hover { background: rgba(0, 0, 0, 0.08); }
+        :root.light-theme .shortcut { background: rgba(0, 0, 0, 0.08); color: var(--text-secondary); }
+        :root.light-theme .tab:hover { background: rgba(0, 0, 0, 0.05); }
+        :root.light-theme .tab.active { background: var(--bg-card); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+        :root.light-theme .filter-btn:hover { background: rgba(0, 0, 0, 0.05); }
+        :root.light-theme .filter-btn.active { background: rgba(85, 88, 227, 0.1); }
+        :root.light-theme .table th { background: rgba(0, 0, 0, 0.03); }
+        :root.light-theme .table tr:hover { background: rgba(0, 0, 0, 0.02); }
+        :root.light-theme .activity-item { background: rgba(0, 0, 0, 0.03); }
+        :root.light-theme .activity-item:hover { background: rgba(0, 0, 0, 0.05); }
+        :root.light-theme .llm-stat { background: rgba(0, 0, 0, 0.03); }
+        :root.light-theme .accordion-header:hover { background: rgba(0, 0, 0, 0.03); }
+        :root.light-theme .mobile-menu-btn { background: rgba(0, 0, 0, 0.05); }
+        :root.light-theme .input-field,
+        :root.light-theme .select-field,
+        :root.light-theme .textarea { 
+            background: rgba(0, 0, 0, 0.03); 
+            border-color: var(--border-medium); 
+            color: var(--text-primary); 
+        }
+
+        /* Theme toggle buttons */
+        .theme-toggle, .lang-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-family: inherit;
+            transition: all var(--transition-base);
+        }
+        .theme-toggle:hover, .lang-toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--border-medium);
+            color: var(--text-primary);
+        }
+        :root.light-theme .theme-toggle,
+        :root.light-theme .lang-toggle { background: rgba(0, 0, 0, 0.04); }
+        :root.light-theme .theme-toggle:hover,
+        :root.light-theme .lang-toggle:hover { background: rgba(0, 0, 0, 0.08); }
+        .theme-toggle svg, .lang-toggle svg { width: 18px; height: 18px; transition: transform 0.3s ease; }
+        .theme-toggle:hover svg { transform: rotate(15deg); }
+        .theme-toggle .icon-sun { display: none; }
+        .theme-toggle .icon-moon { display: block; }
+        :root.light-theme .theme-toggle .icon-sun { display: block; }
+        :root.light-theme .theme-toggle .icon-moon { display: none; }
+        .settings-toggles { display: flex; align-items: center; gap: 10px; }
+
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
+        }
+
+        .bg-gradient-orb:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+            top: -200px;
+            right: -100px;
+        }
+
+        .bg-gradient-orb:nth-child(2) {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 70%);
+            bottom: -150px;
+            left: -100px;
+        }
+
+        .bg-noise {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(17, 18, 22, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-subtle);
+            position: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-container {
+            width: 42px;
+            height: 42px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .logo-icon {
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+        }
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-nav { flex: 1; padding: 16px 12px; }
+
+        .nav-section { margin-bottom: 24px; }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all var(--transition-base);
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 24px;
+            background: var(--accent-gradient);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-icon { width: 20px; height: 20px; opacity: 0.7; }
+        .nav-item.active .nav-icon, .nav-item:hover .nav-icon { opacity: 1; }
+
+        .nav-badge {
+            margin-left: auto;
+            padding: 2px 8px;
+            background: var(--accent-primary);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--border-subtle);
+            margin: 16px 12px;
+        }
+
+        .user-section {
+            padding: 16px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius-md);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+        }
+
+        .user-name { font-size: 14px; font-weight: 600; }
+        .user-role { font-size: 12px; color: var(--text-tertiary); }
+
+        /* Main */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+        }
+
+        .header {
+            height: 72px;
+            background: rgba(17, 18, 22, 0.6);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .breadcrumb-item {
+            color: var(--text-tertiary);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item:hover { color: var(--text-secondary); }
+        .breadcrumb-item.active { color: var(--text-primary); font-weight: 500; }
+        .breadcrumb-separator { color: var(--text-muted); }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .global-search-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            min-width: 240px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+
+        .global-search-trigger:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--border-medium);
+        }
+
+        .global-search-trigger svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .global-search-trigger .shortcut {
+            margin-left: auto;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 16px;
+            padding: 12px 24px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 10000;
+            transition: top 0.3s ease;
+            text-decoration: none;
+        }
+
+        .skip-link:focus {
+            top: 16px;
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all var(--transition-base);
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+
+        .header-btn svg { width: 20px; height: 20px; }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--success-bg);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: var(--radius-lg);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--success);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .content {
+            padding: 32px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Hero Section */
+        .project-hero {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        .hero-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .hero-info {
+            flex: 1;
+        }
+
+        .project-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(99, 102, 241, 0.12);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 16px;
+        }
+
+        .project-title {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .project-description {
+            font-size: 16px;
+            color: var(--text-tertiary);
+            line-height: 1.7;
+            max-width: 700px;
+        }
+
+        .hero-score {
+            text-align: center;
+            padding: 24px 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .score-label {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+
+        .score-value {
+            font-size: 72px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .score-suffix {
+            font-size: 24px;
+            color: var(--text-tertiary);
+        }
+
+        .score-trend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .score-trend svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Hero Stats */
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .hero-stat {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .hero-stat-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+
+        .hero-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        /* Analysis Grid */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .analysis-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: all var(--transition-base);
+        }
+
+        .analysis-card:hover {
+            border-color: var(--border-medium);
+        }
+
+        .analysis-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .analysis-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .analysis-subtitle {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .analysis-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .analysis-badge.high {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .analysis-badge.medium {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        .radar-container {
+            height: 200px;
+            margin-bottom: 16px;
+        }
+
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* FAQ Section */
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .accordion {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .accordion-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+        }
+
+        .accordion-header:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .accordion-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .accordion-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--text-tertiary);
+            transition: transform var(--transition-base);
+        }
+
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 500px;
+        }
+
+        .accordion-body {
+            padding: 0 20px 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Sources Section */
+        .sources-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .source-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+
+        .source-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .source-subtitle {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 16px;
+        }
+
+        .pie-container {
+            height: 180px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 1200px) {
+            .analysis-grid, .sources-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .hero-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
+            .analysis-grid, .sources-grid, .hero-stats {
+                grid-template-columns: 1fr;
+            }
+            .hero-top { flex-direction: column; }
+            .content { padding: 20px; }
+        }
+    </style>
+    <link rel="stylesheet" href="ui-components.css">
+    <script>
+        (function() {
+            if (localStorage.getItem('sgeo-theme') === 'light') {
+                document.documentElement.classList.add('light-theme');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Перейти к контенту</a>
+    <div class="sidebar-overlay" aria-hidden="true"></div>
+    
+    <div class="bg-effects">
+        <div class="bg-gradient-orb"></div>
+        <div class="bg-gradient-orb"></div>
+        <div class="bg-noise"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" role="navigation" aria-label="Главное меню">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <span class="logo-icon">S</span>
+                </div>
+                <span class="logo-text">SGEO</span>
+            </div>
+
+                        <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Навигация</div>
+                    <a href="index.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                        Дашборд
+                    </a>
+                    <a href="projects.html" class="nav-item active">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        Проекты <span class="nav-badge">7</span>
+                    </a>
+                    <a href="prompts.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Промты
+                    </a>
+                    <a href="sources.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        Источники
+                    </a>
+                </div>
+                <div class="nav-divider"></div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Аналитика</div>
+                    <a href="llm-monitoring.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v10"/></svg>
+                        LLM Мониторинг
+                    </a>
+                    <a href="trends.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                        Тренды
+                    </a>
+                    <a href="reports.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        Отчёты
+                    </a>
+                </div>
+                <div class="nav-divider"></div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Система</div>
+                    <a href="settings.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        Настройки
+                    </a>
+                </div>
+            </nav>
+
+            <div class="user-section">
+                <div class="user-card">
+                    <div class="user-avatar">АК</div>
+                    <div class="user-info">
+                        <div class="user-name">Администратор</div>
+                        <div class="user-role">Super Admin</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="mobile-menu-btn" aria-label="Открыть меню">
+                        <span></span><span></span><span></span>
+                    </button>
+                    <div class="breadcrumbs">
+                    <a href="index.html" class="breadcrumb-item">SGEO</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <a href="projects.html" class="breadcrumb-item">Проекты</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-item active">Имидж Президента</span>
+                </div>
+                </div>
+                <div class="header-right">
+                    <div class="settings-toggles">
+                        <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
+                            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                            </svg>
+                            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                            </svg>
+                        </button>
+                        <button class="lang-toggle" onclick="toggleLanguage()" title="Switch language">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            <span>Рус</span>
+                        </button>
+                    </div>
+                    <button class="global-search-trigger" aria-label="Поиск">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <span>Поиск...</span>
+                        <span class="shortcut">⌘K</span>
+                    </button>
+                    
+                    <button class="header-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    </button>
+                    <div class="status-badge">
+                        <span class="status-dot"></span>
+                        Активен
+                    </div>
+                </div>
+            </header>
+
+            <div class="content" id="main-content">
+                <!-- Project Hero -->
+                <div class="project-hero">
+                    <div class="hero-top">
+                        <div class="hero-info">
+                            <div class="project-badge">
+                                <span>🏛️</span>
+                                Государственный партнёр
+                            </div>
+                            <h1 class="project-title">Имидж Президента Токаева</h1>
+                            <p class="project-description">
+                                Позиционирование как реформатора и независимого лидера. Аналитика нарративов о лидерском стиле, модернизации и политической самостоятельности Президента в ответах языковых моделей.
+                            </p>
+                        </div>
+                        <div class="hero-score">
+                            <div class="score-label">Общий индекс точности</div>
+                            <div class="score-value">28<span class="score-suffix">%</span></div>
+                            <div class="score-trend">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m18 15-6-6-6 6"/>
+                                </svg>
+                                +10% за неделю
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <div class="hero-stat-label">Обработано промтов</div>
+                            <div class="hero-stat-value">847</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-label">Уникальных источников</div>
+                            <div class="hero-stat-value">234</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-label">Средняя тональность</div>
+                            <div class="hero-stat-value">+0.42</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-label">LLM моделей</div>
+                            <div class="hero-stat-value">5</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Cards -->
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <div class="analysis-header">
+                            <div>
+                                <div class="analysis-title">Качество промтов</div>
+                                <div class="analysis-subtitle">Оценка формулировки запросов</div>
+                            </div>
+                            <span class="analysis-badge high">83.6</span>
+                        </div>
+                        <div class="radar-container">
+                            <canvas id="promptsRadarChart"></canvas>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #6366f1;"></span>
+                                <span>Конкретность: 85%</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #6366f1;"></span>
+                                <span>Нейтральность: 92%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-card">
+                        <div class="analysis-header">
+                            <div>
+                                <div class="analysis-title">Качество ответов</div>
+                                <div class="analysis-subtitle">Комплексная оценка генерации</div>
+                            </div>
+                            <span class="analysis-badge high">85.2</span>
+                        </div>
+                        <div class="radar-container">
+                            <canvas id="answersRadarChart"></canvas>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #22c55e;"></span>
+                                <span>Соответствие: 91%</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #22c55e;"></span>
+                                <span>Полнота: 88%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-card">
+                        <div class="analysis-header">
+                            <div>
+                                <div class="analysis-title">E-E-A-T оценка</div>
+                                <div class="analysis-subtitle">Качество источников</div>
+                            </div>
+                            <span class="analysis-badge high">83.8</span>
+                        </div>
+                        <div class="radar-container">
+                            <canvas id="eeatRadarChart"></canvas>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #8b5cf6;"></span>
+                                <span>Надёжность: 90%</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #8b5cf6;"></span>
+                                <span>Экспертиза: 88%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Section -->
+                <h2 class="section-title">Ключевые нарративы проекта</h2>
+                <div class="accordion">
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Реформаторская повестка</span>
+                            <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                Позиционирование Президента как инициатора глубоких политических и экономических реформ. Отслеживаем нарративы о демократизации, деолигархизации, конституционных изменениях и модернизации государственного управления.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Независимая внешняя политика</span>
+                            <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                Анализ упоминаний многовекторной политики Казахстана, баланса между ключевыми партнёрами и укрепления международного авторитета страны под руководством Токаева.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span class="accordion-title">Лидерство в кризисных ситуациях</span>
+                            <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                Мониторинг оценок действий Президента во время январских событий 2022 года, пандемии COVID-19 и других кризисных периодов. Оценка восприятия решительности и эффективности.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sources Section -->
+                <h2 class="section-title">Распределение источников</h2>
+                <div class="sources-grid">
+                    <div class="source-card">
+                        <div class="source-title">География источников</div>
+                        <div class="source-subtitle">Распределение по странам</div>
+                        <div class="pie-container">
+                            <canvas id="geoPieChart"></canvas>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #6366f1;"></span>
+                                <span>55% — Казахстанские</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #22c55e;"></span>
+                                <span>30% — Российские</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #f59e0b;"></span>
+                                <span>15% — Западные</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="source-card">
+                        <div class="source-title">Типология источников</div>
+                        <div class="source-subtitle">По характеру площадок</div>
+                        <div class="pie-container">
+                            <canvas id="typesPieChart"></canvas>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #6366f1;"></span>
+                                <span>40% — СМИ</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #22c55e;"></span>
+                                <span>25% — Гос. сайты</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #f59e0b;"></span>
+                                <span>20% — Соцсети</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="source-card">
+                        <div class="source-title">Распределение по LLM</div>
+                        <div class="source-subtitle">Использование моделями</div>
+                        <div class="pie-container">
+                            <canvas id="llmPieChart"></canvas>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #6366f1;"></span>
+                                <span>35% — GPT</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #22c55e;"></span>
+                                <span>25% — Gemini</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #f59e0b;"></span>
+                                <span>20% — Claude</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            const wasActive = item.classList.contains('active');
+            
+            document.querySelectorAll('.accordion-item').forEach(i => {
+                i.classList.remove('active');
+            });
+            
+            if (!wasActive) {
+                item.classList.add('active');
+            }
+        }
+
+        // Theme-aware chart colors helper
+        function isLightTheme() {
+            return document.documentElement.classList.contains('light-theme');
+        }
+        
+        function getChartColors() {
+            const light = isLightTheme();
+            return {
+                text: light ? 'rgba(26, 28, 34, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                textStrong: light ? 'rgba(26, 28, 34, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                grid: light ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)',
+                gridStrong: light ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)'
+            };
+        }
+        
+        function updateChartDefaults() {
+            const colors = getChartColors();
+            Chart.defaults.color = colors.text;
+            Chart.defaults.borderColor = colors.grid;
+        }
+        
+        Chart.defaults.font.family = "'Outfit', sans-serif";
+
+        const colors = {
+            primary: '#6366f1',
+            secondary: '#8b5cf6',
+            success: '#22c55e',
+            warning: '#f59e0b',
+            pink: '#ec4899'
+        };
+
+        
+        let pageCharts = {};
+        
+        function initPageCharts() {
+            const themeColors = getChartColors();
+            updateChartDefaults();
+            
+            // Destroy existing charts
+            Object.values(pageCharts).forEach(chart => { if(chart) chart.destroy(); });
+            pageCharts = {};
+        
+
+            const radarOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { 
+                            stepSize: 20,
+                            backdropColor: 'transparent',
+                            color: getChartColors().text
+                        },
+                        grid: { color: getChartColors().gridStrong },
+                        angleLines: { color: getChartColors().gridStrong },
+                        pointLabels: { 
+                            font: { size: 10 },
+                            color: getChartColors().textStrong
+                        }
+                    }
+                }
+            };
+
+            pageCharts.chart1 = new Chart(document.getElementById('promptsRadarChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['Конкретность', 'Полнота', 'Нейтральность', 'Однозначность', 'Тип задачи'],
+                    datasets: [{
+                        data: [85, 78, 92, 88, 75],
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        borderColor: colors.primary,
+                        borderWidth: 2,
+                        pointBackgroundColor: colors.primary,
+                        pointRadius: 4
+                    }]
+                },
+                options: radarOptions
+            });
+
+            pageCharts.chart2 = new Chart(document.getElementById('answersRadarChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['Конкретность', 'Полнота', 'Соответствие', 'Нейтральность', 'Ясность', 'Точность'],
+                    datasets: [{
+                        data: [82, 88, 91, 85, 79, 86],
+                        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                        borderColor: colors.success,
+                        borderWidth: 2,
+                        pointBackgroundColor: colors.success,
+                        pointRadius: 4
+                    }]
+                },
+                options: radarOptions
+            });
+
+            pageCharts.chart3 = new Chart(document.getElementById('eeatRadarChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['Опыт', 'Экспертиза', 'Авторитетность', 'Надёжность'],
+                    datasets: [{
+                        data: [75, 88, 82, 90],
+                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                        borderColor: colors.secondary,
+                        borderWidth: 2,
+                        pointBackgroundColor: colors.secondary,
+                        pointRadius: 4
+                    }]
+                },
+                options: radarOptions
+            });
+
+            const pieOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                cutout: '65%'
+            };
+
+            pageCharts.chart4 = new Chart(document.getElementById('geoPieChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Казахстанские', 'Российские', 'Западные'],
+                    datasets: [{
+                        data: [55, 30, 15],
+                        backgroundColor: [colors.primary, colors.success, colors.warning],
+                        borderWidth: 0
+                    }]
+                },
+                options: pieOptions
+            });
+
+            pageCharts.chart5 = new Chart(document.getElementById('typesPieChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['СМИ', 'Гос. сайты', 'Соцсети', 'Блоги', 'Научные'],
+                    datasets: [{
+                        data: [40, 25, 20, 10, 5],
+                        backgroundColor: [colors.primary, colors.success, colors.warning, colors.secondary, colors.pink],
+                        borderWidth: 0
+                    }]
+                },
+                options: pieOptions
+            });
+
+            pageCharts.chart6 = new Chart(document.getElementById('llmPieChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['GPT', 'Gemini', 'Claude', 'Perplexity', 'Прочие'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [colors.primary, colors.success, colors.warning, colors.secondary, colors.pink],
+                        borderWidth: 0
+                    }]
+                },
+                options: pieOptions
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', initPageCharts);
+        
+        // Re-init charts on theme change
+        const _origToggleTheme = window.toggleTheme;
+        window.toggleTheme = function() {
+            if (_origToggleTheme) _origToggleTheme();
+            else {
+                const isLight = document.documentElement.classList.toggle('light-theme');
+                localStorage.setItem('sgeo-theme', isLight ? 'light' : 'dark');
+            }
+            setTimeout(initPageCharts, 50);
+        };
+    
+    </script>
+    <script src="ui-components.js"></script>
+
+    <script>
+        // Theme and Language toggle functions
+        let currentLang = localStorage.getItem('sgeo-lang') || 'ru';
+        
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.toggle('light-theme');
+            localStorage.setItem('sgeo-theme', isLight ? 'light' : 'dark');
+            if (typeof SGEO !== 'undefined' && SGEO.Toast) {
+                SGEO.Toast.info(isLight ? 'Светлая тема' : 'Тёмная тема', '');
+            }
+            setTimeout(initPageCharts, 50);
+        }
+        
+        function toggleLanguage() {
+            currentLang = currentLang === 'ru' ? 'en' : 'ru';
+            localStorage.setItem('sgeo-lang', currentLang);
+            document.querySelectorAll('.lang-toggle span').forEach(s => s.textContent = currentLang === 'ru' ? 'Рус' : 'Eng');
+            if (typeof SGEO !== 'undefined' && SGEO.Toast) {
+                SGEO.Toast.info(currentLang === 'ru' ? 'Язык: Русский' : 'Language: English', '');
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('sgeo-lang');
+            if (savedLang) {
+                currentLang = savedLang;
+                document.querySelectorAll('.lang-toggle span').forEach(s => s.textContent = currentLang === 'ru' ? 'Рус' : 'Eng');
+            }
+        });
+    </script>
+</body>
+</html>

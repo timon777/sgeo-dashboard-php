@@ -1,0 +1,436 @@
+[
+  {
+    "table_name": "ai_responses",
+    "column_name": "id",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": "uuid_generate_v4()"
+  },
+  {
+    "table_name": "ai_responses",
+    "column_name": "prompt",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "ai_responses",
+    "column_name": "model_name",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "ai_responses",
+    "column_name": "response",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "ai_responses",
+    "column_name": "language",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ai_responses",
+    "column_name": "metadata",
+    "data_type": "jsonb",
+    "is_nullable": "YES",
+    "column_default": "'{}'::jsonb"
+  },
+  {
+    "table_name": "ai_responses",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "ai_responses",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "ai_responses",
+    "column_name": "sources",
+    "data_type": "jsonb",
+    "is_nullable": "YES",
+    "column_default": "'[]'::jsonb"
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "id",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": "uuid_generate_v4()"
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "ai_response_id",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "coherence",
+    "data_type": "smallint",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "consistency",
+    "data_type": "smallint",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "fluency",
+    "data_type": "smallint",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "relevance",
+    "data_type": "smallint",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "avg_score",
+    "data_type": "smallint",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "evaluator_model",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "reasoning",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "evaluated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "reference_id",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "evaluations",
+    "column_name": "has_reference",
+    "data_type": "boolean",
+    "is_nullable": "YES",
+    "column_default": "false"
+  },
+  {
+    "table_name": "model_performance_summary",
+    "column_name": "model_name",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "model_performance_summary",
+    "column_name": "total_evaluations",
+    "data_type": "bigint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "model_performance_summary",
+    "column_name": "avg_coherence",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "model_performance_summary",
+    "column_name": "avg_consistency",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "model_performance_summary",
+    "column_name": "avg_fluency",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "model_performance_summary",
+    "column_name": "avg_relevance",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "model_performance_summary",
+    "column_name": "overall_avg_score",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "prompt_sets",
+    "column_name": "id",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": "uuid_generate_v4()"
+  },
+  {
+    "table_name": "prompt_sets",
+    "column_name": "name",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "prompt_sets",
+    "column_name": "prompts",
+    "data_type": "ARRAY",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "prompt_sets",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "prompt_sets",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "evaluation_id",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "evaluated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "coherence",
+    "data_type": "smallint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "consistency",
+    "data_type": "smallint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "fluency",
+    "data_type": "smallint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "relevance",
+    "data_type": "smallint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "avg_score",
+    "data_type": "smallint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "evaluator_model",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "reasoning",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "ai_response_id",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "model_name",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "prompt",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "response",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "language",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "recent_evaluations_detailed",
+    "column_name": "response_created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "reference_answers",
+    "column_name": "id",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": "gen_random_uuid()"
+  },
+  {
+    "table_name": "reference_answers",
+    "column_name": "prompt_pattern",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "reference_answers",
+    "column_name": "reference_short",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "reference_answers",
+    "column_name": "reference_full",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "reference_answers",
+    "column_name": "language",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": "'ru'::character varying"
+  },
+  {
+    "table_name": "reference_answers",
+    "column_name": "topic",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "reference_answers",
+    "column_name": "keywords",
+    "data_type": "ARRAY",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "reference_answers",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "YES",
+    "column_default": "true"
+  },
+  {
+    "table_name": "reference_answers",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "reference_answers",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "reference_stats",
+    "column_name": "topic",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "reference_stats",
+    "column_name": "language",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "reference_stats",
+    "column_name": "count",
+    "data_type": "bigint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "reference_stats",
+    "column_name": "last_updated",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  }
+]

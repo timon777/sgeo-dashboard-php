@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGEO — Проекты и направления</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #0a0b0d;
+            --bg-secondary: #111216;
+            --bg-tertiary: #16181d;
+            --bg-card: #1a1c22;
+            --bg-card-hover: #1f2128;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-medium: rgba(255, 255, 255, 0.1);
+            
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-tertiary: rgba(255, 255, 255, 0.45);
+            --text-muted: rgba(255, 255, 255, 0.3);
+            
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+            
+            --success: #22c55e;
+            --success-bg: rgba(34, 197, 94, 0.12);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.12);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --info: #3b82f6;
+            --info-bg: rgba(59, 130, 246, 0.12);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.25s ease;
+            --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Light Theme */
+        :root.light-theme {
+            --bg-primary: #f5f6fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #eef0f5;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8f9fc;
+            --border-subtle: rgba(0, 0, 0, 0.06);
+            --border-medium: rgba(0, 0, 0, 0.12);
+            --text-primary: #1a1c22;
+            --text-secondary: rgba(26, 28, 34, 0.75);
+            --text-tertiary: rgba(26, 28, 34, 0.55);
+            --text-muted: rgba(26, 28, 34, 0.35);
+            --accent-primary: #5558e3;
+            --accent-secondary: #7c5cd6;
+            --accent-gradient: linear-gradient(135deg, #5558e3 0%, #7c5cd6 50%, #9878ea 100%);
+            --success: #16a34a;
+            --success-bg: rgba(22, 163, 74, 0.1);
+            --warning: #d97706;
+            --warning-bg: rgba(217, 119, 6, 0.1);
+            --danger: #dc2626;
+            --danger-bg: rgba(220, 38, 38, 0.1);
+            --info: #2563eb;
+            --info-bg: rgba(37, 99, 235, 0.1);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Light theme component overrides */
+        :root.light-theme .sidebar { background: rgba(255, 255, 255, 0.95); }
+        :root.light-theme .header { background: rgba(255, 255, 255, 0.85); }
+        :root.light-theme .bg-gradient-orb { opacity: 0.12; }
+        :root.light-theme .bg-grid {
+            background-image: linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+        }
+        :root.light-theme .page-title,
+        :root.light-theme .logo-text,
+        :root.light-theme .stat-value {
+            background: linear-gradient(135deg, #1a1c22 0%, rgba(26, 28, 34, 0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        :root.light-theme .card,
+        :root.light-theme .chart-card,
+        :root.light-theme .stat-card,
+        :root.light-theme .project-card,
+        :root.light-theme .llm-card,
+        :root.light-theme .metric-card,
+        :root.light-theme .settings-card,
+        :root.light-theme .report-card { 
+            background: var(--bg-card); 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); 
+        }
+        :root.light-theme .card:hover,
+        :root.light-theme .project-card:hover,
+        :root.light-theme .llm-card:hover { 
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); 
+        }
+        :root.light-theme .nav-item:hover { background: rgba(0, 0, 0, 0.05); }
+        :root.light-theme .nav-item.active { background: rgba(85, 88, 227, 0.1); }
+        :root.light-theme .user-card { background: rgba(0, 0, 0, 0.03); }
+        :root.light-theme .user-card:hover { background: rgba(0, 0, 0, 0.06); }
+        :root.light-theme .btn-secondary { background: rgba(0, 0, 0, 0.05); border-color: var(--border-medium); }
+        :root.light-theme .btn-secondary:hover { background: rgba(0, 0, 0, 0.08); }
+        :root.light-theme .global-search-trigger { background: rgba(0, 0, 0, 0.04); }
+        :root.light-theme .global-search-trigger:hover { background: rgba(0, 0, 0, 0.06); }
+        :root.light-theme .header-btn { background: rgba(0, 0, 0, 0.04); }
+        :root.light-theme .header-btn:hover { background: rgba(0, 0, 0, 0.08); }
+        :root.light-theme .shortcut { background: rgba(0, 0, 0, 0.08); color: var(--text-secondary); }
+        :root.light-theme .tab:hover { background: rgba(0, 0, 0, 0.05); }
+        :root.light-theme .tab.active { background: var(--bg-card); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+        :root.light-theme .filter-btn:hover { background: rgba(0, 0, 0, 0.05); }
+        :root.light-theme .filter-btn.active { background: rgba(85, 88, 227, 0.1); }
+        :root.light-theme .table th { background: rgba(0, 0, 0, 0.03); }
+        :root.light-theme .table tr:hover { background: rgba(0, 0, 0, 0.02); }
+        :root.light-theme .activity-item { background: rgba(0, 0, 0, 0.03); }
+        :root.light-theme .activity-item:hover { background: rgba(0, 0, 0, 0.05); }
+        :root.light-theme .llm-stat { background: rgba(0, 0, 0, 0.03); }
+        :root.light-theme .accordion-header:hover { background: rgba(0, 0, 0, 0.03); }
+        :root.light-theme .mobile-menu-btn { background: rgba(0, 0, 0, 0.05); }
+        :root.light-theme .input-field,
+        :root.light-theme .select-field,
+        :root.light-theme .textarea { 
+            background: rgba(0, 0, 0, 0.03); 
+            border-color: var(--border-medium); 
+            color: var(--text-primary); 
+        }
+
+        /* Theme toggle buttons */
+        .theme-toggle, .lang-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-family: inherit;
+            transition: all var(--transition-base);
+        }
+        .theme-toggle:hover, .lang-toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--border-medium);
+            color: var(--text-primary);
+        }
+        :root.light-theme .theme-toggle,
+        :root.light-theme .lang-toggle { background: rgba(0, 0, 0, 0.04); }
+        :root.light-theme .theme-toggle:hover,
+        :root.light-theme .lang-toggle:hover { background: rgba(0, 0, 0, 0.08); }
+        .theme-toggle svg, .lang-toggle svg { width: 18px; height: 18px; transition: transform 0.3s ease; }
+        .theme-toggle:hover svg { transform: rotate(15deg); }
+        .theme-toggle .icon-sun { display: none; }
+        .theme-toggle .icon-moon { display: block; }
+        :root.light-theme .theme-toggle .icon-sun { display: block; }
+        :root.light-theme .theme-toggle .icon-moon { display: none; }
+        .settings-toggles { display: flex; align-items: center; gap: 10px; }
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Background Effects */
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .bg-gradient-orb:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+            top: -200px;
+            right: -100px;
+        }
+
+        .bg-gradient-orb:nth-child(2) {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 70%);
+            bottom: -150px;
+            left: -100px;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        .bg-noise {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Sidebar - Same as index.html */
+        .sidebar {
+            width: 280px;
+            background: rgba(17, 18, 22, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-subtle);
+            position: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-container {
+            width: 42px;
+            height: 42px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .logo-icon {
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+        }
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all var(--transition-base);
+            position: relative;
+            margin-bottom: 4px;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 24px;
+            background: var(--accent-gradient);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+        }
+
+        .nav-item.active .nav-icon,
+        .nav-item:hover .nav-icon {
+            opacity: 1;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            padding: 2px 8px;
+            background: var(--accent-primary);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--border-subtle);
+            margin: 16px 12px;
+        }
+
+        .user-section {
+            padding: 16px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius-md);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            height: 72px;
+            background: rgba(17, 18, 22, 0.6);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .breadcrumb-item {
+            color: var(--text-tertiary);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item:hover {
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-muted);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .global-search-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            min-width: 240px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+
+        .global-search-trigger:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--border-medium);
+        }
+
+        .global-search-trigger svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .global-search-trigger .shortcut {
+            margin-left: auto;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 16px;
+            padding: 12px 24px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 10000;
+            transition: top 0.3s ease;
+            text-decoration: none;
+        }
+
+        .skip-link:focus {
+            top: 16px;
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: var(--text-secondary);
+            transition: all var(--transition-base);
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+
+        .header-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--success-bg);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: var(--radius-lg);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--success);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Content */
+        .content {
+            padding: 32px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-header-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-subtitle {
+            font-size: 15px;
+            color: var(--text-tertiary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            text-decoration: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Tabs */
+        .tabs-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-subtle);
+            width: fit-content;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            background: transparent;
+            border: none;
+            font-family: inherit;
+        }
+
+        .tab:hover {
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--text-primary);
+        }
+
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+        }
+
+        .project-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 28px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .project-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-medium);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .project-card:hover::before {
+            opacity: 1;
+        }
+
+        .project-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .project-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .project-icon.gov {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+        }
+
+        .project-icon.private {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.2) 100%);
+        }
+
+        .project-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .project-badge.gov {
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--accent-primary);
+        }
+
+        .project-badge.private {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .project-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .project-description {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+            flex: 1;
+        }
+
+        .project-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .project-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .trend-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .trend-badge.up {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .trend-badge.down {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .trend-badge svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .view-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--accent-primary);
+            transition: all var(--transition-fast);
+        }
+
+        .view-link svg {
+            width: 16px;
+            height: 16px;
+            transition: transform var(--transition-fast);
+        }
+
+        .project-card:hover .view-link svg {
+            transform: translateX(4px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+            .content {
+                padding: 20px;
+            }
+            .page-header-top {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="ui-components.css">
+    <script>
+        (function() {
+            if (localStorage.getItem('sgeo-theme') === 'light') {
+                document.documentElement.classList.add('light-theme');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-effects">
+        <div class="bg-gradient-orb"></div>
+        <div class="bg-gradient-orb"></div>
+        <div class="bg-noise"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" role="navigation" aria-label="Главное меню">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <span class="logo-icon">S</span>
+                </div>
+                <span class="logo-text">SGEO</span>
+            </div>
+
+                        <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Навигация</div>
+                    <a href="index.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                        Дашборд
+                    </a>
+                    <a href="projects.html" class="nav-item active">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        Проекты <span class="nav-badge">7</span>
+                    </a>
+                    <a href="prompts.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Промты
+                    </a>
+                    <a href="sources.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        Источники
+                    </a>
+                </div>
+                <div class="nav-divider"></div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Аналитика</div>
+                    <a href="llm-monitoring.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v10"/></svg>
+                        LLM Мониторинг
+                    </a>
+                    <a href="trends.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                        Тренды
+                    </a>
+                    <a href="reports.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        Отчёты
+                    </a>
+                </div>
+                <div class="nav-divider"></div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Система</div>
+                    <a href="settings.html" class="nav-item">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        Настройки
+                    </a>
+                </div>
+            </nav>
+
+            <div class="user-section">
+                <div class="user-card">
+                    <div class="user-avatar">АК</div>
+                    <div class="user-info">
+                        <div class="user-name">Администратор</div>
+                        <div class="user-role">Super Admin</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="mobile-menu-btn" aria-label="Открыть меню">
+                        <span></span><span></span><span></span>
+                    </button>
+                    <div class="breadcrumbs">
+                    <a href="index.html" class="breadcrumb-item">SGEO</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-item active">Проекты</span>
+                </div>
+                </div>
+                <div class="header-right">
+                    <div class="settings-toggles">
+                        <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
+                            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                            </svg>
+                            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                            </svg>
+                        </button>
+                        <button class="lang-toggle" onclick="toggleLanguage()" title="Switch language">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            <span>Рус</span>
+                        </button>
+                    </div>
+                    <button class="global-search-trigger" aria-label="Поиск">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <span>Поиск...</span>
+                        <span class="shortcut">⌘K</span>
+                    </button>
+                    
+                    <button class="header-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                    </button>
+                    <div class="status-badge">
+                        <span class="status-dot"></span>
+                        Активен
+                    </div>
+                </div>
+            </header>
+
+            <div class="content" id="main-content">
+                <!-- Page Header -->
+                <div class="page-header animate-on-scroll">
+                    <div class="page-header-top">
+                        <div>
+                            <h1 class="page-title">Проекты и аналитические направления</h1>
+                            <p class="page-subtitle">Мониторинг ключевых тематик в ответах языковых моделей</p>
+                        </div>
+                        <button class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Создать проект
+                        </button>
+                    </div>
+
+                    <div class="tabs-container">
+                        <button class="tab active">Все проекты</button>
+                        <button class="tab">Государственные</button>
+                        <button class="tab">Частные</button>
+                    </div>
+                </div>
+
+                <!-- Projects Grid -->
+                <div class="projects-grid stagger-children">
+                    <!-- Project 1 -->
+                    <a href="project-overview.html" class="project-card">
+                        <div class="project-header">
+                            <div class="project-icon gov">🏛️</div>
+                            <span class="project-badge gov">Гос. партнёр</span>
+                        </div>
+                        <h3 class="project-title">Имидж Президента Токаева</h3>
+                        <p class="project-description">
+                            Позиционирование реформатора и независимого лидера. Аналитика нарративов о лидерском стиле, модернизации и политической самостоятельности.
+                        </p>
+                        <div class="project-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Точность представления темы</span>
+                                <span class="stat-value">78%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 78%;"></div>
+                            </div>
+                        </div>
+                        <div class="project-footer">
+                            <div class="trend-badge up">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m18 15-6-6-6 6"/>
+                                </svg>
+                                +10% за неделю
+                            </div>
+                            <span class="view-link">
+                                Подробнее
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14"/>
+                                    <path d="m12 5 7 7-7 7"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+
+                    <!-- Project 2 -->
+                    <a href="project-overview.html" class="project-card">
+                        <div class="project-header">
+                            <div class="project-icon gov">📅</div>
+                            <span class="project-badge gov">Гос. партнёр</span>
+                        </div>
+                        <h3 class="project-title">Январские события 2022 года</h3>
+                        <p class="project-description">
+                            Переосмысление событий и их последствий. Изучение тональности: от трактовки как террористической атаки до акцента на политические реформы.
+                        </p>
+                        <div class="project-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Точность представления темы</span>
+                                <span class="stat-value">72%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 72%;"></div>
+                            </div>
+                        </div>
+                        <div class="project-footer">
+                            <div class="trend-badge up">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m18 15-6-6-6 6"/>
+                                </svg>
+                                +5% за неделю
+                            </div>
+                            <span class="view-link">
+                                Подробнее
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14"/>
+                                    <path d="m12 5 7 7-7 7"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+
+                    <!-- Project 3 -->
+                    <a href="project-overview.html" class="project-card">
+                        <div class="project-header">
+                            <div class="project-icon gov">⚖️</div>
+                            <span class="project-badge gov">Гос. партнёр</span>
+                        </div>
+                        <h3 class="project-title">Идеология, закон и порядок</h3>
+                        <p class="project-description">
+                            Нарратив сильного и справедливого государства. Мониторинг сообщений о верховенстве закона, институтах и укреплении общественного доверия.
+                        </p>
+                        <div class="project-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Точность представления темы</span>
+                                <span class="stat-value">81%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 81%;"></div>
+                            </div>
+                        </div>
+                        <div class="project-footer">
+                            <div class="trend-badge up">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m18 15-6-6-6 6"/>
+                                </svg>
+                                +8% за неделю
+                            </div>
+                            <span class="view-link">
+                                Подробнее
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14"/>
+                                    <path d="m12 5 7 7-7 7"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+
+                    <!-- Project 4 -->
+                    <a href="project-overview.html" class="project-card">
+                        <div class="project-header">
+                            <div class="project-icon gov">💻</div>
+                            <span class="project-badge gov">Гос. партнёр</span>
+                        </div>
+                        <h3 class="project-title">Цифровой Казахстан</h3>
+                        <p class="project-description">
+                            Развитие GovTech, инноваций и цифровой экосистемы. Отслеживание интереса к Astana Hub, МЦРИАП и трансформации госсектора.
+                        </p>
+                        <div class="project-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Точность представления темы</span>
+                                <span class="stat-value">85%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 85%;"></div>
+                            </div>
+                        </div>
+                        <div class="project-footer">
+                            <div class="trend-badge up">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m18 15-6-6-6 6"/>
+                                </svg>
+                                +12% за неделю
+                            </div>
+                            <span class="view-link">
+                                Подробнее
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14"/>
+                                    <path d="m12 5 7 7-7 7"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+
+                    <!-- Project 5 -->
+                    <a href="project-overview.html" class="project-card">
+                        <div class="project-header">
+                            <div class="project-icon gov">⚛️</div>
+                            <span class="project-badge gov">Гос. партнёр</span>
+                        </div>
+                        <h3 class="project-title">АЭС и ядерная энергетика</h3>
+                        <p class="project-description">
+                            Безопасность, экология и будущее атомной энергетики. Анализ общественных нарративов о строительстве АЭС и геополитических аспектах.
+                        </p>
+                        <div class="project-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Точность представления темы</span>
+                                <span class="stat-value">69%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 69%;"></div>
+                            </div>
+                        </div>
+                        <div class="project-footer">
+                            <div class="trend-badge down">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                                -3% за неделю
+                            </div>
+                            <span class="view-link">
+                                Подробнее
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14"/>
+                                    <path d="m12 5 7 7-7 7"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+
+                    <!-- Project 6 -->
+                    <a href="project-overview.html" class="project-card">
+                        <div class="project-header">
+                            <div class="project-icon private">🏦</div>
+                            <span class="project-badge private">Частный партнёр</span>
+                        </div>
+                        <h3 class="project-title">Freedom Bank</h3>
+                        <p class="project-description">
+                            Имидж, технологии и клиентский опыт банка. Мониторинг пользовательских запросов, тональности и обсуждений цифровых сервисов.
+                        </p>
+                        <div class="project-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Точность представления темы</span>
+                                <span class="stat-value">82%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 82%;"></div>
+                            </div>
+                        </div>
+                        <div class="project-footer">
+                            <div class="trend-badge up">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m18 15-6-6-6 6"/>
+                                </svg>
+                                +7% за неделю
+                            </div>
+                            <span class="view-link">
+                                Подробнее
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14"/>
+                                    <path d="m12 5 7 7-7 7"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+
+                    <!-- Project 7 -->
+                    <a href="project-overview.html" class="project-card">
+                        <div class="project-header">
+                            <div class="project-icon private">📈</div>
+                            <span class="project-badge private">Частный партнёр</span>
+                        </div>
+                        <h3 class="project-title">Freedom Broker</h3>
+                        <p class="project-description">
+                            Инвестиции, торговля и доверие инвесторов. Аналитика тем вокруг брокерских услуг, прозрачности, комиссий и пользовательского опыта.
+                        </p>
+                        <div class="project-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Точность представления темы</span>
+                                <span class="stat-value">76%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 76%;"></div>
+                            </div>
+                        </div>
+                        <div class="project-footer">
+                            <div class="trend-badge up">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m18 15-6-6-6 6"/>
+                                </svg>
+                                +4% за неделю
+                            </div>
+                            <span class="view-link">
+                                Подробнее
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14"/>
+                                    <path d="m12 5 7 7-7 7"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+    <script src="ui-components.js"></script>
+
+    <script>
+        // Theme and Language toggle functions
+        let currentLang = localStorage.getItem('sgeo-lang') || 'ru';
+        
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.toggle('light-theme');
+            localStorage.setItem('sgeo-theme', isLight ? 'light' : 'dark');
+            if (typeof SGEO !== 'undefined' && SGEO.Toast) {
+                SGEO.Toast.info(isLight ? 'Светлая тема' : 'Тёмная тема', '');
+            }
+        }
+        
+        function toggleLanguage() {
+            currentLang = currentLang === 'ru' ? 'en' : 'ru';
+            localStorage.setItem('sgeo-lang', currentLang);
+            document.querySelectorAll('.lang-toggle span').forEach(s => s.textContent = currentLang === 'ru' ? 'Рус' : 'Eng');
+            if (typeof SGEO !== 'undefined' && SGEO.Toast) {
+                SGEO.Toast.info(currentLang === 'ru' ? 'Язык: Русский' : 'Language: English', '');
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('sgeo-lang');
+            if (savedLang) {
+                currentLang = savedLang;
+                document.querySelectorAll('.lang-toggle span').forEach(s => s.textContent = currentLang === 'ru' ? 'Рус' : 'Eng');
+            }
+        });
+    </script>
+</body>
+</html>
