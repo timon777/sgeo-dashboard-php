@@ -13,17 +13,17 @@
         </button>
     </div>
 
-    <div class="tabs-container">
-        <button class="tab active">Все проекты</button>
-        <button class="tab">Государственные</button>
-        <button class="tab">Частные</button>
+    <div class="tabs-container" id="project-tabs">
+        <button class="tab <?= empty($_GET['type']) ? 'active' : '' ?>" data-filter="all">Все проекты</button>
+        <button class="tab <?= ($_GET['type'] ?? '') === 'gov' ? 'active' : '' ?>" data-filter="gov">Государственные</button>
+        <button class="tab <?= ($_GET['type'] ?? '') === 'private' ? 'active' : '' ?>" data-filter="private">Частные</button>
     </div>
 </div>
 
 <!-- Projects Grid -->
-<div class="projects-grid stagger-children">
+<div class="projects-grid stagger-children" id="projects-grid">
     <?php foreach ($projects as $project): ?>
-    <a href="/projects/<?= $project['id'] ?>" class="project-card">
+    <a href="/projects/<?= $project['id'] ?>" class="project-card" data-type="<?= $project['type'] ?>">
         <div class="project-header">
             <div class="project-icon <?= $project['type'] ?>">
                 <?= $project['icon'] ?>
@@ -209,4 +209,54 @@
         grid-template-columns: 1fr;
     }
 }
+
+.project-card.hidden {
+    display: none;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('#project-tabs .tab');
+    const projects = document.querySelectorAll('#projects-grid .project-card');
+
+    // Get initial filter from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialFilter = urlParams.get('type') || 'all';
+
+    // Apply initial filter
+    filterProjects(initialFilter);
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+
+            // Update active tab
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            // Filter projects
+            filterProjects(filter);
+
+            // Update URL without reload
+            const url = new URL(window.location);
+            if (filter === 'all') {
+                url.searchParams.delete('type');
+            } else {
+                url.searchParams.set('type', filter);
+            }
+            window.history.pushState({}, '', url);
+        });
+    });
+
+    function filterProjects(filter) {
+        projects.forEach(project => {
+            if (filter === 'all' || project.dataset.type === filter) {
+                project.classList.remove('hidden');
+            } else {
+                project.classList.add('hidden');
+            }
+        });
+    }
+});
+</script>
