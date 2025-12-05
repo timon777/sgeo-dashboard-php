@@ -3,6 +3,9 @@
 namespace App\Controllers;
 
 use App\Models\Project;
+use App\Models\AiResponse;
+use App\Models\Source;
+use App\Services\SupabaseClient;
 
 class ProjectsController extends BaseController
 {
@@ -17,13 +20,13 @@ class ProjectsController extends BaseController
                 $projects[] = [
                     'id' => $p['id'],
                     'title' => $p['name'],
-                    'description' => $p['description'],
-                    'icon' => $p['icon'],
-                    'type' => $p['type'],
-                    'badge' => $p['badge'],
-                    'accuracy' => (float)$p['accuracy_score'],
-                    'trend' => ($p['trend_direction'] === 'up' ? '+' : '-') . abs($p['trend_percent']) . '%',
-                    'trendUp' => $p['trend_direction'] === 'up',
+                    'description' => $p['description'] ?? '',
+                    'icon' => $p['icon'] ?? '',
+                    'type' => $p['type'] ?? 'general',
+                    'badge' => $p['badge'] ?? '',
+                    'accuracy' => (float)($p['accuracy_score'] ?? 0),
+                    'trend' => (($p['trend_direction'] ?? 'up') === 'up' ? '+' : '-') . abs($p['trend_percent'] ?? 0) . '%',
+                    'trendUp' => ($p['trend_direction'] ?? 'up') === 'up',
                 ];
             }
         }
@@ -48,28 +51,46 @@ class ProjectsController extends BaseController
             return;
         }
 
-        // Project stats (mock data, can be extended with real queries)
-        $stats = [
-            'processedPrompts' => 847,
-            'uniqueSources' => 234,
-            'avgTone' => '+0.42',
-            'llmModels' => 5,
-        ];
+        // Get project-related stats from database
+        $db = new SupabaseClient();
 
-        // Narratives for this project
-        $narratives = [
-            [
-                'title' => 'Реформаторская повестка',
-                'description' => 'Позиционирование как инициатора глубоких политических и экономических реформ. Отслеживаем нарративы о демократизации, деолигархизации, конституционных изменениях.',
-            ],
-            [
-                'title' => 'Независимая внешняя политика',
-                'description' => 'Анализ упоминаний многовекторной политики, баланса между ключевыми партнёрами и укрепления международного авторитета.',
-            ],
-            [
-                'title' => 'Лидерство в кризисных ситуациях',
-                'description' => 'Мониторинг оценок действий во время кризисных периодов. Оценка восприятия решительности и эффективности.',
-            ],
+        // Get prompts count for this project
+        $promptsResult = $db->from('ai_responses')
+            ->select('count')
+            ->eq('project_id', $id)
+            ->get();
+        $promptsCount = $promptsResult['data'][0]['count'] ?? 0;
+
+        // Get sources count for this project
+        $sourcesResult = $db->from('project_sources')
+            ->select('count')
+            ->eq('project_id', $id)
+            ->get();
+        $sourcesCount = $sourcesResult['data'][0]['count'] ?? 0;
+
+        // Get narratives for this project
+        $narrativesResult = $db->from('project_narratives')
+            ->select('*')
+            ->eq('project_id', $id)
+            ->eq('is_active', 'true')
+            ->order('priority', true)
+            ->get();
+
+        $narratives = [];
+        if (isset($narrativesResult['data']) && is_array($narrativesResult['data'])) {
+            foreach ($narrativesResult['data'] as $n) {
+                $narratives[] = [
+                    'title' => $n['title'] ?? '',
+                    'description' => $n['description'] ?? '',
+                ];
+            }
+        }
+
+        $stats = [
+            'processedPrompts' => $promptsCount,
+            'uniqueSources' => $sourcesCount,
+            'avgTone' => $project['avg_tone'] ?? '0.00',
+            'llmModels' => $project['llm_models_count'] ?? 0,
         ];
 
         $this->render('projects/show', [

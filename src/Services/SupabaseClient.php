@@ -7,13 +7,33 @@ class SupabaseClient
     private string $url;
     private string $key;
     private string $serviceKey;
+    private Logger $logger;
 
     public function __construct()
     {
-        $config = require __DIR__ . '/../../config/database.php';
-        $this->url = rtrim($config['supabase_url'], '/');
-        $this->key = $config['supabase_key'];
-        $this->serviceKey = $config['supabase_service_key'];
+        $this->logger = Logger::getInstance();
+
+        try {
+            $configPath = __DIR__ . '/../../config/database.php';
+            if (!file_exists($configPath)) {
+                $this->logger->error('Config file not found', ['path' => $configPath]);
+                throw new \RuntimeException('Database config file not found');
+            }
+
+            $config = require $configPath;
+            $this->url = rtrim($config['supabase_url'] ?? '', '/');
+            $this->key = $config['supabase_key'] ?? '';
+            $this->serviceKey = $config['supabase_service_key'] ?? '';
+
+            if (empty($this->url) || empty($this->key)) {
+                $this->logger->warning('Supabase credentials not fully configured');
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to initialize SupabaseClient', [
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
     }
 
     /**
@@ -35,6 +55,8 @@ class SupabaseClient
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 
         switch (strtoupper($method)) {
             case 'POST':
@@ -53,14 +75,49 @@ class SupabaseClient
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
+        $errno = curl_errno($ch);
         curl_close($ch);
 
+        // Log the request
+        $logEndpoint = preg_replace('/\?.*/', '', $endpoint); // Remove query params for logging
+
         if ($error) {
-            return ['error' => $error, 'status' => 0];
+            $this->logger->error('Supabase cURL error', [
+                'method' => $method,
+                'endpoint' => $logEndpoint,
+                'error' => $error,
+                'errno' => $errno
+            ]);
+            return ['error' => $error, 'status' => 0, 'data' => null];
+        }
+
+        if ($httpCode >= 400) {
+            $this->logger->error('Supabase API error', [
+                'method' => $method,
+                'endpoint' => $logEndpoint,
+                'status' => $httpCode,
+                'response' => substr($response, 0, 500)
+            ]);
+        } else {
+            $this->logger->debug('Supabase API request', [
+                'method' => $method,
+                'endpoint' => $logEndpoint,
+                'status' => $httpCode
+            ]);
+        }
+
+        $decodedResponse = json_decode($response, true);
+
+        // Handle JSON decode errors
+        if ($response !== null && $decodedResponse === null && json_last_error() !== JSON_ERROR_NONE) {
+            $this->logger->error('JSON decode error', [
+                'endpoint' => $logEndpoint,
+                'json_error' => json_last_error_msg()
+            ]);
         }
 
         return [
-            'data' => json_decode($response, true),
+            'data' => $decodedResponse,
             'status' => $httpCode,
         ];
     }
@@ -92,15 +149,40 @@ class SupabaseClient
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
         curl_close($ch);
+
+        if ($error) {
+            $this->logger->error('Supabase RPC error', [
+                'function' => $function,
+                'error' => $error
+            ]);
+            return ['error' => $error, 'status' => 0, 'data' => null];
+        }
+
+        if ($httpCode >= 400) {
+            $this->logger->error('Supabase RPC API error', [
+                'function' => $function,
+                'status' => $httpCode
+            ]);
+        }
 
         return [
             'data' => json_decode($response, true),
             'status' => $httpCode,
         ];
+    }
+
+    /**
+     * Get logger instance
+     */
+    public function getLogger(): Logger
+    {
+        return $this->logger;
     }
 }
 

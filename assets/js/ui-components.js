@@ -44,17 +44,14 @@ function initMobileMenu() {
 // =====================================================
 
 const searchData = [
-    { title: 'Дашборд', desc: 'Главная страница аналитики', icon: 'dashboard', url: 'index.html', category: 'Страницы' },
-    { title: 'Проекты', desc: 'Список всех проектов', icon: 'folder', url: 'projects.html', category: 'Страницы' },
-    { title: 'Промты', desc: 'Таблица промтов и ответов', icon: 'message', url: 'prompts.html', category: 'Страницы' },
-    { title: 'Источники', desc: 'База источников с E-E-A-T', icon: 'book', url: 'sources.html', category: 'Страницы' },
-    { title: 'LLM Мониторинг', desc: 'Анализ языковых моделей', icon: 'monitor', url: 'llm-monitoring.html', category: 'Страницы' },
-    { title: 'Тренды', desc: 'Динамика и аналитика', icon: 'trending', url: 'trends.html', category: 'Страницы' },
-    { title: 'Отчёты', desc: 'Генерация отчётов', icon: 'file', url: 'reports.html', category: 'Страницы' },
-    { title: 'Настройки', desc: 'Конфигурация системы', icon: 'settings', url: 'settings.html', category: 'Страницы' },
-    { title: 'Имидж Президента', desc: 'Проект мониторинга', icon: 'project', url: 'project-overview.html', category: 'Проекты' },
-    { title: 'Январские события', desc: 'Проект мониторинга', icon: 'project', url: 'project-overview.html', category: 'Проекты' },
-    { title: 'Цифровой Казахстан', desc: 'Проект мониторинга', icon: 'project', url: 'project-overview.html', category: 'Проекты' },
+    { title: 'Дашборд', desc: 'Главная страница аналитики', icon: 'dashboard', url: '/', category: 'Страницы' },
+    { title: 'Проекты', desc: 'Список всех проектов', icon: 'folder', url: '/projects', category: 'Страницы' },
+    { title: 'Промты', desc: 'Таблица промтов и ответов', icon: 'message', url: '/prompts', category: 'Страницы' },
+    { title: 'Источники', desc: 'База источников с E-E-A-T', icon: 'book', url: '/sources', category: 'Страницы' },
+    { title: 'LLM Мониторинг', desc: 'Анализ языковых моделей', icon: 'monitor', url: '/llm-monitoring', category: 'Страницы' },
+    { title: 'Тренды', desc: 'Динамика и аналитика', icon: 'trending', url: '/trends', category: 'Страницы' },
+    { title: 'Отчёты', desc: 'Генерация отчётов', icon: 'file', url: '/reports', category: 'Страницы' },
+    { title: 'Настройки', desc: 'Конфигурация системы', icon: 'settings', url: '/settings', category: 'Страницы' },
 ];
 
 const icons = {
@@ -279,10 +276,6 @@ class Toast {
     static warning(title, message) { return this.show({ type: 'warning', title, message }); }
     static info(title, message) { return this.show({ type: 'info', title, message }); }
 }
-
-// Export SGEO immediately after Toast class definition
-window.SGEO = window.SGEO || {};
-window.SGEO.Toast = Toast;
 
 // =====================================================
 // 4. SORTABLE TABLES
