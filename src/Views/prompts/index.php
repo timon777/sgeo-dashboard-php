@@ -117,18 +117,55 @@
 </div>
 
 <!-- Pagination -->
+<?php if ($totalPages > 1): ?>
 <div class="pagination">
-    <button class="pagination-btn">&lt;</button>
-    <button class="pagination-btn active">1</button>
-    <button class="pagination-btn">2</button>
-    <button class="pagination-btn">3</button>
-    <button class="pagination-btn">...</button>
-    <button class="pagination-btn">85</button>
-    <button class="pagination-btn">&gt;</button>
+    <?php if ($paginationPage > 1): ?>
+        <a href="?page=<?= $paginationPage - 1 ?>" class="pagination-btn">&lt;</a>
+    <?php else: ?>
+        <span class="pagination-btn disabled">&lt;</span>
+    <?php endif; ?>
+
+    <?php
+    // Show first page
+    if ($paginationPage > 3): ?>
+        <a href="?page=1" class="pagination-btn">1</a>
+        <?php if ($paginationPage > 4): ?>
+            <span class="pagination-btn disabled">...</span>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <?php
+    // Show pages around current
+    $startPage = max(1, $paginationPage - 2);
+    $endPage = min($totalPages, $paginationPage + 2);
+    for ($i = $startPage; $i <= $endPage; $i++): ?>
+        <?php if ($i == $paginationPage): ?>
+            <span class="pagination-btn active"><?= $i ?></span>
+        <?php else: ?>
+            <a href="?page=<?= $i ?>" class="pagination-btn"><?= $i ?></a>
+        <?php endif; ?>
+    <?php endfor; ?>
+
+    <?php
+    // Show last page
+    if ($paginationPage < $totalPages - 2): ?>
+        <?php if ($paginationPage < $totalPages - 3): ?>
+            <span class="pagination-btn disabled">...</span>
+        <?php endif; ?>
+        <a href="?page=<?= $totalPages ?>" class="pagination-btn"><?= $totalPages ?></a>
+    <?php endif; ?>
+
+    <?php if ($paginationPage < $totalPages): ?>
+        <a href="?page=<?= $paginationPage + 1 ?>" class="pagination-btn">&gt;</a>
+    <?php else: ?>
+        <span class="pagination-btn disabled">&gt;</span>
+    <?php endif; ?>
 </div>
+<?php endif; ?>
 
 <div style="text-align: center; margin-top: 16px; color: var(--text-tertiary); font-size: 13px;">
-    Всего записей: <?= number_format($totalPrompts) ?>
+    Показано <?= count($prompts) ?> из <?= number_format($totalPrompts) ?> записей
+    <?php if ($totalPages > 1): ?>(страница <?= $paginationPage ?> из <?= $totalPages ?>)<?php endif; ?>
 </div>
 
 <?php

@@ -1135,6 +1135,16 @@ body {
     color: white;
 }
 
+.pagination-btn.disabled {
+    opacity: 0.4;
+    cursor: default;
+    pointer-events: none;
+}
+
+a.pagination-btn {
+    text-decoration: none;
+}
+
 /* Progress Bar */
 .progress-bar {
     height: 6px;

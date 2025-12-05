@@ -71,12 +71,13 @@ class Evaluation
             ->get();
     }
 
-    public function recentDetailed(int $limit = 50): array
+    public function recentDetailed(int $limit = 50, int $offset = 0): array
     {
         return $this->db->from('recent_evaluations_detailed')
             ->select('*')
             ->order('evaluated_at', false)
             ->limit($limit)
+            ->offset($offset)
             ->get();
     }
 

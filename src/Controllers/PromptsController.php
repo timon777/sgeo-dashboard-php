@@ -16,9 +16,19 @@ class PromptsController extends BaseController
         $promptSetModel = new PromptSet();
         $projectModel = new Project();
 
-        // Get responses with evaluations from DB
-        $responsesResult = $aiResponseModel->all(50);
-        $evaluationsResult = $evaluationModel->recentDetailed(50);
+        // Pagination parameters
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $perPage = 20;
+        $offset = ($page - 1) * $perPage;
+
+        // Get total count for pagination
+        $stats = $aiResponseModel->getStats();
+        $totalPrompts = $stats['total'] ?? 0;
+        $totalPages = max(1, ceil($totalPrompts / $perPage));
+
+        // Get responses with evaluations from DB with pagination
+        $responsesResult = $aiResponseModel->all($perPage, $offset);
+        $evaluationsResult = $evaluationModel->recentDetailed($perPage, $offset);
 
         // Format prompts for display
         $prompts = [];
@@ -57,10 +67,6 @@ class PromptsController extends BaseController
             }
         }
 
-        // Get stats
-        $stats = $aiResponseModel->getStats();
-        $totalPrompts = $stats['total'] ?? count($prompts);
-
         // Get projects for filter
         $projectsResult = $projectModel->all();
         $projects = $projectsResult['data'] ?? [];
@@ -75,6 +81,9 @@ class PromptsController extends BaseController
             'breadcrumb' => 'Промты',
             'prompts' => $prompts,
             'totalPrompts' => $totalPrompts,
+            'paginationPage' => $page,
+            'totalPages' => $totalPages,
+            'perPage' => $perPage,
             'projects' => $projects,
             'promptSets' => $promptSets,
         ]);
