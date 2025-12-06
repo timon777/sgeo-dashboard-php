@@ -93,29 +93,49 @@
 
 <!-- Filters -->
 <div class="filters-row" id="source-filters">
-    <button class="filter-btn active" data-filter="all">Все типы</button>
-    <button class="filter-btn" data-filter="gov">Гос. сайты</button>
-    <button class="filter-btn" data-filter="media">СМИ</button>
-    <button class="filter-btn" data-filter="analytics">Аналитика</button>
-    <button class="filter-btn" data-filter="wiki">Wiki</button>
+    <div class="filter-group">
+        <span class="filter-label">Тип:</span>
+        <button class="filter-btn active" data-filter="type" data-value="all">Все</button>
+        <button class="filter-btn" data-filter="type" data-value="gov">Гос.</button>
+        <button class="filter-btn" data-filter="type" data-value="media">СМИ</button>
+        <button class="filter-btn" data-filter="type" data-value="analytics">Аналит.</button>
+        <button class="filter-btn" data-filter="type" data-value="wiki">Wiki</button>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-group">
+        <span class="filter-label">Страна:</span>
+        <button class="filter-btn active" data-filter="country" data-value="all">Все</button>
+        <button class="filter-btn" data-filter="country" data-value="KZ">KZ</button>
+        <button class="filter-btn" data-filter="country" data-value="RU">RU</button>
+        <button class="filter-btn" data-filter="country" data-value="US">US</button>
+        <button class="filter-btn" data-filter="country" data-value="other">Другие</button>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-group">
+        <span class="filter-label">E-E-A-T:</span>
+        <button class="filter-btn active" data-filter="eeat" data-value="all">Все</button>
+        <button class="filter-btn" data-filter="eeat" data-value="high">80+</button>
+        <button class="filter-btn" data-filter="eeat" data-value="medium">50-79</button>
+        <button class="filter-btn" data-filter="eeat" data-value="low">&lt;50</button>
+    </div>
     <div style="flex: 1;"></div>
     <input type="text" class="input-field" id="source-search" placeholder="Поиск по домену..." style="width: auto; min-width: 200px;">
 </div>
 
 <!-- Sources Table -->
 <div class="table-container" style="overflow-x: auto;">
-    <table class="table">
+    <table class="table" id="sources-table-wrapper">
         <thead>
             <tr>
-                <th class="sortable">Домен</th>
-                <th class="sortable">Тип</th>
-                <th class="sortable">Страна</th>
-                <th class="sortable">Экспертиза</th>
-                <th class="sortable">Опыт</th>
-                <th class="sortable">Авторитет</th>
-                <th class="sortable">Доверие</th>
-                <th class="sortable">E-E-A-T</th>
-                <th class="sortable">Доля %</th>
+                <th class="sortable" data-sort="domain">Домен <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="type">Тип <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="country">Страна <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="expertise">Экспертиза <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="experience">Опыт <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="authority">Авторитет <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="trust">Доверие <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="eeat">E-E-A-T <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="share">Доля % <span class="sort-icon"></span></th>
                 <th>Автор</th>
                 <th>HTTPS</th>
                 <th class="no-sort">Действия</th>
@@ -123,7 +143,16 @@
         </thead>
         <tbody id="sources-table">
             <?php foreach ($sources as $index => $source): ?>
-            <tr data-type="<?= $source['type'] ?>" data-domain="<?= strtolower($source['domain']) ?>" data-index="<?= $index ?>">
+            <tr data-type="<?= $source['type'] ?>"
+                data-domain="<?= strtolower($source['domain']) ?>"
+                data-country="<?= $source['country'] ?>"
+                data-expertise="<?= $source['expertise'] ?>"
+                data-experience="<?= $source['experience'] ?>"
+                data-authority="<?= $source['authority'] ?>"
+                data-trust="<?= $source['trust'] ?>"
+                data-eeat="<?= $source['eeat'] ?>"
+                data-share="<?= $source['share'] ?>"
+                data-index="<?= $index ?>">
                 <td>
                     <a href="https://<?= htmlspecialchars($source['domain']) ?>" target="_blank" style="color: var(--accent-primary); text-decoration: none;">
                         <?= htmlspecialchars($source['domain']) ?>
@@ -184,8 +213,8 @@
     </table>
 </div>
 
-<div style="text-align: center; margin-top: 16px; color: var(--text-tertiary); font-size: 13px;">
-    Всего источников: <?= number_format($totalSources) ?>
+<div style="text-align: center; margin-top: 16px; color: var(--text-tertiary); font-size: 13px;" id="sources-count">
+    Показано: <?= number_format($totalSources) ?> из <?= number_format($totalSources) ?>
 </div>
 
 <!-- Source Modal -->
@@ -339,6 +368,60 @@
 <div id="toast" class="toast"></div>
 
 <style>
+/* Filter group styles */
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.filter-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    margin-right: 4px;
+}
+.filter-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border-subtle);
+    margin: 0 12px;
+}
+.filters-row {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Sortable headers */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+.sortable:hover {
+    background: var(--bg-card-hover);
+}
+.sort-icon {
+    display: inline-block;
+    margin-left: 4px;
+    opacity: 0.3;
+    font-size: 10px;
+}
+.sort-icon::after {
+    content: '⇅';
+}
+.sortable.sort-asc .sort-icon {
+    opacity: 1;
+}
+.sortable.sort-asc .sort-icon::after {
+    content: '↑';
+}
+.sortable.sort-desc .sort-icon {
+    opacity: 1;
+}
+.sortable.sort-desc .sort-icon::after {
+    content: '↓';
+}
+
 .btn-icon {
     width: 32px;
     height: 32px;
@@ -1018,16 +1101,35 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Filter functionality
-    const filterBtns = document.querySelectorAll('#source-filters .filter-btn');
     const searchInput = document.getElementById('source-search');
-    const rows = document.querySelectorAll('#sources-table tr');
-    let currentFilter = 'all';
+    const tableBody = document.getElementById('sources-table');
+    const rows = Array.from(tableBody.querySelectorAll('tr'));
 
-    filterBtns.forEach(btn => {
+    // Filter state
+    const filters = {
+        type: 'all',
+        country: 'all',
+        eeat: 'all'
+    };
+
+    // Sort state
+    let sortColumn = null;
+    let sortDirection = 'asc';
+
+    // Filter button handlers
+    document.querySelectorAll('#source-filters .filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            filterBtns.forEach(b => b.classList.remove('active'));
+            const filterType = this.dataset.filter;
+            const filterValue = this.dataset.value;
+
+            // Update active state within same filter group
+            this.closest('.filter-group').querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('active');
+            });
             this.classList.add('active');
-            currentFilter = this.dataset.filter;
+
+            // Update filter state
+            filters[filterType] = filterValue;
             applyFilters();
         });
     });
@@ -1036,12 +1138,98 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function applyFilters() {
         const searchTerm = searchInput.value.toLowerCase();
+
         rows.forEach(row => {
-            const matchesType = currentFilter === 'all' || row.dataset.type === currentFilter;
+            // Type filter
+            const matchesType = filters.type === 'all' || row.dataset.type === filters.type;
+
+            // Country filter
+            let matchesCountry = filters.country === 'all';
+            if (!matchesCountry) {
+                if (filters.country === 'other') {
+                    matchesCountry = !['KZ', 'RU', 'US'].includes(row.dataset.country);
+                } else {
+                    matchesCountry = row.dataset.country === filters.country;
+                }
+            }
+
+            // E-E-A-T filter
+            let matchesEeat = filters.eeat === 'all';
+            if (!matchesEeat) {
+                const eeat = parseInt(row.dataset.eeat) || 0;
+                if (filters.eeat === 'high') matchesEeat = eeat >= 80;
+                else if (filters.eeat === 'medium') matchesEeat = eeat >= 50 && eeat < 80;
+                else if (filters.eeat === 'low') matchesEeat = eeat < 50;
+            }
+
+            // Search filter
             const matchesSearch = !searchTerm || row.dataset.domain.includes(searchTerm);
-            row.style.display = matchesType && matchesSearch ? '' : 'none';
+
+            row.style.display = matchesType && matchesCountry && matchesEeat && matchesSearch ? '' : 'none';
         });
+
+        updateVisibleCount();
     }
+
+    function updateVisibleCount() {
+        const visible = rows.filter(r => r.style.display !== 'none').length;
+        const countEl = document.getElementById('sources-count');
+        if (countEl) {
+            countEl.textContent = `Показано: ${visible} из ${rows.length}`;
+        }
+    }
+
+    // Sorting functionality
+    document.querySelectorAll('.sortable').forEach(th => {
+        th.addEventListener('click', function() {
+            const column = this.dataset.sort;
+            if (!column) return;
+
+            // Toggle direction if same column
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+
+            // Update header classes
+            document.querySelectorAll('.sortable').forEach(h => {
+                h.classList.remove('sort-asc', 'sort-desc');
+            });
+            this.classList.add(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+
+            // Sort rows
+            const sortedRows = [...rows].sort((a, b) => {
+                let aVal = a.dataset[column] || '';
+                let bVal = b.dataset[column] || '';
+
+                // Numeric columns
+                const numericCols = ['expertise', 'experience', 'authority', 'trust', 'eeat', 'share'];
+                if (numericCols.includes(column)) {
+                    aVal = parseFloat(aVal) || 0;
+                    bVal = parseFloat(bVal) || 0;
+                    return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+                }
+
+                // String columns
+                aVal = aVal.toString().toLowerCase();
+                bVal = bVal.toString().toLowerCase();
+                if (sortDirection === 'asc') {
+                    return aVal.localeCompare(bVal);
+                } else {
+                    return bVal.localeCompare(aVal);
+                }
+            });
+
+            // Reorder DOM
+            sortedRows.forEach(row => tableBody.appendChild(row));
+            applyFilters();
+        });
+    });
+
+    // Initial count
+    updateVisibleCount();
 });
 </script>
 SCRIPTS;
