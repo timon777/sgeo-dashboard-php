@@ -490,9 +490,12 @@
 
 <?php
 $statsJson = json_encode($stats);
-$pageScripts = <<<SCRIPTS
+?>
+<script id="chart-stats-data" type="application/json"><?= $statsJson ?></script>
+<?php
+$pageScripts = <<<'SCRIPTS'
 <script>
-const chartStats = {$statsJson};
+const chartStats = JSON.parse(document.getElementById('chart-stats-data').textContent);
 
 function initSourcesCharts() {
     const themeColors = getChartColors();
