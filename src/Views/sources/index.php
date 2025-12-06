@@ -381,7 +381,14 @@
     -webkit-overflow-scrolling: touch;
 }
 .sources-table-wrap table {
-    min-width: 900px;
+    min-width: 800px;
+}
+/* Compact table cells for sources */
+.sources-table-wrap .table td {
+    padding: 8px 6px;
+}
+.sources-table-wrap .table th {
+    padding: 8px 6px;
 }
 
 /* Filter row layout */
