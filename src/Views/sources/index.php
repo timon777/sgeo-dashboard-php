@@ -93,37 +93,40 @@
 
 <!-- Filters -->
 <div class="filters-row" id="source-filters">
-    <div class="filter-select-group">
-        <label class="filter-label">Тип:</label>
-        <select class="filter-select" id="filter-type">
-            <option value="all">Все типы</option>
-            <option value="gov">Гос. сайты</option>
-            <option value="media">СМИ</option>
-            <option value="analytics">Аналитика</option>
-            <option value="wiki">Wiki</option>
-        </select>
+    <div class="filters-left">
+        <div class="filter-select-group">
+            <label class="filter-label">Тип:</label>
+            <select class="filter-select" id="filter-type">
+                <option value="all">Все типы</option>
+                <option value="gov">Гос. сайты</option>
+                <option value="media">СМИ</option>
+                <option value="analytics">Аналитика</option>
+                <option value="wiki">Wiki</option>
+            </select>
+        </div>
+        <div class="filter-select-group">
+            <label class="filter-label">Страна:</label>
+            <select class="filter-select" id="filter-country">
+                <option value="all">Все страны</option>
+                <option value="KZ">Казахстан</option>
+                <option value="RU">Россия</option>
+                <option value="US">США</option>
+                <option value="other">Другие</option>
+            </select>
+        </div>
+        <div class="filter-select-group">
+            <label class="filter-label">E-E-A-T:</label>
+            <select class="filter-select" id="filter-eeat">
+                <option value="all">Все уровни</option>
+                <option value="high">Высокий (80+)</option>
+                <option value="medium">Средний (50-79)</option>
+                <option value="low">Низкий (&lt;50)</option>
+            </select>
+        </div>
     </div>
-    <div class="filter-select-group">
-        <label class="filter-label">Страна:</label>
-        <select class="filter-select" id="filter-country">
-            <option value="all">Все страны</option>
-            <option value="KZ">Казахстан</option>
-            <option value="RU">Россия</option>
-            <option value="US">США</option>
-            <option value="other">Другие</option>
-        </select>
+    <div class="filter-search">
+        <input type="text" class="input-field" id="source-search" placeholder="Поиск по домену...">
     </div>
-    <div class="filter-select-group">
-        <label class="filter-label">E-E-A-T:</label>
-        <select class="filter-select" id="filter-eeat">
-            <option value="all">Все уровни</option>
-            <option value="high">Высокий (80+)</option>
-            <option value="medium">Средний (50-79)</option>
-            <option value="low">Низкий (&lt;50)</option>
-        </select>
-    </div>
-    <div style="flex: 1;"></div>
-    <input type="text" class="input-field" id="source-search" placeholder="Поиск по домену..." style="width: auto; min-width: 200px;">
 </div>
 
 <!-- Sources Table -->
@@ -372,6 +375,67 @@
 <div id="toast" class="toast"></div>
 
 <style>
+/* Responsive page header */
+.page-header-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+.page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+@media (max-width: 768px) {
+    .page-header-top {
+        flex-direction: column;
+    }
+    .page-actions {
+        width: 100%;
+    }
+    .page-actions .btn {
+        flex: 1;
+        min-width: 120px;
+    }
+}
+
+/* Filter row layout */
+.filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+}
+.filters-left {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+.filter-search {
+    min-width: 200px;
+    max-width: 300px;
+}
+.filter-search .input-field {
+    width: 100%;
+}
+@media (max-width: 900px) {
+    .filters-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filters-left {
+        width: 100%;
+    }
+    .filter-search {
+        width: 100%;
+        max-width: none;
+    }
+}
+
 /* Filter select styles */
 .filter-select-group {
     display: flex;
@@ -403,9 +467,15 @@
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
-.filters-row {
-    flex-wrap: wrap;
-    gap: 16px;
+@media (max-width: 600px) {
+    .filter-select-group {
+        flex: 1;
+        min-width: 140px;
+    }
+    .filter-select {
+        flex: 1;
+        min-width: 0;
+    }
 }
 
 /* Sortable headers */
