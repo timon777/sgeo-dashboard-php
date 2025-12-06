@@ -859,6 +859,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let imported = 0;
         let updated = 0;
         let errors = 0;
+        let errorDetails = [];
         const total = parsedData.length;
         const batchSize = 50;
 
@@ -877,14 +878,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 const result = await resp.json();
+                console.log('Batch result:', result);
                 if (result.success) {
                     imported += result.imported || 0;
                     updated += result.updated || 0;
+                    errors += result.errors || 0;
+                    if (result.error_details) {
+                        errorDetails = errorDetails.concat(result.error_details);
+                    }
                 } else {
                     errors += batch.length;
+                    errorDetails.push(result.error || 'Unknown error');
                 }
             } catch (err) {
                 errors += batch.length;
+                errorDetails.push(err.message);
             }
 
             const progress = Math.min(100, Math.round(((i + batch.length) / total) * 100));
@@ -895,15 +903,20 @@ document.addEventListener('DOMContentLoaded', function() {
         progressDiv.style.display = 'none';
         resultDiv.style.display = 'block';
 
-        if (errors === 0) {
+        if (imported > 0 || updated > 0) {
             resultDiv.style.background = 'rgba(34, 197, 94, 0.1)';
             resultDiv.style.color = 'var(--success)';
-            resultDiv.innerHTML = `Импорт завершён! Добавлено: ${imported}, обновлено: ${updated}`;
+            resultDiv.innerHTML = `Импорт завершён! Добавлено: ${imported}, обновлено: ${updated}` + (errors > 0 ? `, ошибок: ${errors}` : '');
             setTimeout(() => location.reload(), 2000);
-        } else {
+        } else if (errors > 0) {
             resultDiv.style.background = 'rgba(239, 68, 68, 0.1)';
             resultDiv.style.color = 'var(--danger)';
-            resultDiv.innerHTML = `Импортировано: ${imported}, обновлено: ${updated}, ошибок: ${errors}`;
+            resultDiv.innerHTML = `Ошибок: ${errors}. Проверьте консоль браузера для деталей.`;
+            console.error('Import errors:', errorDetails);
+        } else {
+            resultDiv.style.background = 'rgba(245, 158, 11, 0.1)';
+            resultDiv.style.color = 'var(--warning)';
+            resultDiv.innerHTML = `Все домены уже существуют в базе. Ничего не импортировано.`;
         }
     });
 

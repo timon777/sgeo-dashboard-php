@@ -195,6 +195,7 @@ class SourcesController extends BaseController
         $imported = 0;
         $updated = 0;
         $errors = 0;
+        $errorDetails = [];
 
         foreach ($data['sources'] as $sourceData) {
             if (empty($sourceData['domain'])) {
@@ -205,6 +206,7 @@ class SourcesController extends BaseController
             // Check if domain already exists
             $existing = $sourceModel->byDomain($sourceData['domain']);
 
+            // Only use fields that exist in the database schema
             $recordData = [
                 'domain' => $sourceData['domain'],
                 'type' => $sourceData['type'] ?? 'media',
@@ -219,23 +221,9 @@ class SourcesController extends BaseController
                 'has_https' => (bool)($sourceData['has_https'] ?? true),
             ];
 
-            // Add extra fields if provided
-            if (!empty($sourceData['source_url'])) {
-                $recordData['source_url'] = $sourceData['source_url'];
-            }
-            if (!empty($sourceData['url_rating'])) {
-                $recordData['url_rating'] = (float)$sourceData['url_rating'];
-            }
-            if (!empty($sourceData['domain_rating'])) {
-                $recordData['domain_rating'] = (float)$sourceData['domain_rating'];
-            }
-            if (!empty($sourceData['organic_traffic'])) {
-                $recordData['organic_traffic'] = (int)$sourceData['organic_traffic'];
-            }
-
             // If E-E-A-T combined is 0, calculate it
             if ($recordData['eeat_combined'] === 0) {
-                $recordData['eeat_combined'] = round((
+                $recordData['eeat_combined'] = (int)round((
                     $recordData['expertise_score'] +
                     $recordData['experience_score'] +
                     $recordData['authority_score'] +
@@ -248,34 +236,44 @@ class SourcesController extends BaseController
                     if ($updateExisting) {
                         $recordData['updated_at'] = date('c');
                         $result = $sourceModel->update($existing['id'], $recordData);
-                        if ($result['status'] >= 200 && $result['status'] < 300) {
+                        if (isset($result['status']) && $result['status'] >= 200 && $result['status'] < 300) {
                             $updated++;
                         } else {
                             $errors++;
+                            $errorDetails[] = 'Update failed for ' . $sourceData['domain'] . ': ' . json_encode($result);
                         }
                     }
-                    // If not updating, skip silently
+                    // If not updating, skip silently (domain already exists)
                 } else {
                     $result = $sourceModel->create($recordData);
-                    if ($result['status'] >= 200 && $result['status'] < 300) {
+                    if (isset($result['status']) && $result['status'] >= 200 && $result['status'] < 300) {
                         $imported++;
                     } else {
                         $errors++;
+                        $errorDetails[] = 'Create failed for ' . $sourceData['domain'] . ': status=' . ($result['status'] ?? 'unknown') . ', data=' . json_encode($result['data'] ?? null);
                     }
                 }
             } catch (\Exception $e) {
                 $errors++;
+                $errorDetails[] = 'Exception for ' . $sourceData['domain'] . ': ' . $e->getMessage();
             }
         }
 
         Cache::forget('sources_list');
 
-        echo json_encode([
+        $response = [
             'success' => true,
             'imported' => $imported,
             'updated' => $updated,
             'errors' => $errors,
-        ]);
+        ];
+
+        // Include error details for debugging (first 5)
+        if (!empty($errorDetails)) {
+            $response['error_details'] = array_slice($errorDetails, 0, 5);
+        }
+
+        echo json_encode($response);
     }
 
     public function exportCsv(): void
