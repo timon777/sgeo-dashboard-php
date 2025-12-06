@@ -93,30 +93,34 @@
 
 <!-- Filters -->
 <div class="filters-row" id="source-filters">
-    <div class="filter-group">
-        <span class="filter-label">Тип:</span>
-        <button class="filter-btn active" data-filter="type" data-value="all">Все</button>
-        <button class="filter-btn" data-filter="type" data-value="gov">Гос.</button>
-        <button class="filter-btn" data-filter="type" data-value="media">СМИ</button>
-        <button class="filter-btn" data-filter="type" data-value="analytics">Аналит.</button>
-        <button class="filter-btn" data-filter="type" data-value="wiki">Wiki</button>
+    <div class="filter-select-group">
+        <label class="filter-label">Тип:</label>
+        <select class="filter-select" id="filter-type">
+            <option value="all">Все типы</option>
+            <option value="gov">Гос. сайты</option>
+            <option value="media">СМИ</option>
+            <option value="analytics">Аналитика</option>
+            <option value="wiki">Wiki</option>
+        </select>
     </div>
-    <div class="filter-divider"></div>
-    <div class="filter-group">
-        <span class="filter-label">Страна:</span>
-        <button class="filter-btn active" data-filter="country" data-value="all">Все</button>
-        <button class="filter-btn" data-filter="country" data-value="KZ">KZ</button>
-        <button class="filter-btn" data-filter="country" data-value="RU">RU</button>
-        <button class="filter-btn" data-filter="country" data-value="US">US</button>
-        <button class="filter-btn" data-filter="country" data-value="other">Другие</button>
+    <div class="filter-select-group">
+        <label class="filter-label">Страна:</label>
+        <select class="filter-select" id="filter-country">
+            <option value="all">Все страны</option>
+            <option value="KZ">Казахстан</option>
+            <option value="RU">Россия</option>
+            <option value="US">США</option>
+            <option value="other">Другие</option>
+        </select>
     </div>
-    <div class="filter-divider"></div>
-    <div class="filter-group">
-        <span class="filter-label">E-E-A-T:</span>
-        <button class="filter-btn active" data-filter="eeat" data-value="all">Все</button>
-        <button class="filter-btn" data-filter="eeat" data-value="high">80+</button>
-        <button class="filter-btn" data-filter="eeat" data-value="medium">50-79</button>
-        <button class="filter-btn" data-filter="eeat" data-value="low">&lt;50</button>
+    <div class="filter-select-group">
+        <label class="filter-label">E-E-A-T:</label>
+        <select class="filter-select" id="filter-eeat">
+            <option value="all">Все уровни</option>
+            <option value="high">Высокий (80+)</option>
+            <option value="medium">Средний (50-79)</option>
+            <option value="low">Низкий (&lt;50)</option>
+        </select>
     </div>
     <div style="flex: 1;"></div>
     <input type="text" class="input-field" id="source-search" placeholder="Поиск по домену..." style="width: auto; min-width: 200px;">
@@ -368,27 +372,40 @@
 <div id="toast" class="toast"></div>
 
 <style>
-/* Filter group styles */
-.filter-group {
+/* Filter select styles */
+.filter-select-group {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 .filter-label {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-tertiary);
     font-weight: 500;
-    margin-right: 4px;
+    white-space: nowrap;
 }
-.filter-divider {
-    width: 1px;
-    height: 24px;
-    background: var(--border-subtle);
-    margin: 0 12px;
+.filter-select {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    min-width: 130px;
+    transition: all var(--transition-fast);
+}
+.filter-select:hover {
+    border-color: var(--border-medium);
+}
+.filter-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 .filters-row {
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 16px;
 }
 
 /* Sortable headers */
@@ -1105,61 +1122,48 @@ document.addEventListener('DOMContentLoaded', function() {
     const tableBody = document.getElementById('sources-table');
     const rows = Array.from(tableBody.querySelectorAll('tr'));
 
-    // Filter state
-    const filters = {
-        type: 'all',
-        country: 'all',
-        eeat: 'all'
-    };
+    // Filter selects
+    const filterType = document.getElementById('filter-type');
+    const filterCountry = document.getElementById('filter-country');
+    const filterEeat = document.getElementById('filter-eeat');
 
     // Sort state
     let sortColumn = null;
     let sortDirection = 'asc';
 
-    // Filter button handlers
-    document.querySelectorAll('#source-filters .filter-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const filterType = this.dataset.filter;
-            const filterValue = this.dataset.value;
-
-            // Update active state within same filter group
-            this.closest('.filter-group').querySelectorAll('.filter-btn').forEach(b => {
-                b.classList.remove('active');
-            });
-            this.classList.add('active');
-
-            // Update filter state
-            filters[filterType] = filterValue;
-            applyFilters();
-        });
-    });
-
+    // Filter select handlers
+    filterType.addEventListener('change', applyFilters);
+    filterCountry.addEventListener('change', applyFilters);
+    filterEeat.addEventListener('change', applyFilters);
     searchInput.addEventListener('input', applyFilters);
 
     function applyFilters() {
         const searchTerm = searchInput.value.toLowerCase();
+        const typeValue = filterType.value;
+        const countryValue = filterCountry.value;
+        const eeatValue = filterEeat.value;
 
         rows.forEach(row => {
             // Type filter
-            const matchesType = filters.type === 'all' || row.dataset.type === filters.type;
+            const matchesType = typeValue === 'all' || row.dataset.type === typeValue;
 
             // Country filter
-            let matchesCountry = filters.country === 'all';
+            let matchesCountry = countryValue === 'all';
             if (!matchesCountry) {
-                if (filters.country === 'other') {
+                if (countryValue === 'other') {
                     matchesCountry = !['KZ', 'RU', 'US'].includes(row.dataset.country);
                 } else {
-                    matchesCountry = row.dataset.country === filters.country;
+                    matchesCountry = row.dataset.country === countryValue;
                 }
             }
 
             // E-E-A-T filter
-            let matchesEeat = filters.eeat === 'all';
+            let matchesEeat = eeatValue === 'all';
             if (!matchesEeat) {
                 const eeat = parseInt(row.dataset.eeat) || 0;
-                if (filters.eeat === 'high') matchesEeat = eeat >= 80;
-                else if (filters.eeat === 'medium') matchesEeat = eeat >= 50 && eeat < 80;
-                else if (filters.eeat === 'low') matchesEeat = eeat < 50;
+                if (eeatValue === 'high') matchesEeat = eeat >= 80;
+                else if (eeatValue === 'medium') matchesEeat = eeat >= 50 && eeat < 80;
+                else if (eeatValue === 'low') matchesEeat = eeat < 50;
             }
 
             // Search filter
