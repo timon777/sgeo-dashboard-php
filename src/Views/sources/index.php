@@ -375,55 +375,22 @@
 <div id="toast" class="toast"></div>
 
 <style>
-/* Fix page overflow - force all elements within viewport */
-.content {
-    overflow-x: hidden;
-    max-width: 100%;
-}
-.page-header,
-.sources-section,
-.filters-row,
-.table-container {
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
-/* Page header - always fit content */
-.page-header-top {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: flex-start;
-    justify-content: space-between;
-    width: 100%;
-}
-.page-title-group {
-    flex: 1;
-    min-width: 200px;
-}
-.page-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
 /* Table wrapper - horizontal scroll only for table */
 .sources-table-wrap {
     overflow-x: auto;
-    max-width: 100%;
     -webkit-overflow-scrolling: touch;
 }
 .sources-table-wrap table {
     min-width: 900px;
 }
 
-/* Filter row layout - stack on narrow screens */
+/* Filter row layout */
 .filters-row {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
-    width: 100%;
+    margin-bottom: 16px;
 }
 .filters-left {
     display: flex;
@@ -431,6 +398,7 @@
     gap: 12px;
     align-items: center;
     flex: 1;
+    min-width: 0;
 }
 .filter-search {
     width: 200px;
@@ -440,22 +408,7 @@
     width: 100%;
 }
 
-/* Responsive breakpoints */
-@media (max-width: 1200px) {
-    .filters-row {
-        justify-content: flex-start;
-    }
-    .filter-search {
-        width: 180px;
-    }
-}
 @media (max-width: 900px) {
-    .page-header-top {
-        flex-direction: column;
-    }
-    .page-actions {
-        width: 100%;
-    }
     .filters-row {
         flex-direction: column;
         align-items: stretch;
