@@ -130,7 +130,7 @@
 </div>
 
 <!-- Sources Table -->
-<div class="table-container" style="overflow-x: auto;">
+<div class="table-container sources-table-wrap">
     <table class="table" id="sources-table-wrapper">
         <thead>
             <tr>
@@ -375,6 +375,11 @@
 <div id="toast" class="toast"></div>
 
 <style>
+/* Fix page overflow - prevent horizontal scroll */
+.content {
+    overflow-x: hidden;
+}
+
 /* Responsive page header */
 .page-header-top {
     display: flex;
@@ -382,23 +387,45 @@
     gap: 16px;
     align-items: flex-start;
     justify-content: space-between;
+    max-width: 100%;
 }
 .page-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    flex-shrink: 0;
 }
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     .page-header-top {
         flex-direction: column;
+        align-items: stretch;
     }
     .page-actions {
         width: 100%;
+        justify-content: flex-start;
     }
     .page-actions .btn {
-        flex: 1;
-        min-width: 120px;
+        flex: 0 1 auto;
     }
+}
+@media (max-width: 600px) {
+    .page-actions .btn {
+        flex: 1;
+        min-width: 100px;
+    }
+    .page-actions .btn span:not(.btn-text) {
+        display: none;
+    }
+}
+
+/* Table wrapper - horizontal scroll only for table */
+.sources-table-wrap {
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+.sources-table-wrap table {
+    min-width: 1000px;
 }
 
 /* Filter row layout */
