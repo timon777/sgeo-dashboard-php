@@ -10,29 +10,65 @@ class SourcesController extends BaseController
     public function index(): void
     {
         $sourceModel = new Source();
-        $result = $sourceModel->all(100);
+        $result = $sourceModel->all(1000); // Get more sources for accurate stats
 
         $sources = [];
+        $stats = [
+            'avgExpertise' => 0,
+            'avgExperience' => 0,
+            'avgAuthority' => 0,
+            'avgTrust' => 0,
+            'countryStats' => [],
+            'typeStats' => [],
+        ];
+
         if (isset($result['data']) && is_array($result['data'])) {
+            $totalExpertise = 0;
+            $totalExperience = 0;
+            $totalAuthority = 0;
+            $totalTrust = 0;
+
             foreach ($result['data'] as $s) {
                 $sources[] = [
                     'id' => $s['id'],
                     'domain' => $s['domain'],
-                    'type' => $s['type'],
-                    'country' => $s['country'],
-                    'expertise' => (int)$s['expertise_score'],
-                    'experience' => (int)$s['experience_score'],
-                    'authority' => (int)$s['authority_score'],
-                    'trust' => (int)$s['trust_score'],
-                    'eeat' => (int)$s['eeat_combined'],
-                    'share' => (float)$s['share_percent'],
-                    'author' => (bool)$s['has_author'],
-                    'https' => (bool)$s['has_https'],
+                    'type' => $s['type'] ?? 'media',
+                    'country' => $s['country'] ?? 'OTHER',
+                    'expertise' => (int)($s['expertise_score'] ?? 0),
+                    'experience' => (int)($s['experience_score'] ?? 0),
+                    'authority' => (int)($s['authority_score'] ?? 0),
+                    'trust' => (int)($s['trust_score'] ?? 0),
+                    'eeat' => (int)($s['eeat_combined'] ?? 0),
+                    'share' => (float)($s['share_percent'] ?? 0),
+                    'author' => (bool)($s['has_author'] ?? false),
+                    'https' => (bool)($s['has_https'] ?? true),
                 ];
+
+                // Accumulate for averages
+                $totalExpertise += (int)($s['expertise_score'] ?? 0);
+                $totalExperience += (int)($s['experience_score'] ?? 0);
+                $totalAuthority += (int)($s['authority_score'] ?? 0);
+                $totalTrust += (int)($s['trust_score'] ?? 0);
+
+                // Count by country
+                $country = $s['country'] ?? 'OTHER';
+                $stats['countryStats'][$country] = ($stats['countryStats'][$country] ?? 0) + 1;
+
+                // Count by type
+                $type = $s['type'] ?? 'media';
+                $stats['typeStats'][$type] = ($stats['typeStats'][$type] ?? 0) + 1;
+            }
+
+            $count = count($result['data']);
+            if ($count > 0) {
+                $stats['avgExpertise'] = round($totalExpertise / $count);
+                $stats['avgExperience'] = round($totalExperience / $count);
+                $stats['avgAuthority'] = round($totalAuthority / $count);
+                $stats['avgTrust'] = round($totalTrust / $count);
             }
         }
 
-        $totalSources = $sourceModel->count();
+        $totalSources = count($sources);
 
         $this->render('sources/index', [
             'pageTitle' => 'Источники информации',
@@ -40,6 +76,7 @@ class SourcesController extends BaseController
             'breadcrumb' => 'Источники',
             'sources' => $sources,
             'totalSources' => $totalSources,
+            'stats' => $stats,
         ]);
     }
 

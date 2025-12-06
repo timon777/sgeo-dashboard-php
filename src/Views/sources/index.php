@@ -489,8 +489,11 @@
 </script>
 
 <?php
-$pageScripts = <<<'SCRIPTS'
+$statsJson = json_encode($stats);
+$pageScripts = <<<SCRIPTS
 <script>
+const chartStats = {$statsJson};
+
 function initSourcesCharts() {
     const themeColors = getChartColors();
     updateChartDefaults();
@@ -500,16 +503,25 @@ function initSourcesCharts() {
         success: '#22c55e',
         warning: '#f59e0b',
         info: '#3b82f6',
-        purple: '#8b5cf6'
+        purple: '#8b5cf6',
+        danger: '#ef4444',
+        cyan: '#06b6d4'
     };
 
-    // E-E-A-T Radar Chart
+    // E-E-A-T Radar Chart - using real averages
+    const eeatData = [
+        chartStats.avgExpertise || 0,
+        chartStats.avgExperience || 0,
+        chartStats.avgAuthority || 0,
+        chartStats.avgTrust || 0
+    ];
+
     pageCharts.eeat = new Chart(document.getElementById('eeatRadarChart'), {
         type: 'radar',
         data: {
             labels: ['Экспертиза', 'Опыт', 'Авторитетность', 'Надёжность'],
             datasets: [{
-                data: [82, 78, 85, 80],
+                data: eeatData,
                 backgroundColor: 'rgba(139, 92, 246, 0.2)',
                 borderColor: colors.purple,
                 borderWidth: 2,
@@ -534,25 +546,107 @@ function initSourcesCharts() {
         }
     });
 
-    // Geography Pie Chart
+    // Geography Pie Chart - using real country stats
+    const countryStats = chartStats.countryStats || {};
+    const countryLabels = [];
+    const countryData = [];
+    const countryColors = [];
+    const countryColorMap = {
+        'KZ': colors.primary,
+        'RU': colors.success,
+        'US': colors.warning,
+        'UK': colors.info,
+        'DE': colors.purple,
+        'CN': colors.danger,
+        'OTHER': colors.cyan
+    };
+
+    Object.entries(countryStats).forEach(([country, count]) => {
+        const labelMap = { 'KZ': 'Казахстан', 'RU': 'Россия', 'US': 'США', 'UK': 'UK', 'DE': 'Германия', 'CN': 'Китай', 'OTHER': 'Другие' };
+        countryLabels.push(labelMap[country] || country);
+        countryData.push(count);
+        countryColors.push(countryColorMap[country] || colors.cyan);
+    });
+
     pageCharts.geo = new Chart(document.getElementById('geoPieChart'), {
         type: 'doughnut',
         data: {
-            labels: ['Казахстан', 'Россия', 'США'],
-            datasets: [{ data: [55, 30, 15], backgroundColor: [colors.primary, colors.success, colors.warning], borderWidth: 0 }]
+            labels: countryLabels.length > 0 ? countryLabels : ['Нет данных'],
+            datasets: [{
+                data: countryData.length > 0 ? countryData : [1],
+                backgroundColor: countryColors.length > 0 ? countryColors : [colors.primary],
+                borderWidth: 0
+            }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '65%' }
     });
 
-    // Type Pie Chart
+    // Type Pie Chart - using real type stats
+    const typeStats = chartStats.typeStats || {};
+    const typeLabels = [];
+    const typeData = [];
+    const typeColors = [];
+    const typeColorMap = {
+        'gov': colors.primary,
+        'media': colors.info,
+        'analytics': colors.purple,
+        'wiki': colors.warning
+    };
+    const typeLabelMap = { 'gov': 'Гос. сайты', 'media': 'СМИ', 'analytics': 'Аналитика', 'wiki': 'Wiki' };
+
+    Object.entries(typeStats).forEach(([type, count]) => {
+        typeLabels.push(typeLabelMap[type] || type);
+        typeData.push(count);
+        typeColors.push(typeColorMap[type] || colors.cyan);
+    });
+
     pageCharts.type = new Chart(document.getElementById('typePieChart'), {
         type: 'doughnut',
         data: {
-            labels: ['Гос. сайты', 'СМИ', 'Аналитика', 'Wiki'],
-            datasets: [{ data: [25, 40, 20, 15], backgroundColor: [colors.primary, colors.info, colors.purple, colors.warning], borderWidth: 0 }]
+            labels: typeLabels.length > 0 ? typeLabels : ['Нет данных'],
+            datasets: [{
+                data: typeData.length > 0 ? typeData : [1],
+                backgroundColor: typeColors.length > 0 ? typeColors : [colors.primary],
+                borderWidth: 0
+            }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '65%' }
     });
+
+    // Update legend dynamically
+    updateGeoLegend(countryStats);
+    updateTypeLegend(typeStats);
+}
+
+function updateGeoLegend(countryStats) {
+    const total = Object.values(countryStats).reduce((a, b) => a + b, 0) || 1;
+    const labelMap = { 'KZ': 'Казахстан', 'RU': 'Россия', 'US': 'США', 'UK': 'UK', 'DE': 'Германия', 'CN': 'Китай', 'OTHER': 'Другие' };
+    const colorMap = { 'KZ': '#6366f1', 'RU': '#22c55e', 'US': '#f59e0b', 'UK': '#3b82f6', 'DE': '#8b5cf6', 'CN': '#ef4444', 'OTHER': '#06b6d4' };
+
+    const legendContainer = document.querySelector('.source-card:nth-child(2) .legend');
+    if (legendContainer && Object.keys(countryStats).length > 0) {
+        legendContainer.innerHTML = Object.entries(countryStats)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([country, count]) => {
+                const pct = Math.round((count / total) * 100);
+                return '<div class="legend-item"><span class="legend-dot" style="background: ' + (colorMap[country] || '#06b6d4') + ';"></span><span>' + pct + '% — ' + (labelMap[country] || country) + '</span></div>';
+            }).join('');
+    }
+}
+
+function updateTypeLegend(typeStats) {
+    const labelMap = { 'gov': 'Гос. сайты', 'media': 'СМИ', 'analytics': 'Аналитика', 'wiki': 'Wiki' };
+    const colorMap = { 'gov': '#6366f1', 'media': '#3b82f6', 'analytics': '#8b5cf6', 'wiki': '#f59e0b' };
+
+    const legendContainer = document.querySelector('.source-card:nth-child(3) .legend');
+    if (legendContainer && Object.keys(typeStats).length > 0) {
+        legendContainer.innerHTML = Object.entries(typeStats)
+            .sort((a, b) => b[1] - a[1])
+            .map(([type, count]) => {
+                return '<div class="legend-item"><span class="legend-dot" style="background: ' + (colorMap[type] || '#06b6d4') + ';"></span><span>' + (labelMap[type] || type) + '</span></div>';
+            }).join('');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
