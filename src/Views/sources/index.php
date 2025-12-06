@@ -375,47 +375,36 @@
 <div id="toast" class="toast"></div>
 
 <style>
-/* Fix page overflow - prevent horizontal scroll */
+/* Fix page overflow - force all elements within viewport */
 .content {
     overflow-x: hidden;
+    max-width: 100%;
+}
+.page-header,
+.sources-section,
+.filters-row,
+.table-container {
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
-/* Responsive page header */
+/* Page header - always fit content */
 .page-header-top {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
     align-items: flex-start;
     justify-content: space-between;
-    max-width: 100%;
+    width: 100%;
+}
+.page-title-group {
+    flex: 1;
+    min-width: 200px;
 }
 .page-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    flex-shrink: 0;
-}
-@media (max-width: 900px) {
-    .page-header-top {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .page-actions {
-        width: 100%;
-        justify-content: flex-start;
-    }
-    .page-actions .btn {
-        flex: 0 1 auto;
-    }
-}
-@media (max-width: 600px) {
-    .page-actions .btn {
-        flex: 1;
-        min-width: 100px;
-    }
-    .page-actions .btn span:not(.btn-text) {
-        display: none;
-    }
 }
 
 /* Table wrapper - horizontal scroll only for table */
@@ -425,31 +414,48 @@
     -webkit-overflow-scrolling: touch;
 }
 .sources-table-wrap table {
-    min-width: 1000px;
+    min-width: 900px;
 }
 
-/* Filter row layout */
+/* Filter row layout - stack on narrow screens */
 .filters-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
     align-items: center;
-    justify-content: space-between;
+    width: 100%;
 }
 .filters-left {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
+    flex: 1;
 }
 .filter-search {
-    min-width: 200px;
-    max-width: 300px;
+    width: 200px;
+    flex-shrink: 0;
 }
 .filter-search .input-field {
     width: 100%;
 }
+
+/* Responsive breakpoints */
+@media (max-width: 1200px) {
+    .filters-row {
+        justify-content: flex-start;
+    }
+    .filter-search {
+        width: 180px;
+    }
+}
 @media (max-width: 900px) {
+    .page-header-top {
+        flex-direction: column;
+    }
+    .page-actions {
+        width: 100%;
+    }
     .filters-row {
         flex-direction: column;
         align-items: stretch;
@@ -459,7 +465,15 @@
     }
     .filter-search {
         width: 100%;
-        max-width: none;
+    }
+}
+@media (max-width: 600px) {
+    .page-actions .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    .page-actions .btn svg {
+        display: none;
     }
 }
 
@@ -467,10 +481,10 @@
 .filter-select-group {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 .filter-label {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-tertiary);
     font-weight: 500;
     white-space: nowrap;
@@ -479,11 +493,11 @@
     background: var(--bg-tertiary);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
-    padding: 8px 12px;
+    padding: 6px 10px;
     color: var(--text-primary);
     font-size: 13px;
     cursor: pointer;
-    min-width: 130px;
+    min-width: 110px;
     transition: all var(--transition-fast);
 }
 .filter-select:hover {
@@ -494,10 +508,9 @@
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
-@media (max-width: 600px) {
+@media (max-width: 700px) {
     .filter-select-group {
-        flex: 1;
-        min-width: 140px;
+        flex: 1 1 45%;
     }
     .filter-select {
         flex: 1;
