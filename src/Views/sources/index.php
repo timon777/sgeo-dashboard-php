@@ -5,6 +5,14 @@
             <p class="page-subtitle">Анализ и оценка качества источников по методологии E-E-A-T</p>
         </div>
         <div class="page-actions">
+            <button class="btn btn-secondary" id="import-csv-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17,8 12,3 7,8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                Импорт CSV
+            </button>
             <a href="/export/sources" class="btn btn-secondary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -269,6 +277,61 @@
             <button class="btn btn-danger" id="confirm-delete" style="flex: 1;">Удалить</button>
             <button class="btn btn-secondary" id="cancel-delete">Отмена</button>
         </div>
+    </div>
+</div>
+
+<!-- Import CSV Modal -->
+<div class="modal-overlay" id="import-modal">
+    <div class="modal" style="max-width: 600px;">
+        <h3 class="modal-title">Импорт источников из CSV</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">
+            Формат: Date;LLM;Prompt;Source;Domain;Пренадлежность;URL Rating;Domain Rating;Organic/Traffic;Organic/Top Countries;Experience;Expertise;Authority;Trust;Итоговый EEAT
+        </p>
+        <form id="import-form">
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label">Выберите CSV файл</label>
+                <input type="file" class="input-field" id="csv-file" accept=".csv,.txt" required style="padding: 12px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label">Разделитель</label>
+                <select class="select-field" id="csv-delimiter">
+                    <option value=";" selected>Точка с запятой (;)</option>
+                    <option value=",">Запятая (,)</option>
+                    <option value="\t">Табуляция</option>
+                </select>
+            </div>
+            <div class="form-row checkbox-row" style="margin-bottom: 16px;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="skip-header" checked>
+                    <span>Пропустить первую строку (заголовок)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="update-existing" checked>
+                    <span>Обновлять существующие домены</span>
+                </label>
+            </div>
+            <div id="import-preview" style="display: none; margin-bottom: 16px;">
+                <div class="form-label">Предпросмотр (первые 5 записей):</div>
+                <div id="preview-content" style="max-height: 200px; overflow: auto; background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 12px; font-size: 12px; font-family: monospace;"></div>
+            </div>
+            <div id="import-progress" style="display: none; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Импорт...</span>
+                    <span id="progress-text">0 / 0</span>
+                </div>
+                <div style="background: var(--bg-tertiary); border-radius: 4px; height: 8px; overflow: hidden;">
+                    <div id="progress-bar" style="background: var(--accent-primary); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                </div>
+            </div>
+            <div id="import-result" style="display: none; margin-bottom: 16px; padding: 12px; border-radius: var(--radius-md);"></div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="preview-csv">Предпросмотр</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;" id="start-import">
+                    <span class="btn-text">Импортировать</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="cancel-import">Отмена</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -632,6 +695,216 @@ document.addEventListener('DOMContentLoaded', function() {
         m.addEventListener('click', function(e) {
             if (e.target === this) this.classList.remove('show');
         });
+    });
+
+    // Import CSV functionality
+    const importModal = document.getElementById('import-modal');
+    const csvFileInput = document.getElementById('csv-file');
+    let parsedData = [];
+
+    document.getElementById('import-csv-btn').addEventListener('click', () => {
+        parsedData = [];
+        document.getElementById('import-form').reset();
+        document.getElementById('import-preview').style.display = 'none';
+        document.getElementById('import-progress').style.display = 'none';
+        document.getElementById('import-result').style.display = 'none';
+        importModal.classList.add('show');
+    });
+
+    document.getElementById('cancel-import').addEventListener('click', () => {
+        importModal.classList.remove('show');
+    });
+
+    // Parse CSV
+    function parseCSV(text, delimiter) {
+        const lines = text.split(/\r?\n/).filter(line => line.trim());
+        return lines.map(line => {
+            // Handle quoted fields
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === delimiter && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        });
+    }
+
+    // Map CSV row to source data
+    // Format: Date;LLM;Prompt;Source;Domain;Пренадлежность;URL Rating;Domain Rating;Organic/Traffic;Organic/Top Countries;Experience;Expertise;Authority;Trust;Итоговый EEAT
+    function mapRowToSource(row) {
+        if (row.length < 15) return null;
+
+        const domain = row[4]; // Domain column
+        if (!domain || domain === 'Domain') return null;
+
+        const affiliation = row[5]; // Пренадлежность
+        let country = 'OTHER';
+        let type = 'media';
+
+        if (affiliation === 'International') {
+            country = 'US';
+            type = 'media';
+        } else if (affiliation === 'KZ' || affiliation.includes('Казахстан')) {
+            country = 'KZ';
+        } else if (affiliation === 'RU' || affiliation.includes('Росси')) {
+            country = 'RU';
+        }
+
+        // Determine type from domain
+        if (domain.includes('.gov') || domain.includes('.kz') && domain.includes('gov')) {
+            type = 'gov';
+        } else if (domain.includes('wiki')) {
+            type = 'wiki';
+        } else if (domain.includes('analytics') || domain.includes('research')) {
+            type = 'analytics';
+        }
+
+        return {
+            domain: domain,
+            source_url: row[3], // Source URL
+            type: type,
+            country: country,
+            url_rating: parseFloat(row[6]) || 0,
+            domain_rating: parseFloat(row[7]) || 0,
+            organic_traffic: parseInt(row[8]) || 0,
+            experience_score: parseInt(row[10]) || 0,
+            expertise_score: parseInt(row[11]) || 0,
+            authority_score: parseInt(row[12]) || 0,
+            trust_score: parseInt(row[13]) || 0,
+            eeat_combined: parseInt(row[14]) || 0,
+            has_https: row[3] ? row[3].startsWith('https') : true,
+            has_author: false,
+            share_percent: 0
+        };
+    }
+
+    // Preview CSV
+    document.getElementById('preview-csv').addEventListener('click', () => {
+        const file = csvFileInput.files[0];
+        if (!file) {
+            showToast('Выберите файл', 'error');
+            return;
+        }
+
+        const delimiter = document.getElementById('csv-delimiter').value;
+        const skipHeader = document.getElementById('skip-header').checked;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const rows = parseCSV(text, delimiter);
+
+            const startIndex = skipHeader ? 1 : 0;
+            parsedData = [];
+
+            for (let i = startIndex; i < rows.length; i++) {
+                const source = mapRowToSource(rows[i]);
+                if (source) {
+                    parsedData.push(source);
+                }
+            }
+
+            // Remove duplicates by domain (keep last occurrence)
+            const uniqueMap = new Map();
+            parsedData.forEach(s => uniqueMap.set(s.domain, s));
+            parsedData = Array.from(uniqueMap.values());
+
+            // Show preview
+            const previewContent = document.getElementById('preview-content');
+            const previewItems = parsedData.slice(0, 5).map(s =>
+                `<div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle);">
+                    <strong>${s.domain}</strong> (${s.country}, ${s.type})<br>
+                    E-E-A-T: ${s.eeat_combined} | Exp: ${s.experience_score} | Auth: ${s.authority_score} | Trust: ${s.trust_score}
+                </div>`
+            ).join('');
+
+            previewContent.innerHTML = previewItems +
+                `<div style="color: var(--text-tertiary); margin-top: 8px;">
+                    Всего уникальных доменов: <strong>${parsedData.length}</strong>
+                </div>`;
+
+            document.getElementById('import-preview').style.display = 'block';
+        };
+        reader.readAsText(file, 'UTF-8');
+    });
+
+    // Import form submit
+    document.getElementById('import-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        if (parsedData.length === 0) {
+            showToast('Сначала сделайте предпросмотр', 'error');
+            return;
+        }
+
+        const updateExisting = document.getElementById('update-existing').checked;
+        const progressDiv = document.getElementById('import-progress');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const resultDiv = document.getElementById('import-result');
+
+        progressDiv.style.display = 'block';
+        resultDiv.style.display = 'none';
+
+        let imported = 0;
+        let updated = 0;
+        let errors = 0;
+        const total = parsedData.length;
+        const batchSize = 50;
+
+        // Send in batches
+        for (let i = 0; i < total; i += batchSize) {
+            const batch = parsedData.slice(i, i + batchSize);
+
+            try {
+                const resp = await fetch('/api/sources/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sources: batch,
+                        update_existing: updateExisting
+                    })
+                });
+
+                const result = await resp.json();
+                if (result.success) {
+                    imported += result.imported || 0;
+                    updated += result.updated || 0;
+                } else {
+                    errors += batch.length;
+                }
+            } catch (err) {
+                errors += batch.length;
+            }
+
+            const progress = Math.min(100, Math.round(((i + batch.length) / total) * 100));
+            progressBar.style.width = progress + '%';
+            progressText.textContent = `${i + batch.length} / ${total}`;
+        }
+
+        progressDiv.style.display = 'none';
+        resultDiv.style.display = 'block';
+
+        if (errors === 0) {
+            resultDiv.style.background = 'rgba(34, 197, 94, 0.1)';
+            resultDiv.style.color = 'var(--success)';
+            resultDiv.innerHTML = `Импорт завершён! Добавлено: ${imported}, обновлено: ${updated}`;
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            resultDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+            resultDiv.style.color = 'var(--danger)';
+            resultDiv.innerHTML = `Импортировано: ${imported}, обновлено: ${updated}, ошибок: ${errors}`;
+        }
     });
 
     // Filter functionality

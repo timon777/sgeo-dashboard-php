@@ -171,6 +171,113 @@ class SourcesController extends BaseController
         }
     }
 
+    public function import(): void
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (empty($data['sources']) || !is_array($data['sources'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Sources array is required']);
+            return;
+        }
+
+        $sourceModel = new Source();
+        $updateExisting = $data['update_existing'] ?? false;
+
+        $imported = 0;
+        $updated = 0;
+        $errors = 0;
+
+        foreach ($data['sources'] as $sourceData) {
+            if (empty($sourceData['domain'])) {
+                $errors++;
+                continue;
+            }
+
+            // Check if domain already exists
+            $existing = $sourceModel->byDomain($sourceData['domain']);
+
+            $recordData = [
+                'domain' => $sourceData['domain'],
+                'type' => $sourceData['type'] ?? 'media',
+                'country' => $sourceData['country'] ?? 'OTHER',
+                'expertise_score' => (int)($sourceData['expertise_score'] ?? 0),
+                'experience_score' => (int)($sourceData['experience_score'] ?? 0),
+                'authority_score' => (int)($sourceData['authority_score'] ?? 0),
+                'trust_score' => (int)($sourceData['trust_score'] ?? 0),
+                'eeat_combined' => (int)($sourceData['eeat_combined'] ?? 0),
+                'share_percent' => (float)($sourceData['share_percent'] ?? 0),
+                'has_author' => (bool)($sourceData['has_author'] ?? false),
+                'has_https' => (bool)($sourceData['has_https'] ?? true),
+            ];
+
+            // Add extra fields if provided
+            if (!empty($sourceData['source_url'])) {
+                $recordData['source_url'] = $sourceData['source_url'];
+            }
+            if (!empty($sourceData['url_rating'])) {
+                $recordData['url_rating'] = (float)$sourceData['url_rating'];
+            }
+            if (!empty($sourceData['domain_rating'])) {
+                $recordData['domain_rating'] = (float)$sourceData['domain_rating'];
+            }
+            if (!empty($sourceData['organic_traffic'])) {
+                $recordData['organic_traffic'] = (int)$sourceData['organic_traffic'];
+            }
+
+            // If E-E-A-T combined is 0, calculate it
+            if ($recordData['eeat_combined'] === 0) {
+                $recordData['eeat_combined'] = round((
+                    $recordData['expertise_score'] +
+                    $recordData['experience_score'] +
+                    $recordData['authority_score'] +
+                    $recordData['trust_score']
+                ) / 4);
+            }
+
+            try {
+                if ($existing) {
+                    if ($updateExisting) {
+                        $recordData['updated_at'] = date('c');
+                        $result = $sourceModel->update($existing['id'], $recordData);
+                        if ($result['status'] >= 200 && $result['status'] < 300) {
+                            $updated++;
+                        } else {
+                            $errors++;
+                        }
+                    }
+                    // If not updating, skip silently
+                } else {
+                    $result = $sourceModel->create($recordData);
+                    if ($result['status'] >= 200 && $result['status'] < 300) {
+                        $imported++;
+                    } else {
+                        $errors++;
+                    }
+                }
+            } catch (\Exception $e) {
+                $errors++;
+            }
+        }
+
+        Cache::forget('sources_list');
+
+        echo json_encode([
+            'success' => true,
+            'imported' => $imported,
+            'updated' => $updated,
+            'errors' => $errors,
+        ]);
+    }
+
     public function exportCsv(): void
     {
         $sourceModel = new Source();

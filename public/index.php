@@ -111,6 +111,7 @@ $routes = [
         '/api/projects' => ['App\\Controllers\\ProjectsController', 'store'],
         '/api/prompts' => ['App\\Controllers\\PromptsController', 'store'],
         '/api/sources' => ['App\\Controllers\\SourcesController', 'store'],
+        '/api/sources/import' => ['App\\Controllers\\SourcesController', 'import'],
         '/api/reports' => ['App\\Controllers\\ReportsController', 'store'],
     ],
     'PUT' => [
