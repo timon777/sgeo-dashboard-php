@@ -71,6 +71,7 @@ $routes = [
         '/projects' => ['App\\Controllers\\ProjectsController', 'index'],
         '/projects/create' => ['App\\Controllers\\ProjectsController', 'create'],
         '/projects/{id}' => ['App\\Controllers\\ProjectsController', 'show'],
+        '/topics/{id}' => ['App\\Controllers\\TopicController', 'show'],
         '/prompts' => ['App\\Controllers\\PromptsController', 'index'],
         '/prompts/{id}' => ['App\\Controllers\\PromptsController', 'show'],
         '/sources' => ['App\\Controllers\\SourcesController', 'index'],
@@ -91,6 +92,7 @@ $routes = [
         '/api/sources' => ['App\\Controllers\\SourcesController', 'apiList'],
         '/api/trends/data' => ['App\\Controllers\\TrendsController', 'apiChartData'],
         '/api/reports/export/{id}' => ['App\\Controllers\\ReportsController', 'export'],
+        '/api/topics/{id}/data' => ['App\\Controllers\\TopicController', 'apiTabData'],
 
         // Export endpoints
         '/export/projects' => ['App\\Controllers\\ProjectsController', 'exportCsv'],

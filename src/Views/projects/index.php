@@ -33,7 +33,7 @@
 <!-- Projects Grid -->
 <div class="projects-grid stagger-children" id="projects-grid">
     <?php foreach ($projects as $project): ?>
-    <a href="/projects/<?= $project['id'] ?>" class="project-card" data-type="<?= $project['type'] ?>">
+    <a href="/topics/<?= $project['id'] ?>" class="project-card" data-type="<?= $project['type'] ?>">
         <div class="project-header">
             <div class="project-icon <?= $project['type'] ?>">
                 <?= $project['icon'] ?>

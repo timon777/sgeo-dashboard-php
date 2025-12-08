@@ -1,0 +1,915 @@
+<!-- Topic Hero -->
+<div class="topic-hero">
+    <div class="hero-top">
+        <div class="hero-info">
+            <a href="/projects" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+                Назад к проектам
+            </a>
+            <div class="topic-badge <?= $topic['type'] ?>">
+                <span><?= $topic['icon'] ?? '📊' ?></span>
+                <?= htmlspecialchars($topic['badge'] ?? 'Тема') ?>
+            </div>
+            <h1 class="topic-title"><?= htmlspecialchars($topic['name']) ?></h1>
+            <p class="topic-description"><?= htmlspecialchars($topic['description'] ?? '') ?></p>
+        </div>
+        <div class="hero-score">
+            <div class="score-label">Средняя оценка качества</div>
+            <div class="score-value"><?= (int)$stats['avgScore'] ?><span class="score-suffix">%</span></div>
+        </div>
+    </div>
+
+    <div class="hero-stats">
+        <div class="hero-stat">
+            <div class="hero-stat-label">Ответов</div>
+            <div class="hero-stat-value"><?= number_format($stats['responsesCount']) ?></div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-label">Промтов</div>
+            <div class="hero-stat-value"><?= number_format($stats['promptsCount']) ?></div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-label">LLM моделей</div>
+            <div class="hero-stat-value"><?= number_format($stats['modelsCount']) ?></div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-label">Точность</div>
+            <div class="hero-stat-value"><?= $stats['avgAccuracy'] ?>%</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<div class="topic-tabs">
+    <a href="?tab=responses" class="topic-tab <?= $activeTab === 'responses' ? 'active' : '' ?>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        Ответы по теме
+    </a>
+    <a href="?tab=prompts" class="topic-tab <?= $activeTab === 'prompts' ? 'active' : '' ?>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        Промты по теме
+    </a>
+    <a href="?tab=sources" class="topic-tab <?= $activeTab === 'sources' ? 'active' : '' ?>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        Источники по теме
+    </a>
+</div>
+
+<!-- Tab Content -->
+<div class="topic-content">
+    <?php if ($activeTab === 'responses'): ?>
+    <!-- Responses Tab -->
+    <div class="tab-panel" id="responses-panel">
+        <!-- Model Comparison -->
+        <?php if (!empty($tabData['modelComparison'])): ?>
+        <div class="section-block">
+            <h3 class="section-title">Сравнение моделей</h3>
+            <div class="model-comparison">
+                <?php foreach ($tabData['modelComparison'] as $model): ?>
+                <div class="model-card">
+                    <div class="model-name"><?= htmlspecialchars($model['name']) ?></div>
+                    <div class="model-score"><?= $model['avgScore'] ?></div>
+                    <div class="model-meta"><?= $model['count'] ?> ответов</div>
+                    <div class="model-bar">
+                        <div class="model-bar-fill" style="width: <?= $model['avgScore'] ?>%"></div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Responses List -->
+        <div class="section-block">
+            <h3 class="section-title">Список ответов <span class="count-badge"><?= $tabData['totalCount'] ?></span></h3>
+            <div class="responses-list">
+                <?php foreach ($tabData['responses'] as $response): ?>
+                <div class="response-card">
+                    <div class="response-header">
+                        <span class="llm-badge <?= strtolower($response['model']) ?>"><?= htmlspecialchars($response['model']) ?></span>
+                        <span class="response-date"><?= $response['date'] ?></span>
+                        <span class="tone-badge <?= $response['tone'] ?>"><?= ucfirst($response['tone']) ?></span>
+                    </div>
+                    <div class="response-prompt">
+                        <strong>Промт:</strong> <?= htmlspecialchars($response['prompt']) ?>
+                    </div>
+                    <div class="response-text">
+                        <strong>Ответ:</strong> <?= htmlspecialchars($response['response']) ?>
+                    </div>
+                    <div class="response-metrics">
+                        <div class="metric">
+                            <span class="metric-label">Точность</span>
+                            <span class="metric-value <?= $response['accuracy'] >= 70 ? 'good' : ($response['accuracy'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['accuracy'] ?></span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Полнота</span>
+                            <span class="metric-value <?= $response['completeness'] >= 70 ? 'good' : ($response['completeness'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['completeness'] ?></span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Нейтральность</span>
+                            <span class="metric-value <?= $response['neutrality'] >= 70 ? 'good' : ($response['neutrality'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['neutrality'] ?></span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Релевантность</span>
+                            <span class="metric-value <?= $response['relevance'] >= 70 ? 'good' : ($response['relevance'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['relevance'] ?></span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Ясность</span>
+                            <span class="metric-value <?= $response['clarity'] >= 70 ? 'good' : ($response['clarity'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['clarity'] ?></span>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+
+                <?php if (empty($tabData['responses'])): ?>
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <p>Нет ответов по этой теме</p>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <?php elseif ($activeTab === 'prompts'): ?>
+    <!-- Prompts Tab -->
+    <div class="tab-panel" id="prompts-panel">
+        <!-- Prompts Quality Stats -->
+        <div class="section-block">
+            <h3 class="section-title">Качество промтов</h3>
+            <div class="quality-stats">
+                <div class="quality-card">
+                    <div class="quality-label">Конкретность</div>
+                    <div class="quality-value"><?= $tabData['stats']['avgSpecificity'] ?>%</div>
+                    <div class="quality-bar">
+                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgSpecificity'] ?>%"></div>
+                    </div>
+                </div>
+                <div class="quality-card">
+                    <div class="quality-label">Полнота</div>
+                    <div class="quality-value"><?= $tabData['stats']['avgCompleteness'] ?>%</div>
+                    <div class="quality-bar">
+                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgCompleteness'] ?>%"></div>
+                    </div>
+                </div>
+                <div class="quality-card">
+                    <div class="quality-label">Нейтральность</div>
+                    <div class="quality-value"><?= $tabData['stats']['avgNeutrality'] ?>%</div>
+                    <div class="quality-bar">
+                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgNeutrality'] ?>%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prompts List -->
+        <div class="section-block">
+            <h3 class="section-title">Список промтов <span class="count-badge"><?= $tabData['totalCount'] ?></span></h3>
+            <div class="prompts-list">
+                <?php foreach ($tabData['prompts'] as $prompt): ?>
+                <div class="prompt-card">
+                    <div class="prompt-header">
+                        <span class="llm-badge <?= strtolower($prompt['model']) ?>"><?= htmlspecialchars($prompt['model']) ?></span>
+                        <span class="prompt-date"><?= $prompt['date'] ?></span>
+                    </div>
+                    <div class="prompt-text"><?= htmlspecialchars($prompt['text']) ?></div>
+                    <div class="prompt-metrics">
+                        <div class="metric-mini">
+                            <span class="metric-label">Конкр.</span>
+                            <span class="metric-value"><?= $prompt['specificity'] ?></span>
+                        </div>
+                        <div class="metric-mini">
+                            <span class="metric-label">Полн.</span>
+                            <span class="metric-value"><?= $prompt['completeness'] ?></span>
+                        </div>
+                        <div class="metric-mini">
+                            <span class="metric-label">Нейтр.</span>
+                            <span class="metric-value"><?= $prompt['neutrality'] ?></span>
+                        </div>
+                        <div class="metric-mini">
+                            <span class="metric-label">Темат.</span>
+                            <span class="metric-value"><?= $prompt['topicality'] ?></span>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+
+                <?php if (empty($tabData['prompts'])): ?>
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                    </svg>
+                    <p>Нет промтов по этой теме</p>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <?php elseif ($activeTab === 'sources'): ?>
+    <!-- Sources Tab -->
+    <div class="tab-panel" id="sources-panel">
+        <!-- Sources Stats -->
+        <div class="section-block">
+            <h3 class="section-title">Статистика источников</h3>
+            <div class="sources-stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value"><?= $tabData['totalCount'] ?></div>
+                    <div class="stat-label">Всего источников</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value"><?= $tabData['avgEeat'] ?></div>
+                    <div class="stat-label">Средний E-E-A-T</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-value"><?= $tabData['weakCount'] ?></div>
+                    <div class="stat-label">Слабых источников</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distribution Charts -->
+        <div class="section-block">
+            <h3 class="section-title">Распределение</h3>
+            <div class="distribution-grid">
+                <div class="distribution-card">
+                    <h4>По странам</h4>
+                    <div class="distribution-list">
+                        <?php
+                        $countryLabels = ['KZ' => 'Казахстан', 'RU' => 'Россия', 'US' => 'США', 'UK' => 'UK', 'OTHER' => 'Другие'];
+                        foreach ($tabData['countryStats'] as $country => $count):
+                        ?>
+                        <div class="distribution-item">
+                            <span class="dist-label"><?= $countryLabels[$country] ?? $country ?></span>
+                            <span class="dist-value"><?= $count ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="distribution-card">
+                    <h4>По типам</h4>
+                    <div class="distribution-list">
+                        <?php
+                        $typeLabels = ['gov' => 'Гос. сайты', 'media' => 'СМИ', 'analytics' => 'Аналитика', 'wiki' => 'Wiki'];
+                        foreach ($tabData['typeStats'] as $type => $count):
+                        ?>
+                        <div class="distribution-item">
+                            <span class="dist-label"><?= $typeLabels[$type] ?? $type ?></span>
+                            <span class="dist-value"><?= $count ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weak Sources Warning -->
+        <?php if ($tabData['weakCount'] > 0): ?>
+        <div class="section-block">
+            <h3 class="section-title warning-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                Слабые источники (E-E-A-T < 50)
+            </h3>
+            <div class="weak-sources-list">
+                <?php foreach (array_slice($tabData['weakSources'], 0, 5) as $source): ?>
+                <div class="weak-source-item">
+                    <span class="weak-domain"><?= htmlspecialchars($source['domain']) ?></span>
+                    <span class="weak-eeat"><?= $source['eeat'] ?></span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Sources Table -->
+        <div class="section-block">
+            <h3 class="section-title">Все источники</h3>
+            <div class="table-container sources-table-wrap">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Домен</th>
+                            <th>Тип</th>
+                            <th>Страна</th>
+                            <th>Опыт</th>
+                            <th>Эксперт.</th>
+                            <th>Авторитет</th>
+                            <th>Доверие</th>
+                            <th>E-E-A-T</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($tabData['sources'] as $source): ?>
+                        <tr>
+                            <td>
+                                <a href="https://<?= htmlspecialchars($source['domain']) ?>" target="_blank" class="domain-link">
+                                    <?= htmlspecialchars($source['domain']) ?>
+                                </a>
+                            </td>
+                            <td><span class="type-badge <?= $source['type'] ?>"><?= $typeLabels[$source['type']] ?? $source['type'] ?></span></td>
+                            <td><?= $source['country'] ?></td>
+                            <td class="mono"><?= $source['experience'] ?></td>
+                            <td class="mono"><?= $source['expertise'] ?></td>
+                            <td class="mono"><?= $source['authority'] ?></td>
+                            <td class="mono"><?= $source['trust'] ?></td>
+                            <td>
+                                <span class="eeat-badge <?= $source['eeat'] >= 80 ? 'high' : ($source['eeat'] >= 50 ? 'medium' : 'low') ?>">
+                                    <?= $source['eeat'] ?>
+                                </span>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+
+<style>
+/* Topic Hero */
+.topic-hero {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 28px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.topic-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--accent-gradient);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    font-size: 13px;
+    margin-bottom: 16px;
+    transition: color var(--transition-fast);
+}
+.back-link:hover { color: var(--accent-primary); }
+.back-link svg { width: 16px; height: 16px; }
+
+.hero-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.hero-info { flex: 1; }
+
+.topic-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+.topic-badge.gov { background: rgba(99, 102, 241, 0.12); color: var(--accent-primary); }
+.topic-badge.private { background: var(--success-bg); color: var(--success); }
+
+.topic-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.topic-description {
+    font-size: 14px;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    max-width: 600px;
+}
+
+.hero-score {
+    text-align: center;
+    padding: 20px 32px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+}
+
+.score-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+}
+
+.score-value {
+    font-size: 56px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+.score-suffix { font-size: 20px; }
+
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.hero-stat {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+}
+
+.hero-stat-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.hero-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+}
+
+/* Tabs */
+.topic-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    margin-bottom: 24px;
+}
+
+.topic-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    flex: 1;
+    justify-content: center;
+}
+.topic-tab svg { width: 18px; height: 18px; }
+.topic-tab:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-primary); }
+.topic-tab.active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+/* Content */
+.topic-content { margin-bottom: 32px; }
+
+.section-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.count-badge {
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+}
+
+/* Model Comparison */
+.model-comparison {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.model-card {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.model-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.model-score {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-primary);
+}
+
+.model-meta {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+}
+
+.model-bar {
+    height: 4px;
+    background: var(--bg-secondary);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.model-bar-fill {
+    height: 100%;
+    background: var(--accent-gradient);
+    border-radius: 2px;
+}
+
+/* Response Card */
+.response-card {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.response-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.response-date {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-left: auto;
+}
+
+.tone-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+.tone-badge.positive { background: var(--success-bg); color: var(--success); }
+.tone-badge.negative { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+.tone-badge.neutral { background: var(--bg-secondary); color: var(--text-tertiary); }
+
+.response-prompt, .response-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+.response-prompt strong, .response-text strong {
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.response-metrics {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.metric-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.metric-value {
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+.metric-value.good { color: var(--success); }
+.metric-value.medium { color: var(--warning); }
+.metric-value.bad { color: var(--danger); }
+
+/* Quality Stats */
+.quality-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.quality-card {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.quality-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.quality-value {
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-primary);
+    margin-bottom: 8px;
+}
+
+.quality-bar {
+    height: 6px;
+    background: var(--bg-secondary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.quality-bar-fill {
+    height: 100%;
+    background: var(--accent-gradient);
+    border-radius: 3px;
+}
+
+/* Prompt Card */
+.prompt-card {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-bottom: 10px;
+}
+
+.prompt-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.prompt-date {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-left: auto;
+}
+
+.prompt-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.prompt-metrics {
+    display: flex;
+    gap: 16px;
+}
+
+.metric-mini {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.metric-mini .metric-label {
+    font-size: 11px;
+}
+.metric-mini .metric-value {
+    font-size: 13px;
+    color: var(--accent-primary);
+}
+
+/* Sources Stats */
+.sources-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.stat-card {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    text-align: center;
+}
+.stat-card.warning {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+.stat-card.warning .stat-value { color: var(--danger); }
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+/* Distribution */
+.distribution-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.distribution-card {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+.distribution-card h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.distribution-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.distribution-item:last-child { border-bottom: none; }
+
+.dist-label { font-size: 13px; color: var(--text-secondary); }
+.dist-value { font-size: 13px; font-weight: 600; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+
+/* Weak Sources */
+.warning-title { color: var(--danger); }
+.warning-title svg { width: 18px; height: 18px; stroke: var(--danger); }
+
+.weak-sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.weak-source-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    border-radius: var(--radius-md);
+}
+
+.weak-domain {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.weak-eeat {
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--danger);
+}
+
+/* Table styles */
+.sources-table-wrap {
+    overflow-x: auto;
+}
+.domain-link {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+.domain-link:hover { text-decoration: underline; }
+
+.mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.type-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+.type-badge.gov { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+.type-badge.media { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.type-badge.analytics { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+.type-badge.wiki { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+.eeat-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+.eeat-badge.high { background: var(--success-bg); color: var(--success); }
+.eeat-badge.medium { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+.eeat-badge.low { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+/* LLM Badge */
+.llm-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.llm-badge.chatgpt, .llm-badge.gpt-4, .llm-badge.gpt { background: rgba(16, 163, 127, 0.15); color: #10a37f; }
+.llm-badge.claude { background: rgba(204, 150, 92, 0.15); color: #cc965c; }
+.llm-badge.gemini { background: rgba(66, 133, 244, 0.15); color: #4285f4; }
+.llm-badge.perplexity { background: rgba(32, 178, 170, 0.15); color: #20b2aa; }
+.llm-badge.deepseek { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-tertiary);
+}
+.empty-state svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+.empty-state p {
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+    .hero-top { flex-direction: column; }
+    .hero-stats { grid-template-columns: repeat(2, 1fr); }
+    .quality-stats { grid-template-columns: 1fr; }
+    .sources-stats-grid { grid-template-columns: 1fr; }
+    .distribution-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .topic-tabs { flex-direction: column; }
+    .hero-stats { grid-template-columns: 1fr; }
+}
+</style>
