@@ -81,6 +81,17 @@ class Evaluation
             ->get();
     }
 
+    public function byProject(string $projectId, int $limit = 100, int $offset = 0): array
+    {
+        return $this->db->from('recent_evaluations_detailed')
+            ->select('*')
+            ->eq('project_id', $projectId)
+            ->order('evaluated_at', false)
+            ->limit($limit)
+            ->offset($offset)
+            ->get();
+    }
+
     public function create(array $data): array
     {
         return $this->db->from($this->table)->insert($data);

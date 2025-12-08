@@ -13,11 +13,17 @@ class PromptsController extends BaseController
     public function index(): void
     {
         $evaluationModel = new Evaluation();
+        $projectModel = new Project();
 
         // Pagination parameters
         $page = max(1, (int)($_GET['page'] ?? 1));
         $perPage = 20;
         $offset = ($page - 1) * $perPage;
+        $projectFilter = $_GET['project'] ?? null;
+
+        // Get projects for filter
+        $projectsResult = $projectModel->all();
+        $projects = $projectsResult['data'] ?? [];
 
         // Get total count from cache
         $totalPrompts = Cache::remember('prompts_total_count', function() {
@@ -29,7 +35,11 @@ class PromptsController extends BaseController
         $totalPages = max(1, ceil($totalPrompts / $perPage));
 
         // Get evaluations with pagination (main data source)
-        $evaluationsResult = $evaluationModel->recentDetailed($perPage, $offset);
+        if ($projectFilter) {
+            $evaluationsResult = $evaluationModel->byProject($projectFilter, $perPage, $offset);
+        } else {
+            $evaluationsResult = $evaluationModel->recentDetailed($perPage, $offset);
+        }
 
         // Format prompts for display - no full_response in main load
         $prompts = [];
@@ -45,6 +55,8 @@ class PromptsController extends BaseController
                     'score' => (int)($eval['avg_score'] ?? 0),
                     'risk' => $eval['risk_level'] ?? 'low',
                     'date' => $this->formatDate($eval['evaluated_at'] ?? ''),
+                    'project_id' => $eval['project_id'] ?? null,
+                    'project_name' => $eval['project_name'] ?? null,
                 ];
             }
         }
@@ -52,7 +64,11 @@ class PromptsController extends BaseController
         // Fallback to ai_responses if no evaluations
         if (empty($prompts)) {
             $aiResponseModel = new AiResponse();
-            $responsesResult = $aiResponseModel->all($perPage, $offset);
+            if ($projectFilter) {
+                $responsesResult = $aiResponseModel->byProject($projectFilter, $perPage, $offset);
+            } else {
+                $responsesResult = $aiResponseModel->all($perPage, $offset);
+            }
             if (isset($responsesResult['data']) && is_array($responsesResult['data'])) {
                 foreach ($responsesResult['data'] as $resp) {
                     $prompts[] = [
@@ -65,6 +81,8 @@ class PromptsController extends BaseController
                         'score' => 0,
                         'risk' => $resp['risk_level'] ?? 'low',
                         'date' => $this->formatDate($resp['created_at'] ?? ''),
+                        'project_id' => $resp['project_id'] ?? null,
+                        'project_name' => null,
                     ];
                 }
             }
@@ -75,6 +93,8 @@ class PromptsController extends BaseController
             'currentPage' => 'prompts',
             'breadcrumb' => 'Промты',
             'prompts' => $prompts,
+            'projects' => $projects,
+            'projectFilter' => $projectFilter,
             'totalPrompts' => $totalPrompts,
             'paginationPage' => $page,
             'totalPages' => $totalPages,
@@ -167,6 +187,52 @@ class PromptsController extends BaseController
             'response' => $response,
             'evaluations' => $evaluations['data'] ?? [],
         ]);
+    }
+
+    public function update(string $id): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'PUT' && $_SERVER['REQUEST_METHOD'] !== 'PATCH') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $aiResponseModel = new AiResponse();
+        $response = $aiResponseModel->find($id);
+
+        if (!$response) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Prompt not found']);
+            return;
+        }
+
+        $updateData = [];
+        if (isset($data['project_id'])) {
+            $updateData['project_id'] = $data['project_id'] ?: null;
+        }
+        if (isset($data['tone'])) {
+            $updateData['tone'] = $data['tone'];
+        }
+        if (isset($data['risk_level'])) {
+            $updateData['risk_level'] = $data['risk_level'];
+        }
+
+        if (empty($updateData)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'No data to update']);
+            return;
+        }
+
+        $result = $aiResponseModel->update($id, $updateData);
+
+        if ($result['status'] >= 200 && $result['status'] < 300) {
+            echo json_encode(['success' => true, 'data' => $result['data']]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to update prompt']);
+        }
     }
 
     public function delete(string $id): void

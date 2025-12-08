@@ -52,6 +52,26 @@ class AiResponse
             ->get();
     }
 
+    public function byProject(string $projectId, int $limit = 100, int $offset = 0): array
+    {
+        return $this->db->from($this->table)
+            ->select('*')
+            ->eq('project_id', $projectId)
+            ->order('created_at', false)
+            ->limit($limit)
+            ->offset($offset)
+            ->get();
+    }
+
+    public function countByProject(string $projectId): int
+    {
+        $result = $this->db->from($this->table)
+            ->select('id')
+            ->eq('project_id', $projectId)
+            ->get();
+        return count($result['data'] ?? []);
+    }
+
     public function search(string $query, int $limit = 50): array
     {
         return $this->db->from($this->table)

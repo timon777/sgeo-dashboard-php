@@ -19,6 +19,14 @@
 
 <!-- Filters -->
 <div class="filters-row" id="prompts-filters">
+    <select class="select-field" id="project-filter" style="width: auto; min-width: 180px;" onchange="filterByProject(this.value)">
+        <option value="">Все темы</option>
+        <?php foreach ($projects as $proj): ?>
+        <option value="<?= $proj['id'] ?>" <?= $projectFilter === $proj['id'] ? 'selected' : '' ?>>
+            <?= htmlspecialchars($proj['name']) ?>
+        </option>
+        <?php endforeach; ?>
+    </select>
     <select class="select-field" id="llm-filter" style="width: auto; min-width: 150px;">
         <option value="all">Все LLM</option>
         <option value="gpt">ChatGPT</option>
@@ -46,11 +54,12 @@
             <tr>
                 <th class="sortable">Промт</th>
                 <th class="sortable">LLM</th>
+                <th>Тема</th>
                 <th>Ответ</th>
                 <th class="sortable">Тональность</th>
                 <th class="sortable">Балл</th>
-                <th class="sortable">Риск</th>
                 <th class="sortable">Дата</th>
+                <th>Действия</th>
             </tr>
         </thead>
         <tbody id="prompts-table">
@@ -63,12 +72,21 @@
                 data-score="<?= $prompt['score'] ?>"
                 data-risk="<?= $prompt['risk'] ?>"
                 data-date="<?= date('d.m.Y', strtotime($prompt['date'])) ?>"
+                data-project-id="<?= $prompt['project_id'] ?? '' ?>"
+                data-project-name="<?= htmlspecialchars($prompt['project_name'] ?? '') ?>"
                 data-full-prompt="<?= htmlspecialchars($prompt['full_prompt'] ?? $prompt['prompt']) ?>">
                 <td>
                     <div class="prompt-cell"><?= htmlspecialchars($prompt['prompt']) ?></div>
                 </td>
                 <td>
                     <span class="llm-badge <?= $prompt['llm'] ?>"><?= strtoupper($prompt['llm']) ?></span>
+                </td>
+                <td>
+                    <?php if ($prompt['project_name']): ?>
+                        <a href="/topics/<?= $prompt['project_id'] ?>" class="topic-link"><?= htmlspecialchars($prompt['project_name']) ?></a>
+                    <?php else: ?>
+                        <span class="no-topic">—</span>
+                    <?php endif; ?>
                 </td>
                 <td>
                     <div class="response-cell"><?= htmlspecialchars($prompt['response']) ?></div>
@@ -86,15 +104,15 @@
                         <?= $prompt['score'] ?>
                     </span>
                 </td>
-                <td>
-                    <span class="risk-badge <?= $prompt['risk'] ?>">
-                        <?php
-                        $riskLabels = ['low' => 'Низкий', 'medium' => 'Средний', 'high' => 'Высокий'];
-                        echo $riskLabels[$prompt['risk']] ?? $prompt['risk'];
-                        ?>
-                    </span>
-                </td>
                 <td class="date-cell"><?= date('d.m.Y', strtotime($prompt['date'])) ?></td>
+                <td>
+                    <button class="btn-icon assign-btn" data-id="<?= $prompt['id'] ?>" title="Привязать к теме" onclick="event.stopPropagation(); openAssignModal('<?= $prompt['id'] ?>', '<?= $prompt['project_id'] ?? '' ?>')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                        </svg>
+                    </button>
+                </td>
             </tr>
             <?php endforeach; ?>
         </tbody>
@@ -189,16 +207,42 @@
     </div>
 </div>
 
+<!-- Assign to Topic Modal -->
+<div class="modal-overlay" id="assign-modal">
+    <div class="modal" style="max-width: 400px;">
+        <h3 class="modal-title">Привязать к теме</h3>
+        <form id="assign-form">
+            <input type="hidden" id="assign-prompt-id">
+            <div class="form-group">
+                <label class="form-label">Выберите тему</label>
+                <select class="select-field" id="assign-project">
+                    <option value="">Без темы</option>
+                    <?php foreach ($projects as $proj): ?>
+                    <option value="<?= $proj['id'] ?>"><?= htmlspecialchars($proj['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="form-actions" style="margin-top: 20px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="closeAssignModal()">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
 <style>
 .prompt-row { cursor: pointer; transition: background var(--transition-fast); }
 .prompt-row:hover { background: var(--bg-card-hover); }
 .prompt-cell, .response-cell {
-    max-width: 250px;
+    max-width: 200px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.response-cell { color: var(--text-tertiary); max-width: 200px; }
+.response-cell { color: var(--text-tertiary); max-width: 150px; }
 .score-value {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 600;
@@ -206,13 +250,58 @@
 .score-value.high { color: var(--success); }
 .score-value.medium { color: var(--warning); }
 .score-value.low { color: var(--danger); }
-.date-cell { color: var(--text-tertiary); font-size: 13px; }
+.date-cell { color: var(--text-tertiary); font-size: 13px; white-space: nowrap; }
 .prompts-info {
     text-align: center;
     margin-top: 16px;
     color: var(--text-tertiary);
     font-size: 13px;
 }
+
+/* Topic column */
+.topic-link {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-size: 13px;
+}
+.topic-link:hover { text-decoration: underline; }
+.no-topic { color: var(--text-muted); }
+
+/* Action button */
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.btn-icon svg { width: 14px; height: 14px; stroke: var(--text-tertiary); }
+.btn-icon:hover { background: var(--bg-card-hover); border-color: var(--accent-primary); }
+.btn-icon:hover svg { stroke: var(--accent-primary); }
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 16px 24px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1001;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--success); color: white; }
+.toast.error { background: var(--danger); color: white; }
 
 /* Modal */
 .modal-overlay {
@@ -298,6 +387,35 @@
 <?php
 $pageScripts = <<<'SCRIPTS'
 <script>
+// Global functions for assign modal
+function filterByProject(projectId) {
+    const url = new URL(window.location);
+    if (projectId) {
+        url.searchParams.set('project', projectId);
+    } else {
+        url.searchParams.delete('project');
+    }
+    url.searchParams.delete('page');
+    window.location = url;
+}
+
+function openAssignModal(promptId, currentProjectId) {
+    document.getElementById('assign-prompt-id').value = promptId;
+    document.getElementById('assign-project').value = currentProjectId || '';
+    document.getElementById('assign-modal').classList.add('show');
+}
+
+function closeAssignModal() {
+    document.getElementById('assign-modal').classList.remove('show');
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast ' + type + ' show';
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const toneLabels = { positive: 'Позитивная', neutral: 'Нейтральная', negative: 'Негативная' };
     const riskLabels = { low: 'Низкий', medium: 'Средний', high: 'Высокий' };
@@ -305,10 +423,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('prompt-modal');
     const modalLoading = document.getElementById('modal-loading');
     const modalContent = document.getElementById('modal-content');
+    const assignModal = document.getElementById('assign-modal');
 
     // Click on row to open modal - load full response via AJAX
     document.querySelectorAll('.prompt-row').forEach(row => {
-        row.addEventListener('click', async function() {
+        row.addEventListener('click', async function(e) {
+            // Skip if clicked on action button
+            if (e.target.closest('.btn-icon')) return;
+
             const id = this.dataset.id;
             const llm = this.dataset.llm.toUpperCase();
             const tone = this.dataset.tone;
@@ -354,10 +476,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Close modal
+    // Close modals
     modal.querySelector('.close-modal').addEventListener('click', () => modal.classList.remove('show'));
     modal.addEventListener('click', function(e) {
         if (e.target === this) this.classList.remove('show');
+    });
+    assignModal.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+    });
+
+    // Assign form submit
+    document.getElementById('assign-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const promptId = document.getElementById('assign-prompt-id').value;
+        const projectId = document.getElementById('assign-project').value;
+
+        try {
+            const resp = await fetch(`/api/prompts/${promptId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ project_id: projectId })
+            });
+            const result = await resp.json();
+            if (result.success) {
+                showToast('Промт привязан к теме', 'success');
+                closeAssignModal();
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast(result.error || 'Ошибка', 'error');
+            }
+        } catch (err) {
+            showToast('Ошибка сети', 'error');
+        }
     });
 
     // Filter functionality
