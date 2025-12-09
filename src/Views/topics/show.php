@@ -67,26 +67,77 @@
                 <div class="radar-chart-container">
                     <canvas id="promptQualityRadar"></canvas>
                 </div>
-                <div class="radar-legend">
-                    <div class="legend-item">
-                        <h4>1. Конкретность (Specificity)</h4>
-                        <p>Степень, с которой промт задаёт точные параметры задачи — что именно требуется описать, проанализировать или сравнить — без избыточной общности и неопределённых формулировок.</p>
-                    </div>
-                    <div class="legend-item">
-                        <h4>2. Полнота задания (Completeness)</h4>
-                        <p>Наличие в промте всего необходимого контекста, условий и ограничений, позволяющих модели сформировать корректный, непротиворечивый и самодостаточный ответ без домысливания.</p>
-                    </div>
-                    <div class="legend-item">
-                        <h4>3. Нейтральность (Neutrality / Bias-Free)</h4>
-                        <p>Отсутствие в промте эмоционально окрашенных, идеологически направленных или подталкивающих формулировок, которые могут сместить тон и содержание ответа.</p>
-                    </div>
-                    <div class="legend-item">
-                        <h4>4. Однозначность (Clarity / Low Ambiguity)</h4>
-                        <p>Чёткая и недвусмысленная постановка вопроса, исключающая двойные интерпретации, скрытые предпосылки или неопределённые ссылки на "ситуации", "вещи" или "контекст".</p>
-                    </div>
-                    <div class="legend-item">
-                        <h4>5. Чёткость типа задачи (Task Type Clarity)</h4>
-                        <p>Ясное указание формата требуемого результата — анализ, сравнение, список, объяснение, прогноз и т.д. — позволяющее модели точно определить структуру ответа.</p>
+                <div class="radar-accordion">
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">1. Конкретность (Specificity)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Степень, с которой промт задаёт точные параметры задачи — что именно требуется описать, проанализировать или сравнить — без избыточной общности и неопределённых формулировок.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">2. Полнота задания (Completeness)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Наличие в промте всего необходимого контекста, условий и ограничений, позволяющих модели сформировать корректный, непротиворечивый и самодостаточный ответ без домысливания.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">3. Нейтральность (Neutrality / Bias-Free)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Отсутствие в промте эмоционально окрашенных, идеологически направленных или подталкивающих формулировок, которые могут сместить тон и содержание ответа.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">4. Однозначность (Clarity / Low Ambiguity)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Чёткая и недвусмысленная постановка вопроса, исключающая двойные интерпретации, скрытые предпосылки или неопределённые ссылки на "ситуации", "вещи" или "контекст".
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">5. Чёткость типа задачи (Task Type Clarity)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Ясное указание формата требуемого результата — анализ, сравнение, список, объяснение, прогноз и т.д. — позволяющее модели точно определить структуру ответа.
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -535,23 +586,67 @@
     margin: 0 auto;
 }
 
-.radar-legend {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.radar-accordion {
+    flex: 1;
 }
 
-.legend-item h4 {
+.radar-accordion .accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.radar-accordion .accordion-item {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.radar-accordion .accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.radar-accordion .accordion-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.radar-accordion .accordion-title {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 6px;
 }
 
-.legend-item p {
+.radar-accordion .accordion-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--text-tertiary);
+    transition: transform var(--transition-fast);
+}
+
+.radar-accordion .accordion-item.active .accordion-icon {
+    transform: rotate(180deg);
+}
+
+.radar-accordion .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.radar-accordion .accordion-item.active .accordion-content {
+    max-height: 200px;
+}
+
+.radar-accordion .accordion-body {
+    padding: 0 18px 16px;
     font-size: 13px;
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 /* Prompts Table */
