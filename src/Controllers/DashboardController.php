@@ -98,24 +98,39 @@ class DashboardController extends BaseController
 
     private function buildLlmChartData(array $modelPerformance): array
     {
+        // Use lowercase keys for case-insensitive matching
         $colorMap = [
-            'ChatGPT' => '#10a37f',
-            'GPT-4' => '#10a37f',
-            'DeepSeek' => '#4d6bfe',
-            'Grok' => '#1d9bf0',
-            'Gemini' => '#4285f4',
-            'Perplexity' => '#8b5cf6',
-            'Claude' => '#d97706',
-            'Copilot' => '#f59e0b',
+            'chatgpt' => '#10a37f',
+            'gpt-4' => '#10a37f',
+            'deepseek' => '#4d6bfe',
+            'grok' => '#1d9bf0',
+            'gemini' => '#4285f4',
+            'perplexity' => '#8b5cf6',
+            'claude' => '#d97706',
+            'copilot' => '#f59e0b',
+        ];
+
+        // Display names mapping
+        $displayNames = [
+            'chatgpt' => 'ChatGPT',
+            'gpt-4' => 'GPT-4',
+            'deepseek' => 'DeepSeek',
+            'grok' => 'Grok',
+            'gemini' => 'Gemini',
+            'perplexity' => 'Perplexity',
+            'claude' => 'Claude',
+            'copilot' => 'Copilot',
         ];
 
         $llmData = [];
         foreach ($modelPerformance as $modelName => $data) {
             // Convert 0-100 score to 0-5 scale for chart
             $score = round(($data['overall'] ?? 0) / 20, 1);
-            $llmData[$modelName] = [
+            $lowerName = strtolower($modelName);
+            $displayName = $displayNames[$lowerName] ?? ucfirst($modelName);
+            $llmData[$displayName] = [
                 'score' => $score,
-                'color' => $colorMap[$modelName] ?? '#6366f1',
+                'color' => $colorMap[$lowerName] ?? '#6366f1',
             ];
         }
 
