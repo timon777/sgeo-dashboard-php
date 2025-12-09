@@ -237,11 +237,11 @@ class TopicController extends BaseController
 
     private function getTopicPrompts(string $topicId, int $offset = 0, int $limit = 10): array
     {
-        // Get prompts grouped by semantic blocks
-        $result = $this->db->from('ai_responses')
+        // Get prompts with evaluations from recent_evaluations_detailed
+        $result = $this->db->from('recent_evaluations_detailed')
             ->select('*')
             ->eq('project_id', $topicId)
-            ->order('created_at', false)
+            ->order('evaluated_at', false)
             ->offset($offset)
             ->limit($limit)
             ->get();
@@ -251,15 +251,15 @@ class TopicController extends BaseController
 
         foreach ($result['data'] ?? [] as $r) {
             $prompt = [
-                'id' => $r['id'],
+                'id' => $r['ai_response_id'] ?? $r['id'],
                 'text' => $r['prompt'] ?? '',
                 'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
                 'model' => $r['model_name'] ?? '',
-                'date' => $this->formatDate($r['created_at'] ?? ''),
-                'specificity' => rand(60, 95), // TODO: calculate from evaluations
-                'completeness' => rand(60, 95),
-                'neutrality' => rand(70, 98),
-                'topicality' => rand(75, 95),
+                'date' => $this->formatDate($r['evaluated_at'] ?? $r['created_at'] ?? ''),
+                'specificity' => (int)($r['accuracy_score'] ?? $r['avg_score'] ?? 0),
+                'completeness' => (int)($r['completeness_score'] ?? $r['avg_score'] ?? 0),
+                'neutrality' => (int)($r['neutrality_score'] ?? $r['avg_score'] ?? 0),
+                'topicality' => (int)($r['relevance_score'] ?? $r['avg_score'] ?? 0),
             ];
             $prompts[] = $prompt;
 
@@ -269,6 +269,32 @@ class TopicController extends BaseController
                 $promptGroups[$firstWords] = [];
             }
             $promptGroups[$firstWords][] = $prompt;
+        }
+
+        // Fallback to ai_responses if no evaluations
+        if (empty($prompts) && $offset === 0) {
+            $fallbackResult = $this->db->from('ai_responses')
+                ->select('*')
+                ->eq('project_id', $topicId)
+                ->order('created_at', false)
+                ->offset($offset)
+                ->limit($limit)
+                ->get();
+
+            foreach ($fallbackResult['data'] ?? [] as $r) {
+                $prompt = [
+                    'id' => $r['id'],
+                    'text' => $r['prompt'] ?? '',
+                    'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
+                    'model' => $r['model_name'] ?? '',
+                    'date' => $this->formatDate($r['created_at'] ?? ''),
+                    'specificity' => 0,
+                    'completeness' => 0,
+                    'neutrality' => 0,
+                    'topicality' => 0,
+                ];
+                $prompts[] = $prompt;
+            }
         }
 
         // Get total count
@@ -431,17 +457,17 @@ class TopicController extends BaseController
     private function getTopicOverview(string $topicId): array
     {
         // Get total count first
-        $countResult = $this->db->from('ai_responses')
+        $countResult = $this->db->from('recent_evaluations_detailed')
             ->select('id')
             ->eq('project_id', $topicId)
             ->get();
         $totalCount = count($countResult['data'] ?? []);
 
-        // Get only first 10 prompts for initial load
-        $promptsResult = $this->db->from('ai_responses')
+        // Get first 10 prompts with evaluations
+        $promptsResult = $this->db->from('recent_evaluations_detailed')
             ->select('*')
             ->eq('project_id', $topicId)
-            ->order('created_at', false)
+            ->order('evaluated_at', false)
             ->limit(10)
             ->get();
 
@@ -453,19 +479,19 @@ class TopicController extends BaseController
         $totalTaskType = 0;
 
         foreach ($promptsResult['data'] ?? [] as $r) {
-            // Generate scores (in real app these would come from evaluations)
-            $specificity = rand(60, 95);
-            $completeness = rand(60, 95);
-            $neutrality = rand(70, 98);
-            $clarity = rand(65, 95);
-            $taskType = rand(70, 95);
+            // Use real scores from evaluations
+            $specificity = (int)($r['accuracy_score'] ?? $r['avg_score'] ?? 0);
+            $completeness = (int)($r['completeness_score'] ?? $r['avg_score'] ?? 0);
+            $neutrality = (int)($r['neutrality_score'] ?? $r['avg_score'] ?? 0);
+            $clarity = (int)($r['clarity_score'] ?? $r['avg_score'] ?? 0);
+            $taskType = (int)($r['relevance_score'] ?? $r['avg_score'] ?? 0);
 
             $prompts[] = [
-                'id' => $r['id'],
+                'id' => $r['ai_response_id'] ?? $r['id'],
                 'text' => $r['prompt'] ?? '',
                 'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
                 'model' => $r['model_name'] ?? '',
-                'date' => $this->formatDate($r['created_at'] ?? ''),
+                'date' => $this->formatDate($r['evaluated_at'] ?? $r['created_at'] ?? ''),
                 'specificity' => $specificity,
                 'completeness' => $completeness,
                 'neutrality' => $neutrality,
@@ -478,6 +504,33 @@ class TopicController extends BaseController
             $totalNeutrality += $neutrality;
             $totalClarity += $clarity;
             $totalTaskType += $taskType;
+        }
+
+        // Fallback to ai_responses if no evaluations
+        if (empty($prompts)) {
+            $fallbackResult = $this->db->from('ai_responses')
+                ->select('*')
+                ->eq('project_id', $topicId)
+                ->order('created_at', false)
+                ->limit(10)
+                ->get();
+
+            $totalCount = count($fallbackResult['data'] ?? []);
+
+            foreach ($fallbackResult['data'] ?? [] as $r) {
+                $prompts[] = [
+                    'id' => $r['id'],
+                    'text' => $r['prompt'] ?? '',
+                    'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
+                    'model' => $r['model_name'] ?? '',
+                    'date' => $this->formatDate($r['created_at'] ?? ''),
+                    'specificity' => 0,
+                    'completeness' => 0,
+                    'neutrality' => 0,
+                    'clarity' => 0,
+                    'taskType' => 0,
+                ];
+            }
         }
 
         $count = count($prompts);
@@ -501,17 +554,17 @@ class TopicController extends BaseController
 
     private function getTopicOverviewPaginated(string $topicId, int $offset = 0, int $limit = 10): array
     {
-        // Get prompts with pagination
-        $promptsResult = $this->db->from('ai_responses')
+        // Get prompts with pagination from evaluations
+        $promptsResult = $this->db->from('recent_evaluations_detailed')
             ->select('*')
             ->eq('project_id', $topicId)
-            ->order('created_at', false)
+            ->order('evaluated_at', false)
             ->offset($offset)
             ->limit($limit)
             ->get();
 
         // Get total count
-        $countResult = $this->db->from('ai_responses')
+        $countResult = $this->db->from('recent_evaluations_detailed')
             ->select('id')
             ->eq('project_id', $topicId)
             ->get();
@@ -520,16 +573,16 @@ class TopicController extends BaseController
         $prompts = [];
         foreach ($promptsResult['data'] ?? [] as $r) {
             $prompts[] = [
-                'id' => $r['id'],
+                'id' => $r['ai_response_id'] ?? $r['id'],
                 'text' => $r['prompt'] ?? '',
                 'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
                 'model' => $r['model_name'] ?? '',
-                'date' => $this->formatDate($r['created_at'] ?? ''),
-                'specificity' => rand(60, 95),
-                'completeness' => rand(60, 95),
-                'neutrality' => rand(70, 98),
-                'clarity' => rand(65, 95),
-                'taskType' => rand(70, 95),
+                'date' => $this->formatDate($r['evaluated_at'] ?? $r['created_at'] ?? ''),
+                'specificity' => (int)($r['accuracy_score'] ?? $r['avg_score'] ?? 0),
+                'completeness' => (int)($r['completeness_score'] ?? $r['avg_score'] ?? 0),
+                'neutrality' => (int)($r['neutrality_score'] ?? $r['avg_score'] ?? 0),
+                'clarity' => (int)($r['clarity_score'] ?? $r['avg_score'] ?? 0),
+                'taskType' => (int)($r['relevance_score'] ?? $r['avg_score'] ?? 0),
             ];
         }
 
