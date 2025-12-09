@@ -129,14 +129,17 @@ class DashboardController extends BaseController
             $projectData = [];
 
             if (isset($result['data']) && is_array($result['data'])) {
-                // Get all response counts in one query using project_stats view
+                // Count ai_responses per project directly
                 $db = new SupabaseClient();
-                $statsResult = $db->from('project_stats')->select('*')->get();
+                $responsesResult = $db->from('ai_responses')->select('project_id')->get();
 
-                $statsByProject = [];
-                if (isset($statsResult['data'])) {
-                    foreach ($statsResult['data'] as $stat) {
-                        $statsByProject[$stat['project_id']] = $stat;
+                $responsesByProject = [];
+                if (isset($responsesResult['data'])) {
+                    foreach ($responsesResult['data'] as $response) {
+                        $pid = $response['project_id'] ?? null;
+                        if ($pid) {
+                            $responsesByProject[$pid] = ($responsesByProject[$pid] ?? 0) + 1;
+                        }
                     }
                 }
 
@@ -149,8 +152,8 @@ class DashboardController extends BaseController
                         $projectName = mb_substr($projectName, 0, 17) . '...';
                     }
 
-                    // Get mentions from cached stats (processed_prompts field)
-                    $mentions = $statsByProject[$projectId]['processed_prompts'] ?? 0;
+                    // Get mentions from ai_responses count
+                    $mentions = $responsesByProject[$projectId] ?? 0;
 
                     $projectData[] = [
                         'name' => $projectName,
