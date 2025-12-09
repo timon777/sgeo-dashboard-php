@@ -34,7 +34,6 @@
         <option value="grok">Grok</option>
         <option value="gemini">Gemini</option>
         <option value="perplexity">Perplexity</option>
-        <option value="claude">Claude</option>
     </select>
     <select class="select-field" id="tone-filter" style="width: auto; min-width: 150px;">
         <option value="all">Все тональности</option>
