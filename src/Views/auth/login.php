@@ -174,6 +174,43 @@
         .forgot-link:hover {
             text-decoration: underline;
         }
+
+        .login-btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-btn.loading {
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        .login-btn .btn-text {
+            transition: opacity 0.2s;
+        }
+
+        .login-btn.loading .btn-text {
+            opacity: 0.7;
+        }
+
+        .login-btn .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .login-btn.loading .spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -233,7 +270,12 @@
                         <a href="#" class="forgot-link">Забыли пароль?</a>
                     </div>
 
-                    <button type="submit" class="login-btn">Войти</button>
+                    <button type="submit" class="login-btn" id="loginBtn">
+                        <svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="12" cy="12" r="10" stroke-dasharray="30 60" />
+                        </svg>
+                        <span class="btn-text">Войти</span>
+                    </button>
                 </form>
 
                 <div class="login-footer">
@@ -242,5 +284,13 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.querySelector('.login-form').addEventListener('submit', function(e) {
+            const btn = document.getElementById('loginBtn');
+            btn.classList.add('loading');
+            btn.querySelector('.btn-text').textContent = 'Вход...';
+        });
+    </script>
 </body>
 </html>
