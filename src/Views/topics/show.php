@@ -626,9 +626,9 @@
 .radar-chart-container {
     width: 100%;
     max-width: 550px;
-    min-height: 420px;
+    min-height: 320px;
     margin: 0 auto;
-    padding: 30px;
+    padding: 10px 30px;
 }
 
 .radar-accordion {
@@ -801,7 +801,7 @@
 
     .radar-chart-container {
         max-width: 480px;
-        min-height: 380px;
+        min-height: 300px;
     }
 }
 
@@ -1260,8 +1260,8 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: true,
             layout: {
                 padding: {
-                    top: 50,
-                    bottom: 50,
+                    top: 20,
+                    bottom: 20,
                     left: 60,
                     right: 60
                 }
