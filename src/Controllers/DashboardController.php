@@ -71,14 +71,18 @@ class DashboardController extends BaseController
         // Get project data for bar chart from DB
         $projectData = $this->buildProjectChartData($projectModel);
 
-        // Get trend data
-        $trends = $this->calculateTrends();
+        // Get trend data (cached for 10 minutes)
+        $trends = Cache::remember('dashboard_trends', function() {
+            return $this->calculateTrends();
+        }, 600);
 
         // Get radar chart data from evaluations
         $radarData = $this->buildRadarChartData($modelPerformance);
 
-        // Get source statistics for donut charts
-        $sourceStats = $this->buildSourceStats($sourceModel);
+        // Get source statistics for donut charts (cached for 5 minutes)
+        $sourceStats = Cache::remember('dashboard_source_stats', function() use ($sourceModel) {
+            return $this->buildSourceStats($sourceModel);
+        }, 300);
 
         $this->render('dashboard/index', [
             'pageTitle' => 'Аналитический дашборд',
