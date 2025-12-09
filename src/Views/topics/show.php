@@ -218,7 +218,7 @@
         <!-- Responses List -->
         <div class="section-block">
             <h3 class="section-title">Список ответов <span class="count-badge"><?= $tabData['totalCount'] ?></span></h3>
-            <div class="responses-list">
+            <div class="responses-list" id="responsesList">
                 <?php foreach ($tabData['responses'] as $response): ?>
                 <div class="response-card">
                     <div class="response-header">
@@ -266,6 +266,19 @@
                 </div>
                 <?php endif; ?>
             </div>
+            <?php if ($tabData['hasMore'] ?? false): ?>
+            <div class="load-more-container">
+                <button type="button" class="btn-load-more" id="loadMoreResponses"
+                        data-topic-id="<?= htmlspecialchars($topic['id']) ?>"
+                        data-offset="10"
+                        data-tab="responses">
+                    <span class="btn-text">Загрузить ещё</span>
+                    <span class="btn-loader" style="display:none;">
+                        <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 60"/></svg>
+                    </span>
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -303,7 +316,7 @@
         <!-- Prompts List -->
         <div class="section-block">
             <h3 class="section-title">Список промтов <span class="count-badge"><?= $tabData['totalCount'] ?></span></h3>
-            <div class="prompts-list">
+            <div class="prompts-list" id="promptsList">
                 <?php foreach ($tabData['prompts'] as $prompt): ?>
                 <div class="prompt-card">
                     <div class="prompt-header">
@@ -342,6 +355,19 @@
                 </div>
                 <?php endif; ?>
             </div>
+            <?php if ($tabData['hasMore'] ?? false): ?>
+            <div class="load-more-container">
+                <button type="button" class="btn-load-more" id="loadMorePrompts"
+                        data-topic-id="<?= htmlspecialchars($topic['id']) ?>"
+                        data-offset="10"
+                        data-tab="prompts">
+                    <span class="btn-text">Загрузить ещё</span>
+                    <span class="btn-loader" style="display:none;">
+                        <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 60"/></svg>
+                    </span>
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -426,9 +452,9 @@
 
         <!-- Sources Table -->
         <div class="section-block">
-            <h3 class="section-title">Все источники</h3>
+            <h3 class="section-title">Все источники <span class="count-badge"><?= $tabData['totalCount'] ?></span></h3>
             <div class="table-container sources-table-wrap">
-                <table class="table">
+                <table class="table" id="sourcesTable">
                     <thead>
                         <tr>
                             <th>Домен</th>
@@ -441,7 +467,7 @@
                             <th>E-E-A-T</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="sourcesBody">
                         <?php foreach ($tabData['sources'] as $source): ?>
                         <tr>
                             <td>
@@ -465,6 +491,19 @@
                     </tbody>
                 </table>
             </div>
+            <?php if ($tabData['hasMore'] ?? false): ?>
+            <div class="load-more-container">
+                <button type="button" class="btn-load-more" id="loadMoreSources"
+                        data-topic-id="<?= htmlspecialchars($topic['id']) ?>"
+                        data-offset="10"
+                        data-tab="sources">
+                    <span class="btn-text">Загрузить ещё</span>
+                    <span class="btn-loader" style="display:none;">
+                        <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 60"/></svg>
+                    </span>
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
     <?php endif; ?>
@@ -1316,6 +1355,179 @@ document.getElementById('loadMoreOverview')?.addEventListener('click', async fun
         console.error('Error loading more data:', error);
     } finally {
         // Reset button state
+        btn.disabled = false;
+        btn.querySelector('.btn-text').style.display = 'inline';
+        btn.querySelector('.btn-loader').style.display = 'none';
+    }
+});
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+<?php endif; ?>
+
+<?php if ($activeTab === 'responses'): ?>
+<script>
+document.getElementById('loadMoreResponses')?.addEventListener('click', async function() {
+    const btn = this;
+    const topicId = btn.dataset.topicId;
+    const offset = parseInt(btn.dataset.offset);
+
+    btn.disabled = true;
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loader').style.display = 'inline-flex';
+
+    try {
+        const response = await fetch(`/api/topics/${topicId}/data?tab=responses&offset=${offset}&limit=10`);
+        const result = await response.json();
+
+        if (result.success && result.data.responses) {
+            const list = document.getElementById('responsesList');
+
+            result.data.responses.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'response-card';
+                card.innerHTML = `
+                    <div class="response-header">
+                        <span class="llm-badge ${r.model.toLowerCase()}">${escapeHtml(r.model)}</span>
+                        <span class="response-date">${r.date}</span>
+                        <span class="tone-badge ${r.tone}">${r.tone.charAt(0).toUpperCase() + r.tone.slice(1)}</span>
+                    </div>
+                    <div class="response-prompt"><strong>Промт:</strong> ${escapeHtml(r.prompt)}</div>
+                    <div class="response-text"><strong>Ответ:</strong> ${escapeHtml(r.response)}</div>
+                    <div class="response-metrics">
+                        <div class="metric"><span class="metric-label">Точность</span><span class="metric-value ${r.accuracy >= 70 ? 'good' : (r.accuracy >= 50 ? 'medium' : 'bad')}">${r.accuracy}</span></div>
+                        <div class="metric"><span class="metric-label">Полнота</span><span class="metric-value ${r.completeness >= 70 ? 'good' : (r.completeness >= 50 ? 'medium' : 'bad')}">${r.completeness}</span></div>
+                        <div class="metric"><span class="metric-label">Нейтральность</span><span class="metric-value ${r.neutrality >= 70 ? 'good' : (r.neutrality >= 50 ? 'medium' : 'bad')}">${r.neutrality}</span></div>
+                        <div class="metric"><span class="metric-label">Релевантность</span><span class="metric-value ${r.relevance >= 70 ? 'good' : (r.relevance >= 50 ? 'medium' : 'bad')}">${r.relevance}</span></div>
+                        <div class="metric"><span class="metric-label">Ясность</span><span class="metric-value ${r.clarity >= 70 ? 'good' : (r.clarity >= 50 ? 'medium' : 'bad')}">${r.clarity}</span></div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            btn.dataset.offset = offset + 10;
+            if (!result.data.hasMore) btn.parentElement.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error loading more:', error);
+    } finally {
+        btn.disabled = false;
+        btn.querySelector('.btn-text').style.display = 'inline';
+        btn.querySelector('.btn-loader').style.display = 'none';
+    }
+});
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+<?php endif; ?>
+
+<?php if ($activeTab === 'prompts'): ?>
+<script>
+document.getElementById('loadMorePrompts')?.addEventListener('click', async function() {
+    const btn = this;
+    const topicId = btn.dataset.topicId;
+    const offset = parseInt(btn.dataset.offset);
+
+    btn.disabled = true;
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loader').style.display = 'inline-flex';
+
+    try {
+        const response = await fetch(`/api/topics/${topicId}/data?tab=prompts&offset=${offset}&limit=10`);
+        const result = await response.json();
+
+        if (result.success && result.data.prompts) {
+            const list = document.getElementById('promptsList');
+
+            result.data.prompts.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'prompt-card';
+                card.innerHTML = `
+                    <div class="prompt-header">
+                        <span class="llm-badge ${p.model.toLowerCase()}">${escapeHtml(p.model)}</span>
+                        <span class="prompt-date">${p.date}</span>
+                    </div>
+                    <div class="prompt-text">${escapeHtml(p.text)}</div>
+                    <div class="prompt-metrics">
+                        <div class="metric-mini"><span class="metric-label">Конкр.</span><span class="metric-value">${p.specificity}</span></div>
+                        <div class="metric-mini"><span class="metric-label">Полн.</span><span class="metric-value">${p.completeness}</span></div>
+                        <div class="metric-mini"><span class="metric-label">Нейтр.</span><span class="metric-value">${p.neutrality}</span></div>
+                        <div class="metric-mini"><span class="metric-label">Темат.</span><span class="metric-value">${p.topicality || 0}</span></div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            btn.dataset.offset = offset + 10;
+            if (!result.data.hasMore) btn.parentElement.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error loading more:', error);
+    } finally {
+        btn.disabled = false;
+        btn.querySelector('.btn-text').style.display = 'inline';
+        btn.querySelector('.btn-loader').style.display = 'none';
+    }
+});
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+<?php endif; ?>
+
+<?php if ($activeTab === 'sources'): ?>
+<script>
+document.getElementById('loadMoreSources')?.addEventListener('click', async function() {
+    const btn = this;
+    const topicId = btn.dataset.topicId;
+    const offset = parseInt(btn.dataset.offset);
+
+    btn.disabled = true;
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loader').style.display = 'inline-flex';
+
+    const typeLabels = {gov: 'Гос. сайты', media: 'СМИ', analytics: 'Аналитика', wiki: 'Wiki'};
+
+    try {
+        const response = await fetch(`/api/topics/${topicId}/data?tab=sources&offset=${offset}&limit=10`);
+        const result = await response.json();
+
+        if (result.success && result.data.sources) {
+            const tbody = document.getElementById('sourcesBody');
+
+            result.data.sources.forEach(s => {
+                const row = document.createElement('tr');
+                const eeatClass = s.eeat >= 80 ? 'high' : (s.eeat >= 50 ? 'medium' : 'low');
+                row.innerHTML = `
+                    <td><a href="https://${escapeHtml(s.domain)}" target="_blank" class="domain-link">${escapeHtml(s.domain)}</a></td>
+                    <td><span class="type-badge ${s.type}">${typeLabels[s.type] || s.type}</span></td>
+                    <td>${s.country}</td>
+                    <td class="mono">${s.experience}</td>
+                    <td class="mono">${s.expertise}</td>
+                    <td class="mono">${s.authority}</td>
+                    <td class="mono">${s.trust}</td>
+                    <td><span class="eeat-badge ${eeatClass}">${s.eeat}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            btn.dataset.offset = offset + 10;
+            if (!result.data.hasMore) btn.parentElement.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error loading more:', error);
+    } finally {
         btn.disabled = false;
         btn.querySelector('.btn-text').style.display = 'inline';
         btn.querySelector('.btn-loader').style.display = 'none';
