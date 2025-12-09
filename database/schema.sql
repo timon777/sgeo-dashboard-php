@@ -208,6 +208,20 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 
 -- =====================================================
+-- DAILY_STATS TABLE (for trend calculation)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS daily_stats (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    stat_date DATE NOT NULL UNIQUE,
+    total_projects INTEGER DEFAULT 0,
+    total_prompts INTEGER DEFAULT 0,
+    total_sources INTEGER DEFAULT 0,
+    avg_accuracy DECIMAL(5,2) DEFAULT 0,
+    total_responses INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- =====================================================
 -- INDEXES (create after all tables)
 -- =====================================================
 CREATE INDEX IF NOT EXISTS idx_ai_responses_model ON ai_responses(model_name);
@@ -222,6 +236,7 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(token);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at);
 CREATE INDEX IF NOT EXISTS idx_project_sources_project ON project_sources(project_id);
 CREATE INDEX IF NOT EXISTS idx_project_sources_source ON project_sources(source_id);
+CREATE INDEX IF NOT EXISTS idx_daily_stats_date ON daily_stats(stat_date DESC);
 
 -- =====================================================
 -- VIEWS (create after all tables exist)

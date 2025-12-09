@@ -166,13 +166,119 @@ class DashboardController extends BaseController
 
     private function calculateTrends(): array
     {
-        // In production, calculate from historical data
-        // Compare current week vs previous week
-        return [
-            'projects' => ['value' => '+12%', 'up' => true],
-            'prompts' => ['value' => '+8%', 'up' => true],
-            'sources' => ['value' => '+5%', 'up' => true],
-            'accuracy' => ['value' => '+3%', 'up' => true],
+        $db = new SupabaseClient();
+
+        // Get stats from 7 days ago and today
+        $today = date('Y-m-d');
+        $weekAgo = date('Y-m-d', strtotime('-7 days'));
+
+        // Get today's stats (or save if not exists)
+        $todayStats = $this->getDailyStats($db, $today);
+        $weekAgoStats = $this->getDailyStats($db, $weekAgo);
+
+        // Calculate percentage changes
+        $trends = [
+            'projects' => $this->calcTrendPercent($weekAgoStats['total_projects'], $todayStats['total_projects']),
+            'prompts' => $this->calcTrendPercent($weekAgoStats['total_prompts'], $todayStats['total_prompts']),
+            'sources' => $this->calcTrendPercent($weekAgoStats['total_sources'], $todayStats['total_sources']),
+            'accuracy' => $this->calcTrendPercent($weekAgoStats['avg_accuracy'], $todayStats['avg_accuracy']),
         ];
+
+        return $trends;
+    }
+
+    private function getDailyStats(SupabaseClient $db, string $date): array
+    {
+        $result = $db->from('daily_stats')
+            ->select('*')
+            ->eq('stat_date', $date)
+            ->single();
+
+        if ($result && isset($result['id'])) {
+            return $result;
+        }
+
+        // If today and no stats, calculate and save
+        if ($date === date('Y-m-d')) {
+            return $this->saveDailySnapshot($db);
+        }
+
+        // Return zeros for missing historical data
+        return [
+            'total_projects' => 0,
+            'total_prompts' => 0,
+            'total_sources' => 0,
+            'avg_accuracy' => 0,
+            'total_responses' => 0,
+        ];
+    }
+
+    private function saveDailySnapshot(SupabaseClient $db): array
+    {
+        $projectModel = new Project();
+        $sourceModel = new Source();
+        $aiResponseModel = new AiResponse();
+        $performanceModel = new ModelPerformance();
+
+        $projectCount = $projectModel->count();
+        $sourceCount = $sourceModel->count();
+        $responseStats = $aiResponseModel->getStats();
+        $promptCount = $responseStats['total'] ?? 0;
+
+        // Calculate average accuracy
+        $modelPerformance = $performanceModel->getMetricsComparison();
+        $avgAccuracy = 0;
+        if (!empty($modelPerformance)) {
+            $totalScore = 0;
+            foreach ($modelPerformance as $data) {
+                $totalScore += $data['overall'] ?? 0;
+            }
+            $avgAccuracy = round($totalScore / count($modelPerformance), 2);
+        }
+
+        $stats = [
+            'stat_date' => date('Y-m-d'),
+            'total_projects' => $projectCount,
+            'total_prompts' => $promptCount,
+            'total_sources' => $sourceCount,
+            'avg_accuracy' => $avgAccuracy,
+            'total_responses' => $promptCount,
+        ];
+
+        // Upsert - try insert, if conflict update
+        $existing = $db->from('daily_stats')
+            ->select('id')
+            ->eq('stat_date', date('Y-m-d'))
+            ->single();
+
+        if ($existing && isset($existing['id'])) {
+            $db->from('daily_stats')
+                ->eq('id', $existing['id'])
+                ->update($stats);
+        } else {
+            $db->from('daily_stats')->insert($stats);
+        }
+
+        return $stats;
+    }
+
+    private function calcTrendPercent($old, $new): array
+    {
+        $old = (float)$old;
+        $new = (float)$new;
+
+        if ($old == 0 && $new == 0) {
+            return ['value' => '0%', 'up' => true];
+        }
+
+        if ($old == 0) {
+            return ['value' => '+100%', 'up' => true];
+        }
+
+        $percent = round((($new - $old) / $old) * 100);
+        $isUp = $percent >= 0;
+        $value = ($isUp ? '+' : '') . $percent . '%';
+
+        return ['value' => $value, 'up' => $isUp];
     }
 }
