@@ -586,6 +586,7 @@
     max-width: 380px;
     min-height: 320px;
     margin: 0 auto;
+    margin-top: -20px;
 }
 
 .radar-accordion {
@@ -1163,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', function() {
             responsive: true,
             maintainAspectRatio: true,
             layout: {
-                padding: 20
+                padding: 10
             },
             scales: {
                 r: {
