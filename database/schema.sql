@@ -78,6 +78,18 @@ CREATE TABLE IF NOT EXISTS sources (
 );
 
 -- =====================================================
+-- PROJECT_SOURCES TABLE (Many-to-Many linking)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS project_sources (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    source_id UUID NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+    usage_count INTEGER DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(project_id, source_id)
+);
+
+-- =====================================================
 -- PROMPT SETS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS prompt_sets (
@@ -208,6 +220,8 @@ CREATE INDEX IF NOT EXISTS idx_sources_type ON sources(type);
 CREATE INDEX IF NOT EXISTS idx_projects_active ON projects(is_active);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(token);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_project_sources_project ON project_sources(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_sources_source ON project_sources(source_id);
 
 -- =====================================================
 -- VIEWS (create after all tables exist)

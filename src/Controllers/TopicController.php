@@ -103,6 +103,13 @@ class TopicController extends BaseController
             $models[$r['model_name']] = true;
         }
 
+        // Get sources count from project_sources
+        $sourcesResult = $this->db->from('project_sources')
+            ->select('id')
+            ->eq('project_id', $topicId)
+            ->get();
+        $sourcesCount = count($sourcesResult['data'] ?? []);
+
         // Get evaluations for this topic to calculate averages
         $evalResult = $this->db->from('recent_evaluations_detailed')
             ->select('*')
@@ -131,7 +138,7 @@ class TopicController extends BaseController
         return [
             'responsesCount' => $responsesCount,
             'promptsCount' => $responsesCount, // prompts = responses in our structure
-            'sourcesCount' => 0, // Will be calculated if we have source linkage
+            'sourcesCount' => $sourcesCount,
             'modelsCount' => count($models),
             'avgAccuracy' => $avgAccuracy,
             'avgCompleteness' => $avgCompleteness,
