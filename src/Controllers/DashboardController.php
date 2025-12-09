@@ -149,8 +149,8 @@ class DashboardController extends BaseController
                         $projectName = mb_substr($projectName, 0, 17) . '...';
                     }
 
-                    // Get mentions from cached stats
-                    $mentions = $statsByProject[$projectId]['total_responses'] ?? 0;
+                    // Get mentions from cached stats (processed_prompts field)
+                    $mentions = $statsByProject[$projectId]['processed_prompts'] ?? 0;
 
                     $projectData[] = [
                         'name' => $projectName,
