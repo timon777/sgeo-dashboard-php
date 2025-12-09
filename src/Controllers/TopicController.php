@@ -271,16 +271,23 @@ class TopicController extends BaseController
 
     private function getTopicSources(string $topicId): array
     {
-        // For now, get all sources - in real app, these would be linked to responses
-        $sourceModel = new Source();
-        $result = $sourceModel->all(100, 0);
+        // Get sources linked to this project via project_sources table
+        $result = $this->db->from('project_sources')
+            ->select('source_id, usage_count, sources(id, domain, type, country, expertise_score, experience_score, authority_score, trust_score, eeat_combined)')
+            ->eq('project_id', $topicId)
+            ->order('usage_count', false)
+            ->limit(100)
+            ->get();
 
         $sources = [];
         $countryStats = [];
         $typeStats = [];
         $eeatSum = 0;
 
-        foreach ($result['data'] ?? [] as $s) {
+        foreach ($result['data'] ?? [] as $ps) {
+            $s = $ps['sources'] ?? [];
+            if (empty($s)) continue;
+
             $eeat = (int)($s['eeat_combined'] ?? 0);
             $sources[] = [
                 'id' => $s['id'],
@@ -292,6 +299,7 @@ class TopicController extends BaseController
                 'authority' => (int)($s['authority_score'] ?? 0),
                 'trust' => (int)($s['trust_score'] ?? 0),
                 'eeat' => $eeat,
+                'usage_count' => (int)($ps['usage_count'] ?? 1),
             ];
 
             $eeatSum += $eeat;
