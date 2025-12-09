@@ -582,8 +582,11 @@
 }
 
 .radar-chart-container {
-    max-width: 450px;
-    margin: 0 auto;
+    width: 100%;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .radar-accordion {
@@ -705,7 +708,7 @@
     }
 
     .radar-chart-container {
-        max-width: 350px;
+        min-height: 350px;
     }
 }
 
@@ -1133,9 +1136,9 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: [
                 'Конкретность',
                 'Полнота задания',
-                'Нейтральность /\nотсутствие\nподталкивания',
+                'Нейтральность',
                 'Однозначность',
-                'Однозначно\nопределённый тип\nзадачи'
+                'Тип задачи'
             ],
             datasets: [{
                 label: 'Оценка качества',
@@ -1153,12 +1156,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 pointBorderColor: '#fff',
                 pointHoverBackgroundColor: '#fff',
                 pointHoverBorderColor: 'rgb(16, 185, 129)',
-                pointRadius: 4
+                pointRadius: 5
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
+            layout: {
+                padding: 20
+            },
             scales: {
                 r: {
                     beginAtZero: true,
@@ -1166,8 +1172,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     min: 0,
                     ticks: {
                         stepSize: 20,
-                        font: { size: 10 },
-                        color: '#9ca3af'
+                        font: { size: 11 },
+                        color: '#9ca3af',
+                        backdropColor: 'transparent'
                     },
                     grid: {
                         color: 'rgba(156, 163, 175, 0.2)'
@@ -1176,8 +1183,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         color: 'rgba(156, 163, 175, 0.2)'
                     },
                     pointLabels: {
-                        font: { size: 12 },
-                        color: '#374151'
+                        font: {
+                            size: 13,
+                            weight: '500'
+                        },
+                        color: '#e5e7eb',
+                        padding: 15
                     }
                 }
             },
