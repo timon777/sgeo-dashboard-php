@@ -145,8 +145,11 @@
 
         <!-- Prompts Table -->
         <div class="section-block">
+            <div class="table-header-row">
+                <h3 class="section-title">Промты <span class="count-badge"><?= $tabData['totalCount'] ?? 0 ?></span></h3>
+            </div>
             <div class="table-container">
-                <table class="table prompts-table">
+                <table class="table prompts-table" id="overviewPromptsTable">
                     <thead>
                         <tr>
                             <th>Промпт (запрос)</th>
@@ -157,7 +160,7 @@
                             <th>Тип задачи</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="overviewPromptsBody">
                         <?php foreach ($tabData['prompts'] ?? [] as $index => $prompt): ?>
                         <tr>
                             <td class="prompt-cell">
@@ -174,6 +177,19 @@
                     </tbody>
                 </table>
             </div>
+            <?php if ($tabData['hasMore'] ?? false): ?>
+            <div class="load-more-container">
+                <button type="button" class="btn-load-more" id="loadMoreOverview"
+                        data-topic-id="<?= htmlspecialchars($topic['id']) ?>"
+                        data-offset="10"
+                        data-tab="overview">
+                    <span class="btn-text">Загрузить ещё</span>
+                    <span class="btn-loader" style="display:none;">
+                        <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 60"/></svg>
+                    </span>
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -702,6 +718,56 @@
     white-space: nowrap;
 }
 
+/* Load More Button */
+.load-more-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.btn-load-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 32px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-load-more:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.btn-load-more:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-load-more .spinner {
+    width: 18px;
+    height: 18px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.table-header-row {
+    margin-bottom: 16px;
+}
+
 @media (max-width: 1200px) {
     .radar-content {
         grid-template-columns: 1fr;
@@ -1201,5 +1267,65 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Load More functionality
+document.getElementById('loadMoreOverview')?.addEventListener('click', async function() {
+    const btn = this;
+    const topicId = btn.dataset.topicId;
+    const offset = parseInt(btn.dataset.offset);
+    const tab = btn.dataset.tab;
+
+    // Show loading state
+    btn.disabled = true;
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loader').style.display = 'inline-flex';
+
+    try {
+        const response = await fetch(`/api/topics/${topicId}/data?tab=${tab}&offset=${offset}&limit=10`);
+        const result = await response.json();
+
+        if (result.success && result.data.prompts) {
+            const tbody = document.getElementById('overviewPromptsBody');
+            const currentRows = tbody.querySelectorAll('tr').length;
+
+            result.data.prompts.forEach((prompt, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="prompt-cell">
+                        <span class="prompt-number">Промт №${currentRows + index + 1}</span>
+                        <a href="#" class="prompt-link">${escapeHtml(prompt.shortText)}</a>
+                    </td>
+                    <td class="score-cell">${prompt.completeness}/100</td>
+                    <td class="score-cell">${prompt.specificity}/100</td>
+                    <td class="score-cell">${prompt.neutrality}/100</td>
+                    <td class="score-cell">${prompt.clarity}/100</td>
+                    <td class="score-cell">${prompt.taskType}/100</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Update offset for next load
+            btn.dataset.offset = offset + 10;
+
+            // Hide button if no more data
+            if (!result.data.hasMore) {
+                btn.parentElement.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading more data:', error);
+    } finally {
+        // Reset button state
+        btn.disabled = false;
+        btn.querySelector('.btn-text').style.display = 'inline';
+        btn.querySelector('.btn-loader').style.display = 'none';
+    }
+});
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 </script>
 <?php endif; ?>

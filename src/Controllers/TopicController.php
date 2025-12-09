@@ -74,18 +74,23 @@ class TopicController extends BaseController
         header('Content-Type: application/json');
 
         $tab = $_GET['tab'] ?? 'responses';
+        $offset = (int)($_GET['offset'] ?? 0);
+        $limit = (int)($_GET['limit'] ?? 10);
 
         $data = [];
         switch ($tab) {
             case 'prompts':
-                $data = $this->getTopicPrompts($id);
+                $data = $this->getTopicPrompts($id, $offset, $limit);
                 break;
             case 'sources':
-                $data = $this->getTopicSources($id);
+                $data = $this->getTopicSources($id, $offset, $limit);
+                break;
+            case 'overview':
+                $data = $this->getTopicOverviewPaginated($id, $offset, $limit);
                 break;
             case 'responses':
             default:
-                $data = $this->getTopicResponses($id);
+                $data = $this->getTopicResponses($id, $offset, $limit);
                 break;
         }
 
@@ -155,14 +160,14 @@ class TopicController extends BaseController
         ];
     }
 
-    private function getTopicResponses(string $topicId): array
+    private function getTopicResponses(string $topicId, int $offset = 0, int $limit = 10): array
     {
         // Get responses with evaluations
         $result = $this->db->from('recent_evaluations_detailed')
             ->select('*')
             ->eq('project_id', $topicId)
             ->order('evaluated_at', false)
-            ->limit(50)
+            ->range($offset, $offset + $limit - 1)
             ->get();
 
         $responses = [];
@@ -184,12 +189,12 @@ class TopicController extends BaseController
         }
 
         // If no evaluations, fall back to ai_responses
-        if (empty($responses)) {
+        if (empty($responses) && $offset === 0) {
             $fallbackResult = $this->db->from('ai_responses')
                 ->select('*')
                 ->eq('project_id', $topicId)
                 ->order('created_at', false)
-                ->limit(50)
+                ->range($offset, $offset + $limit - 1)
                 ->get();
 
             foreach ($fallbackResult['data'] ?? [] as $r) {
@@ -210,24 +215,32 @@ class TopicController extends BaseController
             }
         }
 
-        // Calculate model comparison
-        $modelStats = $this->calculateModelComparison($result['data'] ?? []);
+        // Get total count for pagination
+        $countResult = $this->db->from('recent_evaluations_detailed')
+            ->select('id')
+            ->eq('project_id', $topicId)
+            ->get();
+        $totalCount = count($countResult['data'] ?? []);
+
+        // Calculate model comparison (only on first page)
+        $modelStats = $offset === 0 ? $this->calculateModelComparison($result['data'] ?? []) : [];
 
         return [
             'responses' => $responses,
             'modelComparison' => $modelStats,
-            'totalCount' => count($responses),
+            'totalCount' => $totalCount,
+            'hasMore' => ($offset + $limit) < $totalCount,
         ];
     }
 
-    private function getTopicPrompts(string $topicId): array
+    private function getTopicPrompts(string $topicId, int $offset = 0, int $limit = 10): array
     {
         // Get prompts grouped by semantic blocks
         $result = $this->db->from('ai_responses')
             ->select('*')
             ->eq('project_id', $topicId)
             ->order('created_at', false)
-            ->limit(100)
+            ->range($offset, $offset + $limit - 1)
             ->get();
 
         $prompts = [];
@@ -255,6 +268,13 @@ class TopicController extends BaseController
             $promptGroups[$firstWords][] = $prompt;
         }
 
+        // Get total count
+        $countResult = $this->db->from('ai_responses')
+            ->select('id')
+            ->eq('project_id', $topicId)
+            ->get();
+        $totalCount = count($countResult['data'] ?? []);
+
         // Calculate prompt quality stats
         $avgSpecificity = 0;
         $avgCompleteness = 0;
@@ -275,7 +295,8 @@ class TopicController extends BaseController
         return [
             'prompts' => $prompts,
             'groups' => array_slice($promptGroups, 0, 10), // Top 10 groups
-            'totalCount' => count($prompts),
+            'totalCount' => $totalCount,
+            'hasMore' => ($offset + $limit) < $totalCount,
             'stats' => [
                 'avgSpecificity' => $avgSpecificity,
                 'avgCompleteness' => $avgCompleteness,
@@ -284,14 +305,14 @@ class TopicController extends BaseController
         ];
     }
 
-    private function getTopicSources(string $topicId): array
+    private function getTopicSources(string $topicId, int $offset = 0, int $limit = 10): array
     {
         // Get sources linked to this project via project_sources table
         $result = $this->db->from('project_sources')
             ->select('source_id, usage_count, sources(id, domain, type, country, expertise_score, experience_score, authority_score, trust_score, eeat_combined)')
             ->eq('project_id', $topicId)
             ->order('usage_count', false)
-            ->limit(100)
+            ->range($offset, $offset + $limit - 1)
             ->get();
 
         $sources = [];
@@ -328,6 +349,13 @@ class TopicController extends BaseController
             $typeStats[$type] = ($typeStats[$type] ?? 0) + 1;
         }
 
+        // Get total count
+        $countResult = $this->db->from('project_sources')
+            ->select('id')
+            ->eq('project_id', $topicId)
+            ->get();
+        $totalCount = count($countResult['data'] ?? []);
+
         $avgEeat = count($sources) > 0 ? round($eeatSum / count($sources), 1) : 0;
 
         // Find weak sources (EEAT < 50)
@@ -335,7 +363,8 @@ class TopicController extends BaseController
 
         return [
             'sources' => $sources,
-            'totalCount' => count($sources),
+            'totalCount' => $totalCount,
+            'hasMore' => ($offset + $limit) < $totalCount,
             'avgEeat' => $avgEeat,
             'countryStats' => $countryStats,
             'typeStats' => $typeStats,
@@ -397,12 +426,19 @@ class TopicController extends BaseController
 
     private function getTopicOverview(string $topicId): array
     {
-        // Get prompts data for the radar chart
+        // Get total count first
+        $countResult = $this->db->from('ai_responses')
+            ->select('id')
+            ->eq('project_id', $topicId)
+            ->get();
+        $totalCount = count($countResult['data'] ?? []);
+
+        // Get only first 10 prompts for initial load
         $promptsResult = $this->db->from('ai_responses')
             ->select('*')
             ->eq('project_id', $topicId)
             ->order('created_at', false)
-            ->limit(100)
+            ->range(0, 9)
             ->get();
 
         $prompts = [];
@@ -452,9 +488,50 @@ class TopicController extends BaseController
         ];
 
         return [
-            'prompts' => array_slice($prompts, 0, 20), // Top 20 prompts for table
-            'totalCount' => $count,
+            'prompts' => $prompts,
+            'totalCount' => $totalCount,
+            'hasMore' => $totalCount > 10,
             'radarData' => $radarData,
+        ];
+    }
+
+    private function getTopicOverviewPaginated(string $topicId, int $offset = 0, int $limit = 10): array
+    {
+        // Get prompts with pagination
+        $promptsResult = $this->db->from('ai_responses')
+            ->select('*')
+            ->eq('project_id', $topicId)
+            ->order('created_at', false)
+            ->range($offset, $offset + $limit - 1)
+            ->get();
+
+        // Get total count
+        $countResult = $this->db->from('ai_responses')
+            ->select('id')
+            ->eq('project_id', $topicId)
+            ->get();
+        $totalCount = count($countResult['data'] ?? []);
+
+        $prompts = [];
+        foreach ($promptsResult['data'] ?? [] as $r) {
+            $prompts[] = [
+                'id' => $r['id'],
+                'text' => $r['prompt'] ?? '',
+                'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
+                'model' => $r['model_name'] ?? '',
+                'date' => $this->formatDate($r['created_at'] ?? ''),
+                'specificity' => rand(60, 95),
+                'completeness' => rand(60, 95),
+                'neutrality' => rand(70, 98),
+                'clarity' => rand(65, 95),
+                'taskType' => rand(70, 95),
+            ];
+        }
+
+        return [
+            'prompts' => $prompts,
+            'totalCount' => $totalCount,
+            'hasMore' => ($offset + $limit) < $totalCount,
         ];
     }
 }
