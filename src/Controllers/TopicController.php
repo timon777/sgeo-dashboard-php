@@ -99,22 +99,24 @@ class TopicController extends BaseController
 
     private function getTopicStats(string $topicId): array
     {
-        // Get responses count
+        // Get responses with prompts to count unique prompts
         $responsesResult = $this->db->from('ai_responses')
-            ->select('id')
+            ->select('id, prompt, model_name')
             ->eq('project_id', $topicId)
             ->get();
         $responsesCount = count($responsesResult['data'] ?? []);
 
-        // Get unique models used
-        $modelsResult = $this->db->from('ai_responses')
-            ->select('model_name')
-            ->eq('project_id', $topicId)
-            ->get();
+        // Count unique prompts and models
+        $uniquePrompts = [];
         $models = [];
-        foreach ($modelsResult['data'] ?? [] as $r) {
-            $models[$r['model_name']] = true;
+        foreach ($responsesResult['data'] ?? [] as $r) {
+            $promptText = trim($r['prompt'] ?? '');
+            if (!empty($promptText)) {
+                $uniquePrompts[$promptText] = true;
+            }
+            $models[$r['model_name'] ?? ''] = true;
         }
+        $promptsCount = count($uniquePrompts);
 
         // Get sources count from project_sources
         $sourcesResult = $this->db->from('project_sources')
@@ -150,7 +152,7 @@ class TopicController extends BaseController
 
         return [
             'responsesCount' => $responsesCount,
-            'promptsCount' => $responsesCount, // prompts = responses in our structure
+            'promptsCount' => $promptsCount, // unique prompts count
             'sourcesCount' => $sourcesCount,
             'modelsCount' => count($models),
             'avgAccuracy' => $avgAccuracy,
@@ -237,93 +239,83 @@ class TopicController extends BaseController
 
     private function getTopicPrompts(string $topicId, int $offset = 0, int $limit = 10): array
     {
-        // Get prompts with evaluations from recent_evaluations_detailed
+        // Get ALL evaluations for this project to group by unique prompts
         $result = $this->db->from('recent_evaluations_detailed')
             ->select('*')
             ->eq('project_id', $topicId)
             ->order('evaluated_at', false)
-            ->offset($offset)
-            ->limit($limit)
             ->get();
 
-        $prompts = [];
+        // Group by unique prompt text and calculate average scores
         $promptGroups = [];
-
         foreach ($result['data'] ?? [] as $r) {
-            $prompt = [
-                'id' => $r['ai_response_id'] ?? $r['id'],
-                'text' => $r['prompt'] ?? '',
-                'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
-                'model' => $r['model_name'] ?? '',
-                'date' => $this->formatDate($r['evaluated_at'] ?? $r['created_at'] ?? ''),
-                'specificity' => (int)($r['accuracy_score'] ?? $r['avg_score'] ?? 0),
-                'completeness' => (int)($r['completeness_score'] ?? $r['avg_score'] ?? 0),
-                'neutrality' => (int)($r['neutrality_score'] ?? $r['avg_score'] ?? 0),
-                'topicality' => (int)($r['relevance_score'] ?? $r['avg_score'] ?? 0),
-            ];
-            $prompts[] = $prompt;
+            $promptText = trim($r['prompt'] ?? '');
+            if (empty($promptText)) continue;
 
-            // Simple grouping by first words
-            $firstWords = implode(' ', array_slice(explode(' ', $r['prompt'] ?? ''), 0, 3));
-            if (!isset($promptGroups[$firstWords])) {
-                $promptGroups[$firstWords] = [];
-            }
-            $promptGroups[$firstWords][] = $prompt;
-        }
-
-        // Fallback to ai_responses if no evaluations
-        if (empty($prompts) && $offset === 0) {
-            $fallbackResult = $this->db->from('ai_responses')
-                ->select('*')
-                ->eq('project_id', $topicId)
-                ->order('created_at', false)
-                ->offset($offset)
-                ->limit($limit)
-                ->get();
-
-            foreach ($fallbackResult['data'] ?? [] as $r) {
-                $prompt = [
-                    'id' => $r['id'],
-                    'text' => $r['prompt'] ?? '',
-                    'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
-                    'model' => $r['model_name'] ?? '',
-                    'date' => $this->formatDate($r['created_at'] ?? ''),
-                    'specificity' => 0,
-                    'completeness' => 0,
-                    'neutrality' => 0,
-                    'topicality' => 0,
+            if (!isset($promptGroups[$promptText])) {
+                $promptGroups[$promptText] = [
+                    'text' => $promptText,
+                    'responses' => [],
+                    'totalAccuracy' => 0,
+                    'totalCompleteness' => 0,
+                    'totalNeutrality' => 0,
+                    'totalRelevance' => 0,
+                    'count' => 0,
+                    'latestDate' => $r['evaluated_at'] ?? $r['created_at'] ?? '',
+                    'models' => [],
                 ];
-                $prompts[] = $prompt;
             }
+
+            $promptGroups[$promptText]['responses'][] = $r;
+            $promptGroups[$promptText]['totalAccuracy'] += (float)($r['accuracy_score'] ?? $r['avg_score'] ?? 0);
+            $promptGroups[$promptText]['totalCompleteness'] += (float)($r['completeness_score'] ?? $r['avg_score'] ?? 0);
+            $promptGroups[$promptText]['totalNeutrality'] += (float)($r['neutrality_score'] ?? $r['avg_score'] ?? 0);
+            $promptGroups[$promptText]['totalRelevance'] += (float)($r['relevance_score'] ?? $r['avg_score'] ?? 0);
+            $promptGroups[$promptText]['count']++;
+            $promptGroups[$promptText]['models'][$r['model_name'] ?? ''] = true;
         }
 
-        // Get total count
-        $countResult = $this->db->from('ai_responses')
-            ->select('id')
-            ->eq('project_id', $topicId)
-            ->get();
-        $totalCount = count($countResult['data'] ?? []);
+        // Convert to array with average scores
+        $allPrompts = [];
+        foreach ($promptGroups as $text => $group) {
+            $count = $group['count'];
+            $allPrompts[] = [
+                'id' => md5($text), // unique id based on prompt text
+                'text' => $text,
+                'shortText' => $this->truncateText($text, 100),
+                'modelsCount' => count($group['models']),
+                'responsesCount' => $count,
+                'date' => $this->formatDate($group['latestDate']),
+                'specificity' => $count > 0 ? (int)round($group['totalAccuracy'] / $count) : 0,
+                'completeness' => $count > 0 ? (int)round($group['totalCompleteness'] / $count) : 0,
+                'neutrality' => $count > 0 ? (int)round($group['totalNeutrality'] / $count) : 0,
+                'topicality' => $count > 0 ? (int)round($group['totalRelevance'] / $count) : 0,
+            ];
+        }
 
-        // Calculate prompt quality stats
+        $totalCount = count($allPrompts);
+
+        // Apply pagination
+        $prompts = array_slice($allPrompts, $offset, $limit);
+
+        // Calculate overall prompt quality stats
         $avgSpecificity = 0;
         $avgCompleteness = 0;
         $avgNeutrality = 0;
-        $count = count($prompts);
 
-        if ($count > 0) {
-            foreach ($prompts as $p) {
+        if ($totalCount > 0) {
+            foreach ($allPrompts as $p) {
                 $avgSpecificity += $p['specificity'];
                 $avgCompleteness += $p['completeness'];
                 $avgNeutrality += $p['neutrality'];
             }
-            $avgSpecificity = round($avgSpecificity / $count, 1);
-            $avgCompleteness = round($avgCompleteness / $count, 1);
-            $avgNeutrality = round($avgNeutrality / $count, 1);
+            $avgSpecificity = round($avgSpecificity / $totalCount, 1);
+            $avgCompleteness = round($avgCompleteness / $totalCount, 1);
+            $avgNeutrality = round($avgNeutrality / $totalCount, 1);
         }
 
         return [
             'prompts' => $prompts,
-            'groups' => array_slice($promptGroups, 0, 10), // Top 10 groups
             'totalCount' => $totalCount,
             'hasMore' => ($offset + $limit) < $totalCount,
             'stats' => [

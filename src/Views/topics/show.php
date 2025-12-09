@@ -320,7 +320,8 @@
                 <?php foreach ($tabData['prompts'] as $prompt): ?>
                 <div class="prompt-card">
                     <div class="prompt-header">
-                        <span class="llm-badge <?= strtolower($prompt['model']) ?>"><?= htmlspecialchars($prompt['model']) ?></span>
+                        <span class="llm-badge models-count"><?= $prompt['modelsCount'] ?? 1 ?> LLM</span>
+                        <span class="responses-count"><?= $prompt['responsesCount'] ?? 1 ?> ответов</span>
                         <span class="prompt-date"><?= $prompt['date'] ?></span>
                     </div>
                     <div class="prompt-text"><?= htmlspecialchars($prompt['text']) ?></div>
@@ -1190,6 +1191,12 @@
 .llm-badge.gemini { background: rgba(66, 133, 244, 0.15); color: #4285f4; }
 .llm-badge.perplexity { background: rgba(32, 178, 170, 0.15); color: #20b2aa; }
 .llm-badge.deepseek { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+.llm-badge.models-count { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+.responses-count {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-left: 8px;
+}
 
 /* Empty State */
 .empty-state {
@@ -1452,7 +1459,8 @@ document.getElementById('loadMorePrompts')?.addEventListener('click', async func
                 card.className = 'prompt-card';
                 card.innerHTML = `
                     <div class="prompt-header">
-                        <span class="llm-badge ${p.model.toLowerCase()}">${escapeHtml(p.model)}</span>
+                        <span class="llm-badge models-count">${p.modelsCount || 1} LLM</span>
+                        <span class="responses-count">${p.responsesCount || 1} ответов</span>
                         <span class="prompt-date">${p.date}</span>
                     </div>
                     <div class="prompt-text">${escapeHtml(p.text)}</div>
