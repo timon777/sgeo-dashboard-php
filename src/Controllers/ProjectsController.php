@@ -100,6 +100,8 @@ class ProjectsController extends BaseController
 
     public function store(): void
     {
+        header('Content-Type: application/json');
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
             echo json_encode(['error' => 'Method not allowed']);
@@ -143,6 +145,8 @@ class ProjectsController extends BaseController
 
     public function update(string $id): void
     {
+        header('Content-Type: application/json');
+
         if ($_SERVER['REQUEST_METHOD'] !== 'PUT' && $_SERVER['REQUEST_METHOD'] !== 'PATCH') {
             http_response_code(405);
             echo json_encode(['error' => 'Method not allowed']);
@@ -187,6 +191,8 @@ class ProjectsController extends BaseController
 
     public function destroy(string $id): void
     {
+        header('Content-Type: application/json');
+
         if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
             http_response_code(405);
             echo json_encode(['error' => 'Method not allowed']);
