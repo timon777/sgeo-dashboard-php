@@ -583,10 +583,9 @@
 
 .radar-chart-container {
     width: 100%;
-    min-height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    max-width: 380px;
+    min-height: 320px;
+    margin: 0 auto;
 }
 
 .radar-accordion {
@@ -708,7 +707,8 @@
     }
 
     .radar-chart-container {
-        min-height: 350px;
+        max-width: 340px;
+        min-height: 280px;
     }
 }
 
