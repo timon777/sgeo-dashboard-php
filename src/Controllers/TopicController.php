@@ -167,10 +167,10 @@ class TopicController extends BaseController
 
     private function getTopicResponses(string $topicId, int $offset = 0, int $limit = 10): array
     {
-        // Get responses with evaluations
-        $result = $this->db->from('recent_evaluations_detailed')
-            ->select('*')
-            ->eq('project_id', $topicId)
+        // Get responses with G-EVAL evaluations from evaluations table
+        $result = $this->db->from('evaluations')
+            ->select('*, ai_responses!inner(id, prompt, response, model_name, project_id, created_at)')
+            ->eq('ai_responses.project_id', $topicId)
             ->order('evaluated_at', false)
             ->offset($offset)
             ->limit($limit)
@@ -178,17 +178,24 @@ class TopicController extends BaseController
 
         $responses = [];
         foreach ($result['data'] ?? [] as $r) {
+            $aiResponse = $r['ai_responses'] ?? [];
+            // G-EVAL scores are 1-5, convert to percentage (x20)
+            $coherence = (int)(($r['coherence'] ?? 0) * 20);
+            $consistency = (int)(($r['consistency'] ?? 0) * 20);
+            $fluency = (int)(($r['fluency'] ?? 0) * 20);
+            $relevance = (int)(($r['relevance'] ?? 0) * 20);
+            $avgScore = (int)(($r['avg_score'] ?? 0) * 20);
+
             $responses[] = [
                 'id' => $r['ai_response_id'],
-                'prompt' => $this->truncateText($r['prompt'] ?? '', 150),
-                'response' => $this->truncateText($r['response'] ?? '', 200),
-                'model' => $r['model_name'] ?? '',
-                'accuracy' => (int)($r['accuracy_score'] ?? $r['avg_score'] ?? 0),
-                'completeness' => (int)($r['completeness_score'] ?? $r['avg_score'] ?? 0),
-                'neutrality' => (int)($r['neutrality_score'] ?? $r['avg_score'] ?? 0),
-                'relevance' => (int)($r['relevance_score'] ?? $r['avg_score'] ?? 0),
-                'clarity' => (int)($r['clarity_score'] ?? $r['avg_score'] ?? 0),
-                'avgScore' => (int)($r['avg_score'] ?? 0),
+                'prompt' => $this->truncateText($aiResponse['prompt'] ?? '', 150),
+                'response' => $this->truncateText($aiResponse['response'] ?? '', 200),
+                'model' => $aiResponse['model_name'] ?? '',
+                'coherence' => $coherence,
+                'consistency' => $consistency,
+                'fluency' => $fluency,
+                'relevance' => $relevance,
+                'avgScore' => $avgScore,
                 'tone' => $r['tone'] ?? 'neutral',
                 'date' => $this->formatDate($r['evaluated_at'] ?? ''),
             ];
@@ -210,11 +217,10 @@ class TopicController extends BaseController
                     'prompt' => $this->truncateText($r['prompt'] ?? '', 150),
                     'response' => $this->truncateText($r['response'] ?? '', 200),
                     'model' => $r['model_name'] ?? '',
-                    'accuracy' => 0,
-                    'completeness' => 0,
-                    'neutrality' => 0,
+                    'coherence' => 0,
+                    'consistency' => 0,
+                    'fluency' => 0,
                     'relevance' => 0,
-                    'clarity' => 0,
                     'avgScore' => 0,
                     'tone' => $r['tone'] ?? 'neutral',
                     'date' => $this->formatDate($r['created_at'] ?? ''),
@@ -222,11 +228,11 @@ class TopicController extends BaseController
             }
         }
 
-        // Cache total count (expensive query)
+        // Cache total count
         $totalCount = Cache::remember("topic_responses_count_{$topicId}", function() use ($topicId) {
-            $countResult = $this->db->from('recent_evaluations_detailed')
-                ->select('id')
-                ->eq('project_id', $topicId)
+            $countResult = $this->db->from('evaluations')
+                ->select('id, ai_responses!inner(project_id)')
+                ->eq('ai_responses.project_id', $topicId)
                 ->get();
             return count($countResult['data'] ?? []);
         }, 300);

@@ -220,24 +220,20 @@
                     </div>
                     <div class="response-metrics">
                         <div class="metric">
-                            <span class="metric-label">Точность</span>
-                            <span class="metric-value <?= $response['accuracy'] >= 70 ? 'good' : ($response['accuracy'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['accuracy'] ?></span>
+                            <span class="metric-label">Связность</span>
+                            <span class="metric-value <?= $response['coherence'] >= 70 ? 'good' : ($response['coherence'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['coherence'] ?></span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Полнота</span>
-                            <span class="metric-value <?= $response['completeness'] >= 70 ? 'good' : ($response['completeness'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['completeness'] ?></span>
+                            <span class="metric-label">Согласов.</span>
+                            <span class="metric-value <?= $response['consistency'] >= 70 ? 'good' : ($response['consistency'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['consistency'] ?></span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Нейтральность</span>
-                            <span class="metric-value <?= $response['neutrality'] >= 70 ? 'good' : ($response['neutrality'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['neutrality'] ?></span>
+                            <span class="metric-label">Беглость</span>
+                            <span class="metric-value <?= $response['fluency'] >= 70 ? 'good' : ($response['fluency'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['fluency'] ?></span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Релевантность</span>
+                            <span class="metric-label">Релевант.</span>
                             <span class="metric-value <?= $response['relevance'] >= 70 ? 'good' : ($response['relevance'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['relevance'] ?></span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Ясность</span>
-                            <span class="metric-value <?= $response['clarity'] >= 70 ? 'good' : ($response['clarity'] >= 50 ? 'medium' : 'bad') ?>"><?= $response['clarity'] ?></span>
                         </div>
                     </div>
                 </div>
@@ -1394,11 +1390,10 @@ document.getElementById('loadMoreResponses')?.addEventListener('click', async fu
                     <div class="response-prompt"><strong>Промт:</strong> ${escapeHtml(r.prompt)}</div>
                     <div class="response-text"><strong>Ответ:</strong> ${escapeHtml(r.response)}</div>
                     <div class="response-metrics">
-                        <div class="metric"><span class="metric-label">Точность</span><span class="metric-value ${r.accuracy >= 70 ? 'good' : (r.accuracy >= 50 ? 'medium' : 'bad')}">${r.accuracy}</span></div>
-                        <div class="metric"><span class="metric-label">Полнота</span><span class="metric-value ${r.completeness >= 70 ? 'good' : (r.completeness >= 50 ? 'medium' : 'bad')}">${r.completeness}</span></div>
-                        <div class="metric"><span class="metric-label">Нейтральность</span><span class="metric-value ${r.neutrality >= 70 ? 'good' : (r.neutrality >= 50 ? 'medium' : 'bad')}">${r.neutrality}</span></div>
-                        <div class="metric"><span class="metric-label">Релевантность</span><span class="metric-value ${r.relevance >= 70 ? 'good' : (r.relevance >= 50 ? 'medium' : 'bad')}">${r.relevance}</span></div>
-                        <div class="metric"><span class="metric-label">Ясность</span><span class="metric-value ${r.clarity >= 70 ? 'good' : (r.clarity >= 50 ? 'medium' : 'bad')}">${r.clarity}</span></div>
+                        <div class="metric"><span class="metric-label">Связность</span><span class="metric-value ${r.coherence >= 70 ? 'good' : (r.coherence >= 50 ? 'medium' : 'bad')}">${r.coherence}</span></div>
+                        <div class="metric"><span class="metric-label">Согласов.</span><span class="metric-value ${r.consistency >= 70 ? 'good' : (r.consistency >= 50 ? 'medium' : 'bad')}">${r.consistency}</span></div>
+                        <div class="metric"><span class="metric-label">Беглость</span><span class="metric-value ${r.fluency >= 70 ? 'good' : (r.fluency >= 50 ? 'medium' : 'bad')}">${r.fluency}</span></div>
+                        <div class="metric"><span class="metric-label">Релевант.</span><span class="metric-value ${r.relevance >= 70 ? 'good' : (r.relevance >= 50 ? 'medium' : 'bad')}">${r.relevance}</span></div>
                     </div>
                 `;
                 list.appendChild(card);
