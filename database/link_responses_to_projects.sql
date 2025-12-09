@@ -81,6 +81,7 @@ AND (
     OR prompt ILIKE '%цифровая повестка%'
     OR prompt ILIKE '%цифрлық күн%'
     OR prompt ILIKE '%2023%2025%'
+    OR prompt ILIKE '%новая программа отличается от старой%'
 );
 
 -- АЭС и ядерная энергетика prompts
