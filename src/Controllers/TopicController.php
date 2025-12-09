@@ -139,8 +139,8 @@ class TopicController extends BaseController
             if ($evalCount > 0) {
                 $sumScore = 0;
                 foreach ($evalResult['data'] as $e) {
-                    // avg_score is 1-5, convert to percentage
-                    $sumScore += (float)($e['avg_score'] ?? 0) * 20;
+                    // avg_score is already 0-100 percentage
+                    $sumScore += (float)($e['avg_score'] ?? 0);
                 }
                 $avgScore = round($sumScore / $evalCount, 1);
             }
@@ -172,12 +172,12 @@ class TopicController extends BaseController
         $responses = [];
         foreach ($result['data'] ?? [] as $r) {
             $aiResponse = $r['ai_responses'] ?? [];
-            // G-EVAL scores are 1-5, convert to percentage (x20)
-            $coherence = (int)(($r['coherence'] ?? 0) * 20);
-            $consistency = (int)(($r['consistency'] ?? 0) * 20);
-            $fluency = (int)(($r['fluency'] ?? 0) * 20);
-            $relevance = (int)(($r['relevance'] ?? 0) * 20);
-            $avgScore = (int)(($r['avg_score'] ?? 0) * 20);
+            // G-EVAL scores are already 0-100 percentages
+            $coherence = (int)($r['coherence'] ?? 0);
+            $consistency = (int)($r['consistency'] ?? 0);
+            $fluency = (int)($r['fluency'] ?? 0);
+            $relevance = (int)($r['relevance'] ?? 0);
+            $avgScore = (int)($r['avg_score'] ?? 0);
 
             $responses[] = [
                 'id' => $r['ai_response_id'],
@@ -277,11 +277,11 @@ class TopicController extends BaseController
                     ];
                 }
 
-                // G-EVAL scores are 1-5, convert to percentage (x20)
-                $promptGroups[$promptText]['totalCoherence'] += (float)($r['coherence'] ?? 0) * 20;
-                $promptGroups[$promptText]['totalConsistency'] += (float)($r['consistency'] ?? 0) * 20;
-                $promptGroups[$promptText]['totalFluency'] += (float)($r['fluency'] ?? 0) * 20;
-                $promptGroups[$promptText]['totalRelevance'] += (float)($r['relevance'] ?? 0) * 20;
+                // G-EVAL scores are already 0-100 percentages
+                $promptGroups[$promptText]['totalCoherence'] += (float)($r['coherence'] ?? 0);
+                $promptGroups[$promptText]['totalConsistency'] += (float)($r['consistency'] ?? 0);
+                $promptGroups[$promptText]['totalFluency'] += (float)($r['fluency'] ?? 0);
+                $promptGroups[$promptText]['totalRelevance'] += (float)($r['relevance'] ?? 0);
                 $promptGroups[$promptText]['count']++;
                 $promptGroups[$promptText]['models'][$aiResponse['model_name'] ?? ''] = true;
             }
@@ -388,7 +388,7 @@ class TopicController extends BaseController
 
         // Get total count
         $countResult = $this->db->from('project_sources')
-            ->select('id')
+            ->select('source_id')
             ->eq('project_id', $topicId)
             ->get();
         $totalCount = count($countResult['data'] ?? []);
@@ -425,8 +425,8 @@ class TopicController extends BaseController
                 ];
             }
             $models[$model]['count']++;
-            // avg_score is 1-5, convert to percentage
-            $models[$model]['totalScore'] += (float)($e['avg_score'] ?? 0) * 20;
+            // avg_score is already 0-100 percentage
+            $models[$model]['totalScore'] += (float)($e['avg_score'] ?? 0);
         }
 
         $result = [];
@@ -486,11 +486,11 @@ class TopicController extends BaseController
 
             foreach ($evalsResult['data'] ?? [] as $r) {
                 $aiResponse = $r['ai_responses'] ?? [];
-                // G-EVAL scores are 1-5, convert to percentage (x20)
-                $coherence = (int)($r['coherence'] ?? 0) * 20;
-                $consistency = (int)($r['consistency'] ?? 0) * 20;
-                $fluency = (int)($r['fluency'] ?? 0) * 20;
-                $relevance = (int)($r['relevance'] ?? 0) * 20;
+                // G-EVAL scores are already 0-100 percentages
+                $coherence = (int)($r['coherence'] ?? 0);
+                $consistency = (int)($r['consistency'] ?? 0);
+                $fluency = (int)($r['fluency'] ?? 0);
+                $relevance = (int)($r['relevance'] ?? 0);
 
                 $prompts[] = [
                     'id' => $r['ai_response_id'] ?? $r['id'],
@@ -583,10 +583,10 @@ class TopicController extends BaseController
                 'shortText' => $this->truncateText($aiResponse['prompt'] ?? '', 100),
                 'model' => $aiResponse['model_name'] ?? '',
                 'date' => $this->formatDate($r['evaluated_at'] ?? ''),
-                'coherence' => (int)($r['coherence'] ?? 0) * 20,
-                'consistency' => (int)($r['consistency'] ?? 0) * 20,
-                'fluency' => (int)($r['fluency'] ?? 0) * 20,
-                'relevance' => (int)($r['relevance'] ?? 0) * 20,
+                'coherence' => (int)($r['coherence'] ?? 0),
+                'consistency' => (int)($r['consistency'] ?? 0),
+                'fluency' => (int)($r['fluency'] ?? 0),
+                'relevance' => (int)($r['relevance'] ?? 0),
                 'avgScore' => (int)($r['avg_score'] ?? 0),
             ];
         }
