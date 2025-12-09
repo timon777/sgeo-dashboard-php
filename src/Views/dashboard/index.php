@@ -24,10 +24,10 @@
     </div>
 
     <div class="tabs-container">
-        <button class="tab active">Обзор</button>
-        <button class="tab">По проектам</button>
-        <button class="tab">По LLM</button>
-        <button class="tab">По источникам</button>
+        <a href="/" class="tab active">Обзор</a>
+        <a href="/projects" class="tab">По проектам</a>
+        <a href="/llm-monitoring" class="tab">По LLM</a>
+        <a href="/sources" class="tab">По источникам</a>
     </div>
 </div>
 
