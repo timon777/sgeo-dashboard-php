@@ -626,6 +626,7 @@
 .radar-chart-container {
     width: 100%;
     max-width: 480px;
+    height: 300px;
     padding: 0;
 }
 
@@ -799,6 +800,7 @@
 
     .radar-chart-container {
         max-width: 400px;
+        height: 280px;
         margin: 0 auto;
     }
 }
@@ -1255,7 +1257,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             layout: {
                 padding: {
                     top: 0,
