@@ -167,7 +167,8 @@ class TopicController extends BaseController
             ->select('*')
             ->eq('project_id', $topicId)
             ->order('evaluated_at', false)
-            ->range($offset, $offset + $limit - 1)
+            ->offset($offset)
+            ->limit($limit)
             ->get();
 
         $responses = [];
@@ -194,7 +195,8 @@ class TopicController extends BaseController
                 ->select('*')
                 ->eq('project_id', $topicId)
                 ->order('created_at', false)
-                ->range($offset, $offset + $limit - 1)
+                ->offset($offset)
+                ->limit($limit)
                 ->get();
 
             foreach ($fallbackResult['data'] ?? [] as $r) {
@@ -240,7 +242,8 @@ class TopicController extends BaseController
             ->select('*')
             ->eq('project_id', $topicId)
             ->order('created_at', false)
-            ->range($offset, $offset + $limit - 1)
+            ->offset($offset)
+            ->limit($limit)
             ->get();
 
         $prompts = [];
@@ -312,7 +315,8 @@ class TopicController extends BaseController
             ->select('source_id, usage_count, sources(id, domain, type, country, expertise_score, experience_score, authority_score, trust_score, eeat_combined)')
             ->eq('project_id', $topicId)
             ->order('usage_count', false)
-            ->range($offset, $offset + $limit - 1)
+            ->offset($offset)
+            ->limit($limit)
             ->get();
 
         $sources = [];
@@ -438,7 +442,7 @@ class TopicController extends BaseController
             ->select('*')
             ->eq('project_id', $topicId)
             ->order('created_at', false)
-            ->range(0, 9)
+            ->limit(10)
             ->get();
 
         $prompts = [];
@@ -502,7 +506,8 @@ class TopicController extends BaseController
             ->select('*')
             ->eq('project_id', $topicId)
             ->order('created_at', false)
-            ->range($offset, $offset + $limit - 1)
+            ->offset($offset)
+            ->limit($limit)
             ->get();
 
         // Get total count
