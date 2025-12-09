@@ -32,7 +32,7 @@
         <?php include __DIR__ . '/../partials/project-sidebar.php'; ?>
 
         <main class="main-content">
-            <!-- Project Header with Breadcrumbs -->
+            <!-- Header with Project Breadcrumbs -->
             <header class="header">
                 <div class="header-left">
                     <button class="mobile-menu-btn" aria-label="Открыть меню" aria-expanded="false">
@@ -66,6 +66,13 @@
                                 <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                             </svg>
                         </button>
+                        <button class="lang-toggle" onclick="toggleLanguage()" title="Switch language">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            <span>Рус</span>
+                        </button>
                     </div>
                     <button class="global-search-trigger" aria-label="Поиск">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -75,9 +82,49 @@
                         <span>Поиск...</span>
                         <span class="shortcut">⌘K</span>
                     </button>
+                    <button class="header-btn" data-tooltip="Уведомления" data-tooltip-pos="bottom" aria-label="Уведомления">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <span class="notification-dot"></span>
+                    </button>
                     <div class="status-badge">
                         <span class="status-dot"></span>
                         Система активна
+                    </div>
+                    <div class="user-menu">
+                        <button class="user-menu-trigger" aria-label="Меню пользователя">
+                            <div class="user-avatar">
+                                <?= htmlspecialchars($_SESSION['user_avatar'] ?? 'U') ?>
+                            </div>
+                            <span class="user-name"><?= htmlspecialchars($_SESSION['user_name'] ?? 'Пользователь') ?></span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </button>
+                        <div class="user-dropdown">
+                            <div class="user-dropdown-header">
+                                <div class="user-avatar"><?= htmlspecialchars($_SESSION['user_avatar'] ?? 'U') ?></div>
+                                <div class="user-info">
+                                    <div class="user-name"><?= htmlspecialchars($_SESSION['user_name'] ?? 'Пользователь') ?></div>
+                                    <div class="user-email"><?= htmlspecialchars($_SESSION['user_email'] ?? '') ?></div>
+                                </div>
+                            </div>
+                            <div class="user-dropdown-divider"></div>
+                            <a href="/settings" class="user-dropdown-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                    <circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                                </svg>
+                                Настройки
+                            </a>
+                            <a href="/logout" class="user-dropdown-item user-dropdown-logout">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Выйти
+                            </a>
+                        </div>
                     </div>
                 </div>
             </header>
