@@ -7,6 +7,7 @@ use App\Models\AiResponse;
 use App\Models\Source;
 use App\Models\Evaluation;
 use App\Services\SupabaseClient;
+use App\Services\Cache;
 
 class TopicController extends BaseController
 {
@@ -99,67 +100,69 @@ class TopicController extends BaseController
 
     private function getTopicStats(string $topicId): array
     {
-        // Get responses with prompts to count unique prompts
-        $responsesResult = $this->db->from('ai_responses')
-            ->select('id, prompt, model_name')
-            ->eq('project_id', $topicId)
-            ->get();
-        $responsesCount = count($responsesResult['data'] ?? []);
+        return Cache::remember("topic_stats_{$topicId}", function() use ($topicId) {
+            // Get responses with prompts to count unique prompts
+            $responsesResult = $this->db->from('ai_responses')
+                ->select('id, prompt, model_name')
+                ->eq('project_id', $topicId)
+                ->get();
+            $responsesCount = count($responsesResult['data'] ?? []);
 
-        // Count unique prompts and models
-        $uniquePrompts = [];
-        $models = [];
-        foreach ($responsesResult['data'] ?? [] as $r) {
-            $promptText = trim($r['prompt'] ?? '');
-            if (!empty($promptText)) {
-                $uniquePrompts[$promptText] = true;
+            // Count unique prompts and models
+            $uniquePrompts = [];
+            $models = [];
+            foreach ($responsesResult['data'] ?? [] as $r) {
+                $promptText = trim($r['prompt'] ?? '');
+                if (!empty($promptText)) {
+                    $uniquePrompts[$promptText] = true;
+                }
+                $models[$r['model_name'] ?? ''] = true;
             }
-            $models[$r['model_name'] ?? ''] = true;
-        }
-        $promptsCount = count($uniquePrompts);
+            $promptsCount = count($uniquePrompts);
 
-        // Get sources count from project_sources
-        $sourcesResult = $this->db->from('project_sources')
-            ->select('id')
-            ->eq('project_id', $topicId)
-            ->get();
-        $sourcesCount = count($sourcesResult['data'] ?? []);
+            // Get sources count from project_sources
+            $sourcesResult = $this->db->from('project_sources')
+                ->select('id')
+                ->eq('project_id', $topicId)
+                ->get();
+            $sourcesCount = count($sourcesResult['data'] ?? []);
 
-        // Get evaluations for this topic to calculate averages
-        $evalResult = $this->db->from('recent_evaluations_detailed')
-            ->select('*')
-            ->eq('project_id', $topicId)
-            ->get();
+            // Get evaluations for this topic to calculate averages
+            $evalResult = $this->db->from('recent_evaluations_detailed')
+                ->select('*')
+                ->eq('project_id', $topicId)
+                ->get();
 
-        $avgAccuracy = 0;
-        $avgCompleteness = 0;
-        $avgNeutrality = 0;
-        $evalCount = count($evalResult['data'] ?? []);
+            $avgAccuracy = 0;
+            $avgCompleteness = 0;
+            $avgNeutrality = 0;
+            $evalCount = count($evalResult['data'] ?? []);
 
-        if ($evalCount > 0) {
-            $sumAcc = 0;
-            $sumComp = 0;
-            $sumNeut = 0;
-            foreach ($evalResult['data'] as $e) {
-                $sumAcc += (float)($e['accuracy_score'] ?? $e['avg_score'] ?? 0);
-                $sumComp += (float)($e['completeness_score'] ?? $e['avg_score'] ?? 0);
-                $sumNeut += (float)($e['neutrality_score'] ?? $e['avg_score'] ?? 0);
+            if ($evalCount > 0) {
+                $sumAcc = 0;
+                $sumComp = 0;
+                $sumNeut = 0;
+                foreach ($evalResult['data'] as $e) {
+                    $sumAcc += (float)($e['accuracy_score'] ?? $e['avg_score'] ?? 0);
+                    $sumComp += (float)($e['completeness_score'] ?? $e['avg_score'] ?? 0);
+                    $sumNeut += (float)($e['neutrality_score'] ?? $e['avg_score'] ?? 0);
+                }
+                $avgAccuracy = round($sumAcc / $evalCount, 1);
+                $avgCompleteness = round($sumComp / $evalCount, 1);
+                $avgNeutrality = round($sumNeut / $evalCount, 1);
             }
-            $avgAccuracy = round($sumAcc / $evalCount, 1);
-            $avgCompleteness = round($sumComp / $evalCount, 1);
-            $avgNeutrality = round($sumNeut / $evalCount, 1);
-        }
 
-        return [
-            'responsesCount' => $responsesCount,
-            'promptsCount' => $promptsCount, // unique prompts count
-            'sourcesCount' => $sourcesCount,
-            'modelsCount' => count($models),
-            'avgAccuracy' => $avgAccuracy,
-            'avgCompleteness' => $avgCompleteness,
-            'avgNeutrality' => $avgNeutrality,
-            'avgScore' => round(($avgAccuracy + $avgCompleteness + $avgNeutrality) / 3, 1),
-        ];
+            return [
+                'responsesCount' => $responsesCount,
+                'promptsCount' => $promptsCount,
+                'sourcesCount' => $sourcesCount,
+                'modelsCount' => count($models),
+                'avgAccuracy' => $avgAccuracy,
+                'avgCompleteness' => $avgCompleteness,
+                'avgNeutrality' => $avgNeutrality,
+                'avgScore' => round(($avgAccuracy + $avgCompleteness + $avgNeutrality) / 3, 1),
+            ];
+        }, 300); // Cache for 5 minutes
     }
 
     private function getTopicResponses(string $topicId, int $offset = 0, int $limit = 10): array
@@ -219,15 +222,22 @@ class TopicController extends BaseController
             }
         }
 
-        // Get total count for pagination
-        $countResult = $this->db->from('recent_evaluations_detailed')
-            ->select('id')
-            ->eq('project_id', $topicId)
-            ->get();
-        $totalCount = count($countResult['data'] ?? []);
+        // Cache total count (expensive query)
+        $totalCount = Cache::remember("topic_responses_count_{$topicId}", function() use ($topicId) {
+            $countResult = $this->db->from('recent_evaluations_detailed')
+                ->select('id')
+                ->eq('project_id', $topicId)
+                ->get();
+            return count($countResult['data'] ?? []);
+        }, 300);
 
-        // Calculate model comparison (only on first page)
-        $modelStats = $offset === 0 ? $this->calculateModelComparison($result['data'] ?? []) : [];
+        // Calculate model comparison (only on first page, cached)
+        $modelStats = [];
+        if ($offset === 0) {
+            $modelStats = Cache::remember("topic_model_comparison_{$topicId}", function() use ($result) {
+                return $this->calculateModelComparison($result['data'] ?? []);
+            }, 300);
+        }
 
         return [
             'responses' => $responses,
@@ -239,90 +249,93 @@ class TopicController extends BaseController
 
     private function getTopicPrompts(string $topicId, int $offset = 0, int $limit = 10): array
     {
-        // Get ALL evaluations for this project to group by unique prompts
-        $result = $this->db->from('recent_evaluations_detailed')
-            ->select('*')
-            ->eq('project_id', $topicId)
-            ->order('evaluated_at', false)
-            ->get();
+        // Cache all prompts data, then apply pagination
+        $cachedData = Cache::remember("topic_prompts_all_{$topicId}", function() use ($topicId) {
+            // Get ALL evaluations for this project to group by unique prompts
+            $result = $this->db->from('recent_evaluations_detailed')
+                ->select('*')
+                ->eq('project_id', $topicId)
+                ->order('evaluated_at', false)
+                ->get();
 
-        // Group by unique prompt text and calculate average scores
-        $promptGroups = [];
-        foreach ($result['data'] ?? [] as $r) {
-            $promptText = trim($r['prompt'] ?? '');
-            if (empty($promptText)) continue;
+            // Group by unique prompt text and calculate average scores
+            $promptGroups = [];
+            foreach ($result['data'] ?? [] as $r) {
+                $promptText = trim($r['prompt'] ?? '');
+                if (empty($promptText)) continue;
 
-            if (!isset($promptGroups[$promptText])) {
-                $promptGroups[$promptText] = [
-                    'text' => $promptText,
-                    'responses' => [],
-                    'totalAccuracy' => 0,
-                    'totalCompleteness' => 0,
-                    'totalNeutrality' => 0,
-                    'totalRelevance' => 0,
-                    'count' => 0,
-                    'latestDate' => $r['evaluated_at'] ?? $r['created_at'] ?? '',
-                    'models' => [],
+                if (!isset($promptGroups[$promptText])) {
+                    $promptGroups[$promptText] = [
+                        'text' => $promptText,
+                        'totalAccuracy' => 0,
+                        'totalCompleteness' => 0,
+                        'totalNeutrality' => 0,
+                        'totalRelevance' => 0,
+                        'count' => 0,
+                        'latestDate' => $r['evaluated_at'] ?? $r['created_at'] ?? '',
+                        'models' => [],
+                    ];
+                }
+
+                $promptGroups[$promptText]['totalAccuracy'] += (float)($r['accuracy_score'] ?? $r['avg_score'] ?? 0);
+                $promptGroups[$promptText]['totalCompleteness'] += (float)($r['completeness_score'] ?? $r['avg_score'] ?? 0);
+                $promptGroups[$promptText]['totalNeutrality'] += (float)($r['neutrality_score'] ?? $r['avg_score'] ?? 0);
+                $promptGroups[$promptText]['totalRelevance'] += (float)($r['relevance_score'] ?? $r['avg_score'] ?? 0);
+                $promptGroups[$promptText]['count']++;
+                $promptGroups[$promptText]['models'][$r['model_name'] ?? ''] = true;
+            }
+
+            // Convert to array with average scores
+            $allPrompts = [];
+            $totalSpecificity = 0;
+            $totalCompleteness = 0;
+            $totalNeutrality = 0;
+
+            foreach ($promptGroups as $text => $group) {
+                $count = $group['count'];
+                $specificity = $count > 0 ? (int)round($group['totalAccuracy'] / $count) : 0;
+                $completeness = $count > 0 ? (int)round($group['totalCompleteness'] / $count) : 0;
+                $neutrality = $count > 0 ? (int)round($group['totalNeutrality'] / $count) : 0;
+
+                $allPrompts[] = [
+                    'id' => md5($text),
+                    'text' => $text,
+                    'shortText' => mb_strlen($text) > 100 ? mb_substr($text, 0, 100) . '...' : $text,
+                    'modelsCount' => count($group['models']),
+                    'responsesCount' => $count,
+                    'date' => !empty($group['latestDate']) ? date('d.m.Y', strtotime($group['latestDate'])) : '',
+                    'specificity' => $specificity,
+                    'completeness' => $completeness,
+                    'neutrality' => $neutrality,
+                    'topicality' => $count > 0 ? (int)round($group['totalRelevance'] / $count) : 0,
                 ];
+
+                $totalSpecificity += $specificity;
+                $totalCompleteness += $completeness;
+                $totalNeutrality += $neutrality;
             }
 
-            $promptGroups[$promptText]['responses'][] = $r;
-            $promptGroups[$promptText]['totalAccuracy'] += (float)($r['accuracy_score'] ?? $r['avg_score'] ?? 0);
-            $promptGroups[$promptText]['totalCompleteness'] += (float)($r['completeness_score'] ?? $r['avg_score'] ?? 0);
-            $promptGroups[$promptText]['totalNeutrality'] += (float)($r['neutrality_score'] ?? $r['avg_score'] ?? 0);
-            $promptGroups[$promptText]['totalRelevance'] += (float)($r['relevance_score'] ?? $r['avg_score'] ?? 0);
-            $promptGroups[$promptText]['count']++;
-            $promptGroups[$promptText]['models'][$r['model_name'] ?? ''] = true;
-        }
+            $totalCount = count($allPrompts);
 
-        // Convert to array with average scores
-        $allPrompts = [];
-        foreach ($promptGroups as $text => $group) {
-            $count = $group['count'];
-            $allPrompts[] = [
-                'id' => md5($text), // unique id based on prompt text
-                'text' => $text,
-                'shortText' => $this->truncateText($text, 100),
-                'modelsCount' => count($group['models']),
-                'responsesCount' => $count,
-                'date' => $this->formatDate($group['latestDate']),
-                'specificity' => $count > 0 ? (int)round($group['totalAccuracy'] / $count) : 0,
-                'completeness' => $count > 0 ? (int)round($group['totalCompleteness'] / $count) : 0,
-                'neutrality' => $count > 0 ? (int)round($group['totalNeutrality'] / $count) : 0,
-                'topicality' => $count > 0 ? (int)round($group['totalRelevance'] / $count) : 0,
+            return [
+                'allPrompts' => $allPrompts,
+                'totalCount' => $totalCount,
+                'stats' => [
+                    'avgSpecificity' => $totalCount > 0 ? round($totalSpecificity / $totalCount, 1) : 0,
+                    'avgCompleteness' => $totalCount > 0 ? round($totalCompleteness / $totalCount, 1) : 0,
+                    'avgNeutrality' => $totalCount > 0 ? round($totalNeutrality / $totalCount, 1) : 0,
+                ],
             ];
-        }
+        }, 300); // Cache for 5 minutes
 
-        $totalCount = count($allPrompts);
-
-        // Apply pagination
-        $prompts = array_slice($allPrompts, $offset, $limit);
-
-        // Calculate overall prompt quality stats
-        $avgSpecificity = 0;
-        $avgCompleteness = 0;
-        $avgNeutrality = 0;
-
-        if ($totalCount > 0) {
-            foreach ($allPrompts as $p) {
-                $avgSpecificity += $p['specificity'];
-                $avgCompleteness += $p['completeness'];
-                $avgNeutrality += $p['neutrality'];
-            }
-            $avgSpecificity = round($avgSpecificity / $totalCount, 1);
-            $avgCompleteness = round($avgCompleteness / $totalCount, 1);
-            $avgNeutrality = round($avgNeutrality / $totalCount, 1);
-        }
+        // Apply pagination from cached data
+        $prompts = array_slice($cachedData['allPrompts'], $offset, $limit);
 
         return [
             'prompts' => $prompts,
-            'totalCount' => $totalCount,
-            'hasMore' => ($offset + $limit) < $totalCount,
-            'stats' => [
-                'avgSpecificity' => $avgSpecificity,
-                'avgCompleteness' => $avgCompleteness,
-                'avgNeutrality' => $avgNeutrality,
-            ],
+            'totalCount' => $cachedData['totalCount'],
+            'hasMore' => ($offset + $limit) < $cachedData['totalCount'],
+            'stats' => $cachedData['stats'],
         ];
     }
 
@@ -448,100 +461,98 @@ class TopicController extends BaseController
 
     private function getTopicOverview(string $topicId): array
     {
-        // Get total count first
-        $countResult = $this->db->from('recent_evaluations_detailed')
-            ->select('id')
-            ->eq('project_id', $topicId)
-            ->get();
-        $totalCount = count($countResult['data'] ?? []);
+        return Cache::remember("topic_overview_{$topicId}", function() use ($topicId) {
+            // Get total count first
+            $countResult = $this->db->from('recent_evaluations_detailed')
+                ->select('id')
+                ->eq('project_id', $topicId)
+                ->get();
+            $totalCount = count($countResult['data'] ?? []);
 
-        // Get first 10 prompts with evaluations
-        $promptsResult = $this->db->from('recent_evaluations_detailed')
-            ->select('*')
-            ->eq('project_id', $topicId)
-            ->order('evaluated_at', false)
-            ->limit(10)
-            ->get();
-
-        $prompts = [];
-        $totalSpecificity = 0;
-        $totalCompleteness = 0;
-        $totalNeutrality = 0;
-        $totalClarity = 0;
-        $totalTaskType = 0;
-
-        foreach ($promptsResult['data'] ?? [] as $r) {
-            // Use real scores from evaluations
-            $specificity = (int)($r['accuracy_score'] ?? $r['avg_score'] ?? 0);
-            $completeness = (int)($r['completeness_score'] ?? $r['avg_score'] ?? 0);
-            $neutrality = (int)($r['neutrality_score'] ?? $r['avg_score'] ?? 0);
-            $clarity = (int)($r['clarity_score'] ?? $r['avg_score'] ?? 0);
-            $taskType = (int)($r['relevance_score'] ?? $r['avg_score'] ?? 0);
-
-            $prompts[] = [
-                'id' => $r['ai_response_id'] ?? $r['id'],
-                'text' => $r['prompt'] ?? '',
-                'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
-                'model' => $r['model_name'] ?? '',
-                'date' => $this->formatDate($r['evaluated_at'] ?? $r['created_at'] ?? ''),
-                'specificity' => $specificity,
-                'completeness' => $completeness,
-                'neutrality' => $neutrality,
-                'clarity' => $clarity,
-                'taskType' => $taskType,
-            ];
-
-            $totalSpecificity += $specificity;
-            $totalCompleteness += $completeness;
-            $totalNeutrality += $neutrality;
-            $totalClarity += $clarity;
-            $totalTaskType += $taskType;
-        }
-
-        // Fallback to ai_responses if no evaluations
-        if (empty($prompts)) {
-            $fallbackResult = $this->db->from('ai_responses')
+            // Get first 10 prompts with evaluations
+            $promptsResult = $this->db->from('recent_evaluations_detailed')
                 ->select('*')
                 ->eq('project_id', $topicId)
-                ->order('created_at', false)
+                ->order('evaluated_at', false)
                 ->limit(10)
                 ->get();
 
-            $totalCount = count($fallbackResult['data'] ?? []);
+            $prompts = [];
+            $totalSpecificity = 0;
+            $totalCompleteness = 0;
+            $totalNeutrality = 0;
+            $totalClarity = 0;
+            $totalTaskType = 0;
 
-            foreach ($fallbackResult['data'] ?? [] as $r) {
+            foreach ($promptsResult['data'] ?? [] as $r) {
+                $specificity = (int)($r['accuracy_score'] ?? $r['avg_score'] ?? 0);
+                $completeness = (int)($r['completeness_score'] ?? $r['avg_score'] ?? 0);
+                $neutrality = (int)($r['neutrality_score'] ?? $r['avg_score'] ?? 0);
+                $clarity = (int)($r['clarity_score'] ?? $r['avg_score'] ?? 0);
+                $taskType = (int)($r['relevance_score'] ?? $r['avg_score'] ?? 0);
+
                 $prompts[] = [
-                    'id' => $r['id'],
+                    'id' => $r['ai_response_id'] ?? $r['id'],
                     'text' => $r['prompt'] ?? '',
                     'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
                     'model' => $r['model_name'] ?? '',
-                    'date' => $this->formatDate($r['created_at'] ?? ''),
-                    'specificity' => 0,
-                    'completeness' => 0,
-                    'neutrality' => 0,
-                    'clarity' => 0,
-                    'taskType' => 0,
+                    'date' => $this->formatDate($r['evaluated_at'] ?? $r['created_at'] ?? ''),
+                    'specificity' => $specificity,
+                    'completeness' => $completeness,
+                    'neutrality' => $neutrality,
+                    'clarity' => $clarity,
+                    'taskType' => $taskType,
                 ];
+
+                $totalSpecificity += $specificity;
+                $totalCompleteness += $completeness;
+                $totalNeutrality += $neutrality;
+                $totalClarity += $clarity;
+                $totalTaskType += $taskType;
             }
-        }
 
-        $count = count($prompts);
+            // Fallback to ai_responses if no evaluations
+            if (empty($prompts)) {
+                $fallbackResult = $this->db->from('ai_responses')
+                    ->select('*')
+                    ->eq('project_id', $topicId)
+                    ->order('created_at', false)
+                    ->limit(10)
+                    ->get();
 
-        // Calculate averages for radar chart
-        $radarData = [
-            'specificity' => $count > 0 ? round($totalSpecificity / $count) : 0,
-            'completeness' => $count > 0 ? round($totalCompleteness / $count) : 0,
-            'neutrality' => $count > 0 ? round($totalNeutrality / $count) : 0,
-            'clarity' => $count > 0 ? round($totalClarity / $count) : 0,
-            'taskType' => $count > 0 ? round($totalTaskType / $count) : 0,
-        ];
+                $totalCount = count($fallbackResult['data'] ?? []);
 
-        return [
-            'prompts' => $prompts,
-            'totalCount' => $totalCount,
-            'hasMore' => $totalCount > 10,
-            'radarData' => $radarData,
-        ];
+                foreach ($fallbackResult['data'] ?? [] as $r) {
+                    $prompts[] = [
+                        'id' => $r['id'],
+                        'text' => $r['prompt'] ?? '',
+                        'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
+                        'model' => $r['model_name'] ?? '',
+                        'date' => $this->formatDate($r['created_at'] ?? ''),
+                        'specificity' => 0,
+                        'completeness' => 0,
+                        'neutrality' => 0,
+                        'clarity' => 0,
+                        'taskType' => 0,
+                    ];
+                }
+            }
+
+            $count = count($prompts);
+
+            return [
+                'prompts' => $prompts,
+                'totalCount' => $totalCount,
+                'hasMore' => $totalCount > 10,
+                'radarData' => [
+                    'specificity' => $count > 0 ? round($totalSpecificity / $count) : 0,
+                    'completeness' => $count > 0 ? round($totalCompleteness / $count) : 0,
+                    'neutrality' => $count > 0 ? round($totalNeutrality / $count) : 0,
+                    'clarity' => $count > 0 ? round($totalClarity / $count) : 0,
+                    'taskType' => $count > 0 ? round($totalTaskType / $count) : 0,
+                ],
+            ];
+        }, 300); // Cache for 5 minutes
     }
 
     private function getTopicOverviewPaginated(string $topicId, int $offset = 0, int $limit = 10): array
