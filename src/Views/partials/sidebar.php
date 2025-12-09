@@ -1,10 +1,10 @@
 <aside class="sidebar" role="navigation" aria-label="Главное меню">
-    <div class="sidebar-header">
+    <a href="/" class="sidebar-header">
         <div class="logo-container">
             <span class="logo-icon">S</span>
         </div>
         <span class="logo-text">SGEO</span>
-    </div>
+    </a>
 
     <nav class="sidebar-nav">
         <div class="nav-section">

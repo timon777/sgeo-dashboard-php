@@ -179,6 +179,18 @@ body {
     gap: 14px;
 }
 
+a.sidebar-header,
+.logo-link {
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.2s;
+}
+
+a.sidebar-header:hover,
+.logo-link:hover {
+    opacity: 0.85;
+}
+
 .logo-container {
     width: 42px;
     height: 42px;

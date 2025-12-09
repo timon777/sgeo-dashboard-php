@@ -1,13 +1,15 @@
 <aside class="sidebar project-sidebar" role="navigation" aria-label="Меню проекта">
     <div class="sidebar-header">
-        <div class="logo-container">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-            </svg>
-        </div>
-        <span class="logo-text">SGEO</span>
+        <a href="/" class="logo-link" title="На главную">
+            <div class="logo-container">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <span class="logo-text">SGEO</span>
+        </a>
         <a href="/" class="sidebar-collapse-btn" title="На главную">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                 <path d="m15 18-6-6 6-6"/>
