@@ -625,10 +625,10 @@
 
 .radar-chart-container {
     width: 100%;
-    max-width: 450px;
-    min-height: 380px;
+    max-width: 550px;
+    min-height: 420px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 30px;
 }
 
 .radar-accordion {
@@ -800,8 +800,8 @@
     }
 
     .radar-chart-container {
-        max-width: 340px;
-        min-height: 280px;
+        max-width: 480px;
+        min-height: 380px;
     }
 }
 
@@ -1259,7 +1259,12 @@ document.addEventListener('DOMContentLoaded', function() {
             responsive: true,
             maintainAspectRatio: true,
             layout: {
-                padding: 30
+                padding: {
+                    top: 50,
+                    bottom: 50,
+                    left: 60,
+                    right: 60
+                }
             },
             scales: {
                 r: {
@@ -1268,7 +1273,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     min: 0,
                     ticks: {
                         stepSize: 20,
-                        font: { size: 11 },
+                        font: { size: 10 },
                         color: '#9ca3af',
                         backdropColor: 'transparent'
                     },
@@ -1280,11 +1285,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     pointLabels: {
                         font: {
-                            size: 14,
+                            size: 13,
                             weight: '500'
                         },
                         color: '#e5e7eb',
-                        padding: 20
+                        padding: 25
                     }
                 }
             },
