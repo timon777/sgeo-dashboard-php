@@ -625,10 +625,8 @@
 
 .radar-chart-container {
     width: 100%;
-    max-width: 550px;
-    min-height: 280px;
-    margin: 0 auto;
-    padding: 0 30px;
+    max-width: 500px;
+    padding: 0 20px;
 }
 
 .radar-accordion {
@@ -800,8 +798,8 @@
     }
 
     .radar-chart-container {
-        max-width: 480px;
-        min-height: 260px;
+        max-width: 400px;
+        margin: 0 auto;
     }
 }
 
