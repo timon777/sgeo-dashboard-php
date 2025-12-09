@@ -40,18 +40,18 @@
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
                 </svg>
             </div>
-            <div class="stat-trend up">
+            <div class="stat-trend <?= ($trends['projects']['up'] ?? true) ? 'up' : 'down' ?>">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m18 15-6-6-6 6"/>
+                    <path d="<?= ($trends['projects']['up'] ?? true) ? 'm18 15-6-6-6 6' : 'm6 9 6 6 6-6' ?>"/>
                 </svg>
-                +12%
+                <?= $trends['projects']['value'] ?? '0%' ?>
             </div>
         </div>
         <div class="stat-content">
             <div class="stat-label">Активных проектов</div>
             <div class="stat-value"><?= $stats['activeProjects'] ?></div>
         </div>
-        <div class="stat-description">5 государственных, 2 частных</div>
+        <div class="stat-description">За последние 7 дней</div>
     </div>
 
     <div class="stat-card">
@@ -61,18 +61,18 @@
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
             </div>
-            <div class="stat-trend up">
+            <div class="stat-trend <?= ($trends['prompts']['up'] ?? true) ? 'up' : 'down' ?>">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m18 15-6-6-6 6"/>
+                    <path d="<?= ($trends['prompts']['up'] ?? true) ? 'm18 15-6-6-6 6' : 'm6 9 6 6 6-6' ?>"/>
                 </svg>
-                +8%
+                <?= $trends['prompts']['value'] ?? '0%' ?>
             </div>
         </div>
         <div class="stat-content">
             <div class="stat-label">Обработано промтов</div>
             <div class="stat-value"><?= number_format($stats['processedPrompts']) ?></div>
         </div>
-        <div class="stat-description">За последние 30 дней</div>
+        <div class="stat-description">За последние 7 дней</div>
     </div>
 
     <div class="stat-card">
@@ -83,18 +83,18 @@
                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                 </svg>
             </div>
-            <div class="stat-trend up">
+            <div class="stat-trend <?= ($trends['sources']['up'] ?? true) ? 'up' : 'down' ?>">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m18 15-6-6-6 6"/>
+                    <path d="<?= ($trends['sources']['up'] ?? true) ? 'm18 15-6-6-6 6' : 'm6 9 6 6 6-6' ?>"/>
                 </svg>
-                +15%
+                <?= $trends['sources']['value'] ?? '0%' ?>
             </div>
         </div>
         <div class="stat-content">
             <div class="stat-label">Проанализировано источников</div>
             <div class="stat-value"><?= number_format($stats['analyzedSources']) ?></div>
         </div>
-        <div class="stat-description">Уникальных доменов</div>
+        <div class="stat-description">За последние 7 дней</div>
     </div>
 
     <div class="stat-card">
@@ -111,18 +111,18 @@
                     <path d="m7.76 7.76-2.83-2.83"/>
                 </svg>
             </div>
-            <div class="stat-trend down">
+            <div class="stat-trend <?= ($trends['accuracy']['up'] ?? true) ? 'up' : 'down' ?>">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m6 9 6 6 6-6"/>
+                    <path d="<?= ($trends['accuracy']['up'] ?? true) ? 'm18 15-6-6-6 6' : 'm6 9 6 6 6-6' ?>"/>
                 </svg>
-                -3%
+                <?= $trends['accuracy']['value'] ?? '0%' ?>
             </div>
         </div>
         <div class="stat-content">
             <div class="stat-label">Средняя точность</div>
             <div class="stat-value"><?= $stats['averageAccuracy'] ?>%</div>
         </div>
-        <div class="stat-description">По всем LLM моделям</div>
+        <div class="stat-description">За последние 7 дней</div>
     </div>
 </div>
 
@@ -180,7 +180,7 @@
         <div class="legend">
             <div class="legend-item">
                 <span class="legend-dot" style="background: #6366f1;"></span>
-                <span>Средний балл: 83.6</span>
+                <span>Средний балл: <?= $radarData['prompts']['avg'] ?? 0 ?></span>
             </div>
         </div>
     </div>
@@ -194,7 +194,7 @@
         <div class="legend">
             <div class="legend-item">
                 <span class="legend-dot" style="background: #22c55e;"></span>
-                <span>Средний балл: 85.2</span>
+                <span>Средний балл: <?= $radarData['answers']['avg'] ?? 0 ?></span>
             </div>
         </div>
     </div>
@@ -208,7 +208,7 @@
         <div class="legend">
             <div class="legend-item">
                 <span class="legend-dot" style="background: #8b5cf6;"></span>
-                <span>Средний балл: 83.8</span>
+                <span>Средний балл: <?= $radarData['eeat']['avg'] ?? 0 ?></span>
             </div>
         </div>
     </div>
@@ -286,18 +286,17 @@
             <canvas id="geoPieChart"></canvas>
         </div>
         <div class="legend">
+            <?php
+            $geoColors = ['#6366f1', '#22c55e', '#f59e0b', '#8b5cf6'];
+            $geoLabels = $sourceStats['geography']['labels'] ?? [];
+            $geoData = $sourceStats['geography']['data'] ?? [];
+            foreach ($geoLabels as $i => $label):
+            ?>
             <div class="legend-item">
-                <span class="legend-dot" style="background: #6366f1;"></span>
-                <span>55% — Казахстанские</span>
+                <span class="legend-dot" style="background: <?= $geoColors[$i] ?? '#6366f1' ?>;"></span>
+                <span><?= $geoData[$i] ?? 0 ?>% — <?= htmlspecialchars($label) ?></span>
             </div>
-            <div class="legend-item">
-                <span class="legend-dot" style="background: #22c55e;"></span>
-                <span>30% — Российские</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-dot" style="background: #f59e0b;"></span>
-                <span>15% — Американские</span>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 
@@ -308,26 +307,17 @@
             <canvas id="typesPieChart"></canvas>
         </div>
         <div class="legend">
+            <?php
+            $typeColors = ['#6366f1', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899'];
+            $typeLabels = $sourceStats['types']['labels'] ?? [];
+            $typeData = $sourceStats['types']['data'] ?? [];
+            foreach ($typeLabels as $i => $label):
+            ?>
             <div class="legend-item">
-                <span class="legend-dot" style="background: #6366f1;"></span>
-                <span>40% — СМИ</span>
+                <span class="legend-dot" style="background: <?= $typeColors[$i] ?? '#6366f1' ?>;"></span>
+                <span><?= $typeData[$i] ?? 0 ?>% — <?= htmlspecialchars($label) ?></span>
             </div>
-            <div class="legend-item">
-                <span class="legend-dot" style="background: #22c55e;"></span>
-                <span>25% — Государственные сайты</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-dot" style="background: #f59e0b;"></span>
-                <span>20% — Социальные сети</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-dot" style="background: #8b5cf6;"></span>
-                <span>10% — Блоги</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-dot" style="background: #ec4899;"></span>
-                <span>5% — Научные ресурсы</span>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 
@@ -338,30 +328,42 @@
             <canvas id="llmPieChart"></canvas>
         </div>
         <div class="legend">
+            <?php
+            $llmColors = ['#6366f1', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#ef4444'];
+            $llmLabels = $sourceStats['llm']['labels'] ?? [];
+            $llmData = $sourceStats['llm']['data'] ?? [];
+            if (empty($llmLabels)):
+            ?>
             <div class="legend-item">
                 <span class="legend-dot" style="background: #6366f1;"></span>
-                <span>35% — GPT</span>
+                <span>Нет данных</span>
             </div>
+            <?php else: ?>
+            <?php foreach ($llmLabels as $i => $label): ?>
             <div class="legend-item">
-                <span class="legend-dot" style="background: #22c55e;"></span>
-                <span>25% — Gemini</span>
+                <span class="legend-dot" style="background: <?= $llmColors[$i] ?? '#6366f1' ?>;"></span>
+                <span><?= $llmData[$i] ?? 0 ?>% — <?= htmlspecialchars($label) ?></span>
             </div>
-            <div class="legend-item">
-                <span class="legend-dot" style="background: #f59e0b;"></span>
-                <span>20% — Claude</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-dot" style="background: #8b5cf6;"></span>
-                <span>15% — Perplexity</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-dot" style="background: #ec4899;"></span>
-                <span>5% — Прочие</span>
-            </div>
+            <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
 </div>
 
+<?php
+// Pass PHP data to JavaScript
+$jsData = [
+    'projectData' => $projectData ?? [],
+    'llmData' => $llmData ?? [],
+    'trends' => $trends ?? [],
+    'modelPerformance' => $modelPerformance ?? [],
+    'radarData' => $radarData ?? [],
+    'sourceStats' => $sourceStats ?? [],
+];
+?>
+<script>
+const dashboardData = <?= json_encode($jsData, JSON_UNESCAPED_UNICODE) ?>;
+</script>
 <?php
 $pageScripts = <<<'SCRIPTS'
 <script>
@@ -379,14 +381,17 @@ function initDashboardCharts() {
         pink: '#ec4899'
     };
 
-    // Bar Chart - Top Projects
+    // Bar Chart - Top Projects (from real data)
+    const projectLabels = dashboardData.projectData.map(p => p.name);
+    const projectMentions = dashboardData.projectData.map(p => p.mentions);
+
     new Chart(document.getElementById('sourcesBarChart'), {
         type: 'bar',
         data: {
-            labels: ['Имидж Президента', 'Январь 2022', 'Закон и порядок', 'Цифровой Казахстан', 'АЭС', 'Freedom Broker'],
+            labels: projectLabels.length > 0 ? projectLabels : ['Нет данных'],
             datasets: [{
                 label: 'Количество упоминаний',
-                data: [160, 145, 120, 95, 85, 65],
+                data: projectMentions.length > 0 ? projectMentions : [0],
                 backgroundColor: colors.primary,
                 borderRadius: 8,
                 borderSkipped: false,
@@ -403,14 +408,18 @@ function initDashboardCharts() {
         }
     });
 
-    // Horizontal Bar Chart - LLM Performance
+    // Horizontal Bar Chart - LLM Performance (from real data)
+    const llmNames = Object.keys(dashboardData.llmData);
+    const llmScores = llmNames.map(name => dashboardData.llmData[name].score);
+    const llmColors = llmNames.map(name => dashboardData.llmData[name].color);
+
     new Chart(document.getElementById('llmPerformanceChart'), {
         type: 'bar',
         data: {
-            labels: ['ChatGPT', 'DeepSeek', 'Copilot', 'Perplexity', 'Gemini'],
+            labels: llmNames.length > 0 ? llmNames : ['Нет данных'],
             datasets: [{
-                data: [4.8, 4.2, 3.9, 3.6, 3.2],
-                backgroundColor: [colors.primary, colors.success, colors.warning, colors.secondary, colors.pink],
+                data: llmScores.length > 0 ? llmScores : [0],
+                backgroundColor: llmColors.length > 0 ? llmColors : [colors.primary],
                 borderRadius: 8,
                 borderSkipped: false,
             }]
@@ -444,12 +453,14 @@ function initDashboardCharts() {
         }
     };
 
+    // Prompts Radar Chart (from real data)
+    const promptsRadarData = dashboardData.radarData.prompts || {labels: [], data: []};
     new Chart(document.getElementById('promptsRadarChart'), {
         type: 'radar',
         data: {
-            labels: ['Конкретность', 'Полнота', 'Нейтральность', 'Однозначность', 'Тип задачи'],
+            labels: promptsRadarData.labels,
             datasets: [{
-                data: [85, 78, 92, 88, 75],
+                data: promptsRadarData.data,
                 backgroundColor: 'rgba(99, 102, 241, 0.2)',
                 borderColor: colors.primary,
                 borderWidth: 2,
@@ -462,12 +473,14 @@ function initDashboardCharts() {
         options: radarOptions
     });
 
+    // Answers Radar Chart (from real data)
+    const answersRadarData = dashboardData.radarData.answers || {labels: [], data: []};
     new Chart(document.getElementById('answersRadarChart'), {
         type: 'radar',
         data: {
-            labels: ['Конкретность', 'Полнота', 'Соответствие', 'Нейтральность', 'Ясность', 'Точность'],
+            labels: answersRadarData.labels,
             datasets: [{
-                data: [82, 88, 91, 85, 79, 86],
+                data: answersRadarData.data,
                 backgroundColor: 'rgba(34, 197, 94, 0.2)',
                 borderColor: colors.success,
                 borderWidth: 2,
@@ -480,12 +493,14 @@ function initDashboardCharts() {
         options: radarOptions
     });
 
+    // EEAT Radar Chart (from real data)
+    const eeatRadarData = dashboardData.radarData.eeat || {labels: [], data: []};
     new Chart(document.getElementById('eeatRadarChart'), {
         type: 'radar',
         data: {
-            labels: ['Опыт', 'Экспертиза', 'Авторитетность', 'Надёжность'],
+            labels: eeatRadarData.labels,
             datasets: [{
-                data: [75, 88, 82, 90],
+                data: eeatRadarData.data,
                 backgroundColor: 'rgba(139, 92, 246, 0.2)',
                 borderColor: colors.secondary,
                 borderWidth: 2,
@@ -506,29 +521,40 @@ function initDashboardCharts() {
         cutout: '65%'
     };
 
+    // Geography Pie Chart (from real data)
+    const geoData = dashboardData.sourceStats.geography || {labels: [], data: []};
     new Chart(document.getElementById('geoPieChart'), {
         type: 'doughnut',
         data: {
-            labels: ['Казахстанские', 'Российские', 'Американские'],
-            datasets: [{ data: [55, 30, 15], backgroundColor: [colors.primary, colors.success, colors.warning], borderWidth: 0 }]
+            labels: geoData.labels,
+            datasets: [{ data: geoData.data, backgroundColor: [colors.primary, colors.success, colors.warning, colors.secondary], borderWidth: 0 }]
         },
         options: pieOptions
     });
 
+    // Types Pie Chart (from real data)
+    const typesData = dashboardData.sourceStats.types || {labels: [], data: []};
     new Chart(document.getElementById('typesPieChart'), {
         type: 'doughnut',
         data: {
-            labels: ['СМИ', 'Государственные', 'Соцсети', 'Блоги', 'Научные'],
-            datasets: [{ data: [40, 25, 20, 10, 5], backgroundColor: [colors.primary, colors.success, colors.warning, colors.secondary, colors.pink], borderWidth: 0 }]
+            labels: typesData.labels,
+            datasets: [{ data: typesData.data, backgroundColor: [colors.primary, colors.success, colors.warning, colors.secondary, colors.pink], borderWidth: 0 }]
         },
         options: pieOptions
     });
 
+    // LLM Distribution Pie Chart (from real data)
+    const llmDistData = dashboardData.sourceStats.llm || {labels: [], data: []};
+    const llmDistColors = [colors.primary, colors.success, colors.warning, colors.secondary, colors.pink, colors.danger];
     new Chart(document.getElementById('llmPieChart'), {
         type: 'doughnut',
         data: {
-            labels: ['ChatGPT', 'DeepSeek', 'Grok', 'Gemini', 'Perplexity'],
-            datasets: [{ data: [35, 25, 20, 15, 5], backgroundColor: [colors.primary, colors.success, colors.warning, colors.secondary, colors.pink], borderWidth: 0 }]
+            labels: llmDistData.labels.length > 0 ? llmDistData.labels : ['Нет данных'],
+            datasets: [{
+                data: llmDistData.data.length > 0 ? llmDistData.data : [100],
+                backgroundColor: llmDistColors.slice(0, Math.max(llmDistData.labels.length, 1)),
+                borderWidth: 0
+            }]
         },
         options: pieOptions
     });

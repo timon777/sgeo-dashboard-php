@@ -74,6 +74,12 @@ class DashboardController extends BaseController
         // Get trend data
         $trends = $this->calculateTrends();
 
+        // Get radar chart data from evaluations
+        $radarData = $this->buildRadarChartData($modelPerformance);
+
+        // Get source statistics for donut charts
+        $sourceStats = $this->buildSourceStats($sourceModel);
+
         $this->render('dashboard/index', [
             'pageTitle' => 'Аналитический дашборд',
             'currentPage' => 'dashboard',
@@ -85,6 +91,8 @@ class DashboardController extends BaseController
             'recentResponses' => $recentResponses['data'] ?? [],
             'recentEvaluations' => $recentEvaluations['data'] ?? [],
             'trends' => $trends,
+            'radarData' => $radarData,
+            'sourceStats' => $sourceStats,
         ]);
     }
 
@@ -280,5 +288,159 @@ class DashboardController extends BaseController
         $value = ($isUp ? '+' : '') . $percent . '%';
 
         return ['value' => $value, 'up' => $isUp];
+    }
+
+    private function buildRadarChartData(array $modelPerformance): array
+    {
+        // Calculate average metrics from all models for radar charts
+        $metrics = [
+            'coherence' => 0,
+            'consistency' => 0,
+            'fluency' => 0,
+            'relevance' => 0,
+        ];
+
+        $count = count($modelPerformance);
+        if ($count > 0) {
+            foreach ($modelPerformance as $data) {
+                $metrics['coherence'] += $data['coherence'] ?? 0;
+                $metrics['consistency'] += $data['consistency'] ?? 0;
+                $metrics['fluency'] += $data['fluency'] ?? 0;
+                $metrics['relevance'] += $data['relevance'] ?? 0;
+            }
+            foreach ($metrics as $key => $value) {
+                $metrics[$key] = round($value / $count);
+            }
+        }
+
+        // Calculate average for legend
+        $avgScore = $count > 0 ? round(array_sum($metrics) / count($metrics), 1) : 0;
+
+        return [
+            'prompts' => [
+                'labels' => ['Конкретность', 'Полнота', 'Нейтральность', 'Однозначность', 'Тип задачи'],
+                'data' => [
+                    $metrics['coherence'],
+                    $metrics['consistency'],
+                    $metrics['fluency'],
+                    $metrics['relevance'],
+                    round(($metrics['coherence'] + $metrics['fluency']) / 2)
+                ],
+                'avg' => $avgScore,
+            ],
+            'answers' => [
+                'labels' => ['Конкретность', 'Полнота', 'Соответствие', 'Нейтральность', 'Ясность', 'Точность'],
+                'data' => [
+                    $metrics['coherence'],
+                    $metrics['consistency'],
+                    $metrics['relevance'],
+                    $metrics['fluency'],
+                    round(($metrics['fluency'] + $metrics['coherence']) / 2),
+                    round(($metrics['relevance'] + $metrics['consistency']) / 2)
+                ],
+                'avg' => $avgScore,
+            ],
+            'eeat' => [
+                'labels' => ['Опыт', 'Экспертиза', 'Авторитетность', 'Надёжность'],
+                'data' => [
+                    $metrics['coherence'],
+                    $metrics['fluency'],
+                    $metrics['consistency'],
+                    $metrics['relevance']
+                ],
+                'avg' => $avgScore,
+            ],
+        ];
+    }
+
+    private function buildSourceStats(Source $sourceModel): array
+    {
+        $db = new SupabaseClient();
+
+        // Get source counts by country
+        $geoResult = $db->from('sources')
+            ->select('country')
+            ->get();
+
+        $geoCounts = ['kz' => 0, 'ru' => 0, 'us' => 0, 'other' => 0];
+        if (isset($geoResult['data'])) {
+            foreach ($geoResult['data'] as $source) {
+                $country = strtolower($source['country'] ?? 'other');
+                if (isset($geoCounts[$country])) {
+                    $geoCounts[$country]++;
+                } else {
+                    $geoCounts['other']++;
+                }
+            }
+        }
+
+        // Get source counts by type
+        $typeResult = $db->from('sources')
+            ->select('type')
+            ->get();
+
+        $typeCounts = ['media' => 0, 'gov' => 0, 'social' => 0, 'blog' => 0, 'science' => 0];
+        if (isset($typeResult['data'])) {
+            foreach ($typeResult['data'] as $source) {
+                $type = strtolower($source['type'] ?? 'other');
+                if ($type === 'media' || $type === 'сми') {
+                    $typeCounts['media']++;
+                } elseif ($type === 'gov' || $type === 'government' || $type === 'государственный') {
+                    $typeCounts['gov']++;
+                } elseif ($type === 'social' || $type === 'социальные сети') {
+                    $typeCounts['social']++;
+                } elseif ($type === 'blog' || $type === 'блог') {
+                    $typeCounts['blog']++;
+                } elseif ($type === 'science' || $type === 'научный') {
+                    $typeCounts['science']++;
+                }
+            }
+        }
+
+        // Get LLM distribution from ai_responses
+        $llmResult = $db->from('ai_responses')
+            ->select('model_name')
+            ->get();
+
+        $llmCounts = [];
+        if (isset($llmResult['data'])) {
+            foreach ($llmResult['data'] as $response) {
+                $model = $response['model_name'] ?? 'Unknown';
+                $llmCounts[$model] = ($llmCounts[$model] ?? 0) + 1;
+            }
+        }
+
+        // Convert to percentages
+        $totalGeo = array_sum($geoCounts) ?: 1;
+        $totalType = array_sum($typeCounts) ?: 1;
+        $totalLlm = array_sum($llmCounts) ?: 1;
+
+        return [
+            'geography' => [
+                'labels' => ['Казахстанские', 'Российские', 'Американские', 'Прочие'],
+                'data' => [
+                    round($geoCounts['kz'] / $totalGeo * 100),
+                    round($geoCounts['ru'] / $totalGeo * 100),
+                    round($geoCounts['us'] / $totalGeo * 100),
+                    round($geoCounts['other'] / $totalGeo * 100),
+                ],
+            ],
+            'types' => [
+                'labels' => ['СМИ', 'Государственные', 'Соцсети', 'Блоги', 'Научные'],
+                'data' => [
+                    round($typeCounts['media'] / $totalType * 100),
+                    round($typeCounts['gov'] / $totalType * 100),
+                    round($typeCounts['social'] / $totalType * 100),
+                    round($typeCounts['blog'] / $totalType * 100),
+                    round($typeCounts['science'] / $totalType * 100),
+                ],
+            ],
+            'llm' => [
+                'labels' => array_keys($llmCounts),
+                'data' => array_map(function($count) use ($totalLlm) {
+                    return round($count / $totalLlm * 100);
+                }, array_values($llmCounts)),
+            ],
+        ];
     }
 }
