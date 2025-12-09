@@ -184,11 +184,18 @@ a.sidebar-header,
     text-decoration: none;
     color: inherit;
     transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
 a.sidebar-header:hover,
 .logo-link:hover {
     opacity: 0.85;
+}
+
+.logo-link .logo-text {
+    text-decoration: none;
 }
 
 .logo-container {
