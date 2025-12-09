@@ -28,6 +28,10 @@ class TopicController extends BaseController
             return;
         }
 
+        // Get all projects for the sidebar dropdown
+        $allProjectsResult = $projectModel->all();
+        $allProjects = $allProjectsResult['data'] ?? [];
+
         // Get tab from query string
         $tab = $_GET['tab'] ?? 'responses';
 
@@ -54,10 +58,11 @@ class TopicController extends BaseController
             'pageTitle' => $topic['name'],
             'currentPage' => 'projects',
             'topic' => $topic,
+            'allProjects' => $allProjects,
             'stats' => $stats,
             'activeTab' => $tab,
             'tabData' => $tabData,
-        ]);
+        ], 'project');
     }
 
     // API endpoint for tab data

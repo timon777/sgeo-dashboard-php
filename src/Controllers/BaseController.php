@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 abstract class BaseController
 {
-    protected function render(string $view, array $data = []): void
+    protected function render(string $view, array $data = [], string $layout = 'base'): void
     {
         extract($data);
 
@@ -18,7 +18,7 @@ abstract class BaseController
             return;
         }
 
-        include __DIR__ . '/../Views/layouts/base.php';
+        include __DIR__ . '/../Views/layouts/' . $layout . '.php';
     }
 
     protected function json(array $data, int $statusCode = 200): void

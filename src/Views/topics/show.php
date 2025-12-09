@@ -1,71 +1,54 @@
-<!-- Topic Hero -->
-<div class="topic-hero">
-    <div class="hero-top">
-        <div class="hero-info">
-            <a href="/projects" class="back-link">
+<!-- Topic Stats Header -->
+<div class="topic-stats-header">
+    <div class="topic-stats-grid">
+        <div class="topic-stat-card">
+            <div class="stat-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m15 18-6-6 6-6"/>
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
-                Назад к проектам
-            </a>
-            <div class="topic-badge <?= $topic['type'] ?>">
-                <span><?= $topic['icon'] ?? '📊' ?></span>
-                <?= htmlspecialchars($topic['badge'] ?? 'Тема') ?>
             </div>
-            <h1 class="topic-title"><?= htmlspecialchars($topic['name']) ?></h1>
-            <p class="topic-description"><?= htmlspecialchars($topic['description'] ?? '') ?></p>
+            <div class="stat-content">
+                <div class="stat-value"><?= number_format($stats['responsesCount']) ?></div>
+                <div class="stat-label">Ответов</div>
+            </div>
         </div>
-        <div class="hero-score">
-            <div class="score-label">Средняя оценка качества</div>
-            <div class="score-value"><?= (int)$stats['avgScore'] ?><span class="score-suffix">%</span></div>
+        <div class="topic-stat-card">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value"><?= number_format($stats['promptsCount']) ?></div>
+                <div class="stat-label">Промтов</div>
+            </div>
+        </div>
+        <div class="topic-stat-card">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v6m0 6v10"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value"><?= number_format($stats['modelsCount']) ?></div>
+                <div class="stat-label">LLM моделей</div>
+            </div>
+        </div>
+        <div class="topic-stat-card highlight">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value"><?= $stats['avgAccuracy'] ?>%</div>
+                <div class="stat-label">Точность</div>
+            </div>
         </div>
     </div>
-
-    <div class="hero-stats">
-        <div class="hero-stat">
-            <div class="hero-stat-label">Ответов</div>
-            <div class="hero-stat-value"><?= number_format($stats['responsesCount']) ?></div>
-        </div>
-        <div class="hero-stat">
-            <div class="hero-stat-label">Промтов</div>
-            <div class="hero-stat-value"><?= number_format($stats['promptsCount']) ?></div>
-        </div>
-        <div class="hero-stat">
-            <div class="hero-stat-label">LLM моделей</div>
-            <div class="hero-stat-value"><?= number_format($stats['modelsCount']) ?></div>
-        </div>
-        <div class="hero-stat">
-            <div class="hero-stat-label">Точность</div>
-            <div class="hero-stat-value"><?= $stats['avgAccuracy'] ?>%</div>
-        </div>
-    </div>
-</div>
-
-<!-- Tabs Navigation -->
-<div class="topic-tabs">
-    <a href="?tab=responses" class="topic-tab <?= $activeTab === 'responses' ? 'active' : '' ?>">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        Ответы по теме
-    </a>
-    <a href="?tab=prompts" class="topic-tab <?= $activeTab === 'prompts' ? 'active' : '' ?>">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14,2 14,8 20,8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-        </svg>
-        Промты по теме
-    </a>
-    <a href="?tab=sources" class="topic-tab <?= $activeTab === 'sources' ? 'active' : '' ?>">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="2" y1="12" x2="22" y2="12"/>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-        </svg>
-        Источники по теме
-    </a>
 </div>
 
 <!-- Tab Content -->
@@ -348,163 +331,93 @@
 </div>
 
 <style>
-/* Topic Hero */
-.topic-hero {
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-xl);
-    padding: 28px;
-    margin-bottom: 24px;
-    position: relative;
-    overflow: hidden;
-}
-
-.topic-hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--accent-gradient);
-}
-
-.back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text-tertiary);
-    text-decoration: none;
-    font-size: 13px;
-    margin-bottom: 16px;
-    transition: color var(--transition-fast);
-}
-.back-link:hover { color: var(--accent-primary); }
-.back-link svg { width: 16px; height: 16px; }
-
-.hero-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 24px;
+/* Topic Stats Header */
+.topic-stats-header {
     margin-bottom: 24px;
 }
 
-.hero-info { flex: 1; }
-
-.topic-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 16px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-.topic-badge.gov { background: rgba(99, 102, 241, 0.12); color: var(--accent-primary); }
-.topic-badge.private { background: var(--success-bg); color: var(--success); }
-
-.topic-title {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    margin-bottom: 8px;
-    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.topic-description {
-    font-size: 14px;
-    color: var(--text-tertiary);
-    line-height: 1.6;
-    max-width: 600px;
-}
-
-.hero-score {
-    text-align: center;
-    padding: 20px 32px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-subtle);
-}
-
-.score-label {
-    font-size: 12px;
-    color: var(--text-tertiary);
-    margin-bottom: 6px;
-}
-
-.score-value {
-    font-size: 56px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--accent-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    line-height: 1;
-}
-.score-suffix { font-size: 20px; }
-
-.hero-stats {
+.topic-stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
 }
 
-.hero-stat {
-    padding: 16px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-subtle);
-}
-
-.hero-stat-label {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-}
-
-.hero-stat-value {
-    font-size: 22px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text-primary);
-}
-
-/* Tabs */
-.topic-tabs {
+.topic-stat-card {
     display: flex;
-    gap: 4px;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
     background: var(--bg-card);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
-    padding: 6px;
-    margin-bottom: 24px;
+    transition: all var(--transition-fast);
 }
 
-.topic-tab {
+.topic-stat-card:hover {
+    border-color: var(--border-default);
+    transform: translateY(-2px);
+}
+
+.topic-stat-card.highlight {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.topic-stat-card .stat-icon {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: all var(--transition-fast);
-    flex: 1;
     justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    color: var(--text-tertiary);
 }
-.topic-tab svg { width: 18px; height: 18px; }
-.topic-tab:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-primary); }
-.topic-tab.active {
-    background: var(--accent-primary);
-    color: white;
+
+.topic-stat-card.highlight .stat-icon {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--accent-primary);
+}
+
+.topic-stat-card .stat-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.topic-stat-card .stat-content {
+    flex: 1;
+}
+
+.topic-stat-card .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.topic-stat-card.highlight .stat-value {
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.topic-stat-card .stat-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+@media (max-width: 1200px) {
+    .topic-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .topic-stats-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Content */
