@@ -127,29 +127,22 @@ class TopicController extends BaseController
                 ->get();
             $sourcesCount = count($sourcesResult['data'] ?? []);
 
-            // Get evaluations for this topic to calculate averages
-            $evalResult = $this->db->from('recent_evaluations_detailed')
-                ->select('*')
-                ->eq('project_id', $topicId)
+            // Get G-EVAL evaluations for this topic to calculate averages
+            $evalResult = $this->db->from('evaluations')
+                ->select('coherence, consistency, fluency, relevance, avg_score, ai_responses!inner(project_id)')
+                ->eq('ai_responses.project_id', $topicId)
                 ->get();
 
-            $avgAccuracy = 0;
-            $avgCompleteness = 0;
-            $avgNeutrality = 0;
+            $avgScore = 0;
             $evalCount = count($evalResult['data'] ?? []);
 
             if ($evalCount > 0) {
-                $sumAcc = 0;
-                $sumComp = 0;
-                $sumNeut = 0;
+                $sumScore = 0;
                 foreach ($evalResult['data'] as $e) {
-                    $sumAcc += (float)($e['accuracy_score'] ?? $e['avg_score'] ?? 0);
-                    $sumComp += (float)($e['completeness_score'] ?? $e['avg_score'] ?? 0);
-                    $sumNeut += (float)($e['neutrality_score'] ?? $e['avg_score'] ?? 0);
+                    // avg_score is 1-5, convert to percentage
+                    $sumScore += (float)($e['avg_score'] ?? 0) * 20;
                 }
-                $avgAccuracy = round($sumAcc / $evalCount, 1);
-                $avgCompleteness = round($sumComp / $evalCount, 1);
-                $avgNeutrality = round($sumNeut / $evalCount, 1);
+                $avgScore = round($sumScore / $evalCount, 1);
             }
 
             return [
@@ -157,10 +150,10 @@ class TopicController extends BaseController
                 'promptsCount' => $promptsCount,
                 'sourcesCount' => $sourcesCount,
                 'modelsCount' => count($models),
-                'avgAccuracy' => $avgAccuracy,
-                'avgCompleteness' => $avgCompleteness,
-                'avgNeutrality' => $avgNeutrality,
-                'avgScore' => round(($avgAccuracy + $avgCompleteness + $avgNeutrality) / 3, 1),
+                'avgAccuracy' => $avgScore, // Using avgScore for display
+                'avgCompleteness' => 0,
+                'avgNeutrality' => 0,
+                'avgScore' => $avgScore,
             ];
         }, 300); // Cache for 5 minutes
     }
@@ -257,51 +250,54 @@ class TopicController extends BaseController
     {
         // Cache all prompts data, then apply pagination
         $cachedData = Cache::remember("topic_prompts_all_{$topicId}", function() use ($topicId) {
-            // Get ALL evaluations for this project to group by unique prompts
-            $result = $this->db->from('recent_evaluations_detailed')
-                ->select('*')
-                ->eq('project_id', $topicId)
+            // Get ALL evaluations with G-EVAL metrics for this project
+            $result = $this->db->from('evaluations')
+                ->select('coherence, consistency, fluency, relevance, avg_score, evaluated_at, ai_responses!inner(prompt, model_name, project_id, created_at)')
+                ->eq('ai_responses.project_id', $topicId)
                 ->order('evaluated_at', false)
                 ->get();
 
-            // Group by unique prompt text and calculate average scores
+            // Group by unique prompt text and calculate average G-EVAL scores
             $promptGroups = [];
             foreach ($result['data'] ?? [] as $r) {
-                $promptText = trim($r['prompt'] ?? '');
+                $aiResponse = $r['ai_responses'] ?? [];
+                $promptText = trim($aiResponse['prompt'] ?? '');
                 if (empty($promptText)) continue;
 
                 if (!isset($promptGroups[$promptText])) {
                     $promptGroups[$promptText] = [
                         'text' => $promptText,
-                        'totalAccuracy' => 0,
-                        'totalCompleteness' => 0,
-                        'totalNeutrality' => 0,
+                        'totalCoherence' => 0,
+                        'totalConsistency' => 0,
+                        'totalFluency' => 0,
                         'totalRelevance' => 0,
                         'count' => 0,
-                        'latestDate' => $r['evaluated_at'] ?? $r['created_at'] ?? '',
+                        'latestDate' => $r['evaluated_at'] ?? $aiResponse['created_at'] ?? '',
                         'models' => [],
                     ];
                 }
 
-                $promptGroups[$promptText]['totalAccuracy'] += (float)($r['accuracy_score'] ?? $r['avg_score'] ?? 0);
-                $promptGroups[$promptText]['totalCompleteness'] += (float)($r['completeness_score'] ?? $r['avg_score'] ?? 0);
-                $promptGroups[$promptText]['totalNeutrality'] += (float)($r['neutrality_score'] ?? $r['avg_score'] ?? 0);
-                $promptGroups[$promptText]['totalRelevance'] += (float)($r['relevance_score'] ?? $r['avg_score'] ?? 0);
+                // G-EVAL scores are 1-5, convert to percentage (x20)
+                $promptGroups[$promptText]['totalCoherence'] += (float)($r['coherence'] ?? 0) * 20;
+                $promptGroups[$promptText]['totalConsistency'] += (float)($r['consistency'] ?? 0) * 20;
+                $promptGroups[$promptText]['totalFluency'] += (float)($r['fluency'] ?? 0) * 20;
+                $promptGroups[$promptText]['totalRelevance'] += (float)($r['relevance'] ?? 0) * 20;
                 $promptGroups[$promptText]['count']++;
-                $promptGroups[$promptText]['models'][$r['model_name'] ?? ''] = true;
+                $promptGroups[$promptText]['models'][$aiResponse['model_name'] ?? ''] = true;
             }
 
             // Convert to array with average scores
             $allPrompts = [];
-            $totalSpecificity = 0;
-            $totalCompleteness = 0;
-            $totalNeutrality = 0;
+            $totalCoherence = 0;
+            $totalConsistency = 0;
+            $totalFluency = 0;
 
             foreach ($promptGroups as $text => $group) {
                 $count = $group['count'];
-                $specificity = $count > 0 ? (int)round($group['totalAccuracy'] / $count) : 0;
-                $completeness = $count > 0 ? (int)round($group['totalCompleteness'] / $count) : 0;
-                $neutrality = $count > 0 ? (int)round($group['totalNeutrality'] / $count) : 0;
+                $coherence = $count > 0 ? (int)round($group['totalCoherence'] / $count) : 0;
+                $consistency = $count > 0 ? (int)round($group['totalConsistency'] / $count) : 0;
+                $fluency = $count > 0 ? (int)round($group['totalFluency'] / $count) : 0;
+                $relevance = $count > 0 ? (int)round($group['totalRelevance'] / $count) : 0;
 
                 $allPrompts[] = [
                     'id' => md5($text),
@@ -310,15 +306,15 @@ class TopicController extends BaseController
                     'modelsCount' => count($group['models']),
                     'responsesCount' => $count,
                     'date' => !empty($group['latestDate']) ? date('d.m.Y', strtotime($group['latestDate'])) : '',
-                    'specificity' => $specificity,
-                    'completeness' => $completeness,
-                    'neutrality' => $neutrality,
-                    'topicality' => $count > 0 ? (int)round($group['totalRelevance'] / $count) : 0,
+                    'coherence' => $coherence,
+                    'consistency' => $consistency,
+                    'fluency' => $fluency,
+                    'relevance' => $relevance,
                 ];
 
-                $totalSpecificity += $specificity;
-                $totalCompleteness += $completeness;
-                $totalNeutrality += $neutrality;
+                $totalCoherence += $coherence;
+                $totalConsistency += $consistency;
+                $totalFluency += $fluency;
             }
 
             $totalCount = count($allPrompts);
@@ -327,9 +323,9 @@ class TopicController extends BaseController
                 'allPrompts' => $allPrompts,
                 'totalCount' => $totalCount,
                 'stats' => [
-                    'avgSpecificity' => $totalCount > 0 ? round($totalSpecificity / $totalCount, 1) : 0,
-                    'avgCompleteness' => $totalCount > 0 ? round($totalCompleteness / $totalCount, 1) : 0,
-                    'avgNeutrality' => $totalCount > 0 ? round($totalNeutrality / $totalCount, 1) : 0,
+                    'avgCoherence' => $totalCount > 0 ? round($totalCoherence / $totalCount, 1) : 0,
+                    'avgConsistency' => $totalCount > 0 ? round($totalConsistency / $totalCount, 1) : 0,
+                    'avgFluency' => $totalCount > 0 ? round($totalFluency / $totalCount, 1) : 0,
                 ],
             ];
         }, 300); // Cache for 5 minutes
@@ -419,18 +415,18 @@ class TopicController extends BaseController
         $models = [];
 
         foreach ($evaluations as $e) {
-            $model = $e['model_name'] ?? 'Unknown';
+            $aiResponse = $e['ai_responses'] ?? [];
+            $model = $aiResponse['model_name'] ?? 'Unknown';
             if (!isset($models[$model])) {
                 $models[$model] = [
                     'name' => $model,
                     'count' => 0,
                     'totalScore' => 0,
-                    'totalAccuracy' => 0,
                 ];
             }
             $models[$model]['count']++;
-            $models[$model]['totalScore'] += (float)($e['avg_score'] ?? 0);
-            $models[$model]['totalAccuracy'] += (float)($e['accuracy_score'] ?? $e['avg_score'] ?? 0);
+            // avg_score is 1-5, convert to percentage
+            $models[$model]['totalScore'] += (float)($e['avg_score'] ?? 0) * 20;
         }
 
         $result = [];
@@ -439,7 +435,6 @@ class TopicController extends BaseController
                 'name' => $name,
                 'count' => $data['count'],
                 'avgScore' => $data['count'] > 0 ? round($data['totalScore'] / $data['count'], 1) : 0,
-                'avgAccuracy' => $data['count'] > 0 ? round($data['totalAccuracy'] / $data['count'], 1) : 0,
             ];
         }
 

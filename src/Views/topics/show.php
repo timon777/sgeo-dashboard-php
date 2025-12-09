@@ -267,29 +267,29 @@
     <?php elseif ($activeTab === 'prompts'): ?>
     <!-- Prompts Tab -->
     <div class="tab-panel" id="prompts-panel">
-        <!-- Prompts Quality Stats -->
+        <!-- Prompts Quality Stats (G-EVAL) -->
         <div class="section-block">
-            <h3 class="section-title">Качество промтов</h3>
+            <h3 class="section-title">Качество ответов G-EVAL</h3>
             <div class="quality-stats">
                 <div class="quality-card">
-                    <div class="quality-label">Конкретность</div>
-                    <div class="quality-value"><?= $tabData['stats']['avgSpecificity'] ?>%</div>
+                    <div class="quality-label">Связность</div>
+                    <div class="quality-value"><?= $tabData['stats']['avgCoherence'] ?? 0 ?>%</div>
                     <div class="quality-bar">
-                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgSpecificity'] ?>%"></div>
+                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgCoherence'] ?? 0 ?>%"></div>
                     </div>
                 </div>
                 <div class="quality-card">
-                    <div class="quality-label">Полнота</div>
-                    <div class="quality-value"><?= $tabData['stats']['avgCompleteness'] ?>%</div>
+                    <div class="quality-label">Согласованность</div>
+                    <div class="quality-value"><?= $tabData['stats']['avgConsistency'] ?? 0 ?>%</div>
                     <div class="quality-bar">
-                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgCompleteness'] ?>%"></div>
+                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgConsistency'] ?? 0 ?>%"></div>
                     </div>
                 </div>
                 <div class="quality-card">
-                    <div class="quality-label">Нейтральность</div>
-                    <div class="quality-value"><?= $tabData['stats']['avgNeutrality'] ?>%</div>
+                    <div class="quality-label">Беглость</div>
+                    <div class="quality-value"><?= $tabData['stats']['avgFluency'] ?? 0 ?>%</div>
                     <div class="quality-bar">
-                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgNeutrality'] ?>%"></div>
+                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgFluency'] ?? 0 ?>%"></div>
                     </div>
                 </div>
             </div>
@@ -309,20 +309,20 @@
                     <div class="prompt-text"><?= htmlspecialchars($prompt['text']) ?></div>
                     <div class="prompt-metrics">
                         <div class="metric-mini">
-                            <span class="metric-label">Конкр.</span>
-                            <span class="metric-value"><?= $prompt['specificity'] ?></span>
+                            <span class="metric-label">Связн.</span>
+                            <span class="metric-value"><?= $prompt['coherence'] ?? 0 ?></span>
                         </div>
                         <div class="metric-mini">
-                            <span class="metric-label">Полн.</span>
-                            <span class="metric-value"><?= $prompt['completeness'] ?></span>
+                            <span class="metric-label">Согл.</span>
+                            <span class="metric-value"><?= $prompt['consistency'] ?? 0 ?></span>
                         </div>
                         <div class="metric-mini">
-                            <span class="metric-label">Нейтр.</span>
-                            <span class="metric-value"><?= $prompt['neutrality'] ?></span>
+                            <span class="metric-label">Бегл.</span>
+                            <span class="metric-value"><?= $prompt['fluency'] ?? 0 ?></span>
                         </div>
                         <div class="metric-mini">
-                            <span class="metric-label">Темат.</span>
-                            <span class="metric-value"><?= $prompt['topicality'] ?></span>
+                            <span class="metric-label">Релев.</span>
+                            <span class="metric-value"><?= $prompt['relevance'] ?? 0 ?></span>
                         </div>
                     </div>
                 </div>
@@ -1448,10 +1448,10 @@ document.getElementById('loadMorePrompts')?.addEventListener('click', async func
                     </div>
                     <div class="prompt-text">${escapeHtml(p.text)}</div>
                     <div class="prompt-metrics">
-                        <div class="metric-mini"><span class="metric-label">Конкр.</span><span class="metric-value">${p.specificity}</span></div>
-                        <div class="metric-mini"><span class="metric-label">Полн.</span><span class="metric-value">${p.completeness}</span></div>
-                        <div class="metric-mini"><span class="metric-label">Нейтр.</span><span class="metric-value">${p.neutrality}</span></div>
-                        <div class="metric-mini"><span class="metric-label">Темат.</span><span class="metric-value">${p.topicality || 0}</span></div>
+                        <div class="metric-mini"><span class="metric-label">Связн.</span><span class="metric-value">${p.coherence || 0}</span></div>
+                        <div class="metric-mini"><span class="metric-label">Согл.</span><span class="metric-value">${p.consistency || 0}</span></div>
+                        <div class="metric-mini"><span class="metric-label">Бегл.</span><span class="metric-value">${p.fluency || 0}</span></div>
+                        <div class="metric-mini"><span class="metric-label">Релев.</span><span class="metric-value">${p.relevance || 0}</span></div>
                     </div>
                 `;
                 list.appendChild(card);
