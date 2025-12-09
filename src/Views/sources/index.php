@@ -1145,7 +1145,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 const result = await resp.json();
-                console.log('Batch result:', result);
                 if (result.success) {
                     imported += result.imported || 0;
                     updated += result.updated || 0;

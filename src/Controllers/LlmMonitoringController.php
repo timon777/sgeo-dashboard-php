@@ -139,4 +139,51 @@ class LlmMonitoringController extends BaseController
 
         return $llmData;
     }
+
+    public function exportCsv(): void
+    {
+        $performanceModel = new ModelPerformance();
+        $performanceData = $performanceModel->all();
+
+        $filename = 'llm_monitoring_' . date('Y-m-d') . '.csv';
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        $output = fopen('php://output', 'w');
+
+        // BOM for Excel UTF-8
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Headers
+        fputcsv($output, [
+            'Модель',
+            'Ответов',
+            'Средний балл',
+            'Coherence',
+            'Consistency',
+            'Fluency',
+            'Relevance',
+            'Среднее время (мс)'
+        ]);
+
+        // Data
+        if (isset($performanceData['data']) && is_array($performanceData['data'])) {
+            foreach ($performanceData['data'] as $model) {
+                fputcsv($output, [
+                    $model['model_name'] ?? '',
+                    $model['total_responses'] ?? 0,
+                    round((float)($model['overall_avg_score'] ?? 0), 2),
+                    round((float)($model['avg_coherence'] ?? 0), 2),
+                    round((float)($model['avg_consistency'] ?? 0), 2),
+                    round((float)($model['avg_fluency'] ?? 0), 2),
+                    round((float)($model['avg_relevance'] ?? 0), 2),
+                    $model['avg_response_time'] ?? 0,
+                ]);
+            }
+        }
+
+        fclose($output);
+        exit;
+    }
 }

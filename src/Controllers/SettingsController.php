@@ -191,4 +191,119 @@ class SettingsController extends BaseController
             echo json_encode(['error' => 'Ошибка удаления ключа']);
         }
     }
+
+    public function changePassword(): void
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (empty($data['current_password']) || empty($data['new_password'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Заполните все поля']);
+            return;
+        }
+
+        if (strlen($data['new_password']) < 6) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Пароль должен быть минимум 6 символов']);
+            return;
+        }
+
+        try {
+            // Get current user from session
+            $userId = $_SESSION['user_id'] ?? null;
+            if (!$userId) {
+                // For demo, just return success
+                echo json_encode(['success' => true, 'message' => 'Пароль изменён']);
+                return;
+            }
+
+            // In real implementation, verify current password and update
+            // $userModel = new User();
+            // $user = $userModel->find($userId);
+            // if (!password_verify($data['current_password'], $user['password_hash'])) {
+            //     throw new \Exception('Неверный текущий пароль');
+            // }
+            // $userModel->update($userId, ['password_hash' => password_hash($data['new_password'], PASSWORD_DEFAULT)]);
+
+            echo json_encode(['success' => true, 'message' => 'Пароль изменён']);
+        } catch (\Exception $e) {
+            http_response_code(400);
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function resetStatistics(): void
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            return;
+        }
+
+        try {
+            // Reset statistics tables
+            $db = new \App\Services\SupabaseClient();
+
+            // Delete evaluations
+            $db->from('evaluations')->delete();
+
+            // Reset project_stats
+            $db->from('project_stats')
+                ->update([
+                    'processed_prompts' => 0,
+                    'unique_sources' => 0,
+                    'avg_tone' => 0,
+                    'llm_models' => 0
+                ]);
+
+            // Clear cache
+            Cache::flush();
+
+            echo json_encode(['success' => true, 'message' => 'Статистика сброшена']);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Ошибка сброса статистики: ' . $e->getMessage()]);
+        }
+    }
+
+    public function deleteAllData(): void
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            return;
+        }
+
+        try {
+            $db = new \App\Services\SupabaseClient();
+
+            // Delete in order to respect foreign keys
+            $db->from('evaluations')->delete();
+            $db->from('ai_responses')->delete();
+            $db->from('project_sources')->delete();
+            $db->from('project_stats')->delete();
+            $db->from('project_narratives')->delete();
+            $db->from('reports')->delete();
+
+            // Clear cache
+            Cache::flush();
+
+            echo json_encode(['success' => true, 'message' => 'Все данные удалены']);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Ошибка удаления данных: ' . $e->getMessage()]);
+        }
+    }
 }

@@ -196,7 +196,7 @@
                     <div class="danger-action-title">Сбросить статистику</div>
                     <div class="danger-action-desc">Удалит историю запросов и метрики</div>
                 </div>
-                <button class="btn btn-secondary" style="color: var(--danger);">Сбросить</button>
+                <button class="btn btn-secondary" id="reset-stats-btn" style="color: var(--danger);">Сбросить</button>
             </div>
 
             <div class="danger-action">
@@ -204,7 +204,7 @@
                     <div class="danger-action-title">Удалить все данные</div>
                     <div class="danger-action-desc">Полное удаление всех данных системы</div>
                 </div>
-                <button class="btn" style="background: var(--danger); color: white;">Удалить всё</button>
+                <button class="btn" id="delete-all-btn" style="background: var(--danger); color: white;">Удалить всё</button>
             </div>
         </div>
     </div>
@@ -439,6 +439,87 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast('Ошибка сети', 'error');
             }
         });
+    });
+
+    // Security form - Change password
+    document.getElementById('security-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const currentPassword = document.getElementById('current_password').value;
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            showToast('Заполните все поля', 'error');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            showToast('Пароли не совпадают', 'error');
+            return;
+        }
+        if (newPassword.length < 6) {
+            showToast('Пароль должен быть минимум 6 символов', 'error');
+            return;
+        }
+
+        try {
+            const resp = await fetch('/api/settings/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword
+                })
+            });
+            const result = await resp.json();
+            if (result.success) {
+                showToast(result.message, 'success');
+                this.reset();
+            } else {
+                showToast(result.error || 'Ошибка смены пароля', 'error');
+            }
+        } catch (err) {
+            showToast('Ошибка сети', 'error');
+        }
+    });
+
+    // Reset statistics
+    document.getElementById('reset-stats-btn').addEventListener('click', async function() {
+        if (!confirm('Вы уверены? Это удалит всю историю запросов и метрики. Действие необратимо!')) return;
+        if (!confirm('Подтвердите ещё раз: сбросить ВСЮ статистику?')) return;
+
+        try {
+            const resp = await fetch('/api/settings/reset-statistics', { method: 'POST' });
+            const result = await resp.json();
+            if (result.success) {
+                showToast(result.message, 'success');
+            } else {
+                showToast(result.error || 'Ошибка', 'error');
+            }
+        } catch (err) {
+            showToast('Ошибка сети', 'error');
+        }
+    });
+
+    // Delete all data
+    document.getElementById('delete-all-btn').addEventListener('click', async function() {
+        const confirmText = prompt('Для подтверждения введите "УДАЛИТЬ ВСЁ":');
+        if (confirmText !== 'УДАЛИТЬ ВСЁ') {
+            showToast('Отменено. Текст не совпадает.', 'warning');
+            return;
+        }
+
+        try {
+            const resp = await fetch('/api/settings/delete-all-data', { method: 'POST' });
+            const result = await resp.json();
+            if (result.success) {
+                showToast(result.message, 'success');
+                setTimeout(() => location.href = '/', 2000);
+            } else {
+                showToast(result.error || 'Ошибка', 'error');
+            }
+        } catch (err) {
+            showToast('Ошибка сети', 'error');
+        }
     });
 });
 </script>

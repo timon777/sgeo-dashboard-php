@@ -98,6 +98,7 @@ $routes = [
         '/export/projects' => ['App\\Controllers\\ProjectsController', 'exportCsv'],
         '/export/prompts' => ['App\\Controllers\\PromptsController', 'exportCsv'],
         '/export/sources' => ['App\\Controllers\\SourcesController', 'exportCsv'],
+        '/export/llm-monitoring' => ['App\\Controllers\\LlmMonitoringController', 'exportCsv'],
     ],
     'POST' => [
         // Auth
@@ -107,6 +108,9 @@ $routes = [
         '/api/settings/general' => ['App\\Controllers\\SettingsController', 'saveGeneral'],
         '/api/settings/monitoring' => ['App\\Controllers\\SettingsController', 'saveMonitoring'],
         '/api/settings/clear-cache' => ['App\\Controllers\\SettingsController', 'clearCache'],
+        '/api/settings/change-password' => ['App\\Controllers\\SettingsController', 'changePassword'],
+        '/api/settings/reset-statistics' => ['App\\Controllers\\SettingsController', 'resetStatistics'],
+        '/api/settings/delete-all-data' => ['App\\Controllers\\SettingsController', 'deleteAllData'],
         '/api/settings/api-keys' => ['App\\Controllers\\SettingsController', 'createApiKey'],
 
         // API CRUD
