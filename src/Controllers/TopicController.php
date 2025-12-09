@@ -462,53 +462,52 @@ class TopicController extends BaseController
     private function getTopicOverview(string $topicId): array
     {
         return Cache::remember("topic_overview_{$topicId}", function() use ($topicId) {
-            // Get total count first
-            $countResult = $this->db->from('recent_evaluations_detailed')
-                ->select('id')
-                ->eq('project_id', $topicId)
-                ->get();
-            $totalCount = count($countResult['data'] ?? []);
-
-            // Get first 10 prompts with evaluations
-            $promptsResult = $this->db->from('recent_evaluations_detailed')
-                ->select('*')
-                ->eq('project_id', $topicId)
+            // Get evaluations with ai_responses for this project
+            $evalsResult = $this->db->from('evaluations')
+                ->select('*, ai_responses!inner(id, prompt, model_name, project_id, created_at)')
+                ->eq('ai_responses.project_id', $topicId)
                 ->order('evaluated_at', false)
                 ->limit(10)
                 ->get();
 
-            $prompts = [];
-            $totalSpecificity = 0;
-            $totalCompleteness = 0;
-            $totalNeutrality = 0;
-            $totalClarity = 0;
-            $totalTaskType = 0;
+            // Get total count
+            $countResult = $this->db->from('evaluations')
+                ->select('id, ai_responses!inner(project_id)')
+                ->eq('ai_responses.project_id', $topicId)
+                ->get();
+            $totalCount = count($countResult['data'] ?? []);
 
-            foreach ($promptsResult['data'] ?? [] as $r) {
-                $specificity = (int)($r['accuracy_score'] ?? $r['avg_score'] ?? 0);
-                $completeness = (int)($r['completeness_score'] ?? $r['avg_score'] ?? 0);
-                $neutrality = (int)($r['neutrality_score'] ?? $r['avg_score'] ?? 0);
-                $clarity = (int)($r['clarity_score'] ?? $r['avg_score'] ?? 0);
-                $taskType = (int)($r['relevance_score'] ?? $r['avg_score'] ?? 0);
+            $prompts = [];
+            $totalCoherence = 0;
+            $totalConsistency = 0;
+            $totalFluency = 0;
+            $totalRelevance = 0;
+
+            foreach ($evalsResult['data'] ?? [] as $r) {
+                $aiResponse = $r['ai_responses'] ?? [];
+                // G-EVAL scores are 1-5, convert to percentage (x20)
+                $coherence = (int)($r['coherence'] ?? 0) * 20;
+                $consistency = (int)($r['consistency'] ?? 0) * 20;
+                $fluency = (int)($r['fluency'] ?? 0) * 20;
+                $relevance = (int)($r['relevance'] ?? 0) * 20;
 
                 $prompts[] = [
                     'id' => $r['ai_response_id'] ?? $r['id'],
-                    'text' => $r['prompt'] ?? '',
-                    'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
-                    'model' => $r['model_name'] ?? '',
-                    'date' => $this->formatDate($r['evaluated_at'] ?? $r['created_at'] ?? ''),
-                    'specificity' => $specificity,
-                    'completeness' => $completeness,
-                    'neutrality' => $neutrality,
-                    'clarity' => $clarity,
-                    'taskType' => $taskType,
+                    'text' => $aiResponse['prompt'] ?? '',
+                    'shortText' => $this->truncateText($aiResponse['prompt'] ?? '', 100),
+                    'model' => $aiResponse['model_name'] ?? '',
+                    'date' => $this->formatDate($r['evaluated_at'] ?? ''),
+                    'coherence' => $coherence,
+                    'consistency' => $consistency,
+                    'fluency' => $fluency,
+                    'relevance' => $relevance,
+                    'avgScore' => (int)($r['avg_score'] ?? 0),
                 ];
 
-                $totalSpecificity += $specificity;
-                $totalCompleteness += $completeness;
-                $totalNeutrality += $neutrality;
-                $totalClarity += $clarity;
-                $totalTaskType += $taskType;
+                $totalCoherence += $coherence;
+                $totalConsistency += $consistency;
+                $totalFluency += $fluency;
+                $totalRelevance += $relevance;
             }
 
             // Fallback to ai_responses if no evaluations
@@ -529,11 +528,11 @@ class TopicController extends BaseController
                         'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
                         'model' => $r['model_name'] ?? '',
                         'date' => $this->formatDate($r['created_at'] ?? ''),
-                        'specificity' => 0,
-                        'completeness' => 0,
-                        'neutrality' => 0,
-                        'clarity' => 0,
-                        'taskType' => 0,
+                        'coherence' => 0,
+                        'consistency' => 0,
+                        'fluency' => 0,
+                        'relevance' => 0,
+                        'avgScore' => 0,
                     ];
                 }
             }
@@ -545,11 +544,10 @@ class TopicController extends BaseController
                 'totalCount' => $totalCount,
                 'hasMore' => $totalCount > 10,
                 'radarData' => [
-                    'specificity' => $count > 0 ? round($totalSpecificity / $count) : 0,
-                    'completeness' => $count > 0 ? round($totalCompleteness / $count) : 0,
-                    'neutrality' => $count > 0 ? round($totalNeutrality / $count) : 0,
-                    'clarity' => $count > 0 ? round($totalClarity / $count) : 0,
-                    'taskType' => $count > 0 ? round($totalTaskType / $count) : 0,
+                    'coherence' => $count > 0 ? round($totalCoherence / $count) : 0,
+                    'consistency' => $count > 0 ? round($totalConsistency / $count) : 0,
+                    'fluency' => $count > 0 ? round($totalFluency / $count) : 0,
+                    'relevance' => $count > 0 ? round($totalRelevance / $count) : 0,
                 ],
             ];
         }, 300); // Cache for 5 minutes
@@ -557,35 +555,38 @@ class TopicController extends BaseController
 
     private function getTopicOverviewPaginated(string $topicId, int $offset = 0, int $limit = 10): array
     {
-        // Get prompts with pagination from evaluations
-        $promptsResult = $this->db->from('recent_evaluations_detailed')
-            ->select('*')
-            ->eq('project_id', $topicId)
+        // Get evaluations with ai_responses for pagination
+        $evalsResult = $this->db->from('evaluations')
+            ->select('*, ai_responses!inner(id, prompt, model_name, project_id)')
+            ->eq('ai_responses.project_id', $topicId)
             ->order('evaluated_at', false)
             ->offset($offset)
             ->limit($limit)
             ->get();
 
-        // Get total count
-        $countResult = $this->db->from('recent_evaluations_detailed')
-            ->select('id')
-            ->eq('project_id', $topicId)
-            ->get();
-        $totalCount = count($countResult['data'] ?? []);
+        // Get total count (cached)
+        $totalCount = Cache::remember("topic_overview_count_{$topicId}", function() use ($topicId) {
+            $countResult = $this->db->from('evaluations')
+                ->select('id, ai_responses!inner(project_id)')
+                ->eq('ai_responses.project_id', $topicId)
+                ->get();
+            return count($countResult['data'] ?? []);
+        }, 300);
 
         $prompts = [];
-        foreach ($promptsResult['data'] ?? [] as $r) {
+        foreach ($evalsResult['data'] ?? [] as $r) {
+            $aiResponse = $r['ai_responses'] ?? [];
             $prompts[] = [
                 'id' => $r['ai_response_id'] ?? $r['id'],
-                'text' => $r['prompt'] ?? '',
-                'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
-                'model' => $r['model_name'] ?? '',
-                'date' => $this->formatDate($r['evaluated_at'] ?? $r['created_at'] ?? ''),
-                'specificity' => (int)($r['accuracy_score'] ?? $r['avg_score'] ?? 0),
-                'completeness' => (int)($r['completeness_score'] ?? $r['avg_score'] ?? 0),
-                'neutrality' => (int)($r['neutrality_score'] ?? $r['avg_score'] ?? 0),
-                'clarity' => (int)($r['clarity_score'] ?? $r['avg_score'] ?? 0),
-                'taskType' => (int)($r['relevance_score'] ?? $r['avg_score'] ?? 0),
+                'text' => $aiResponse['prompt'] ?? '',
+                'shortText' => $this->truncateText($aiResponse['prompt'] ?? '', 100),
+                'model' => $aiResponse['model_name'] ?? '',
+                'date' => $this->formatDate($r['evaluated_at'] ?? ''),
+                'coherence' => (int)($r['coherence'] ?? 0) * 20,
+                'consistency' => (int)($r['consistency'] ?? 0) * 20,
+                'fluency' => (int)($r['fluency'] ?? 0) * 20,
+                'relevance' => (int)($r['relevance'] ?? 0) * 20,
+                'avgScore' => (int)($r['avg_score'] ?? 0),
             ];
         }
 

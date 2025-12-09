@@ -60,8 +60,8 @@
 
         <!-- Radar Chart Section -->
         <div class="section-block radar-section">
-            <h2 class="section-title-lg">Оценка качества промтов по пяти ключевым критериям</h2>
-            <p class="section-description">Сводная оценка всех промтов проекта по пяти критериям: конкретность, полнота, нейтральность, однозначность и чёткость задачи. Радар показывает средний профиль качества формулировок.</p>
+            <h2 class="section-title-lg">Оценка качества ответов G-EVAL</h2>
+            <p class="section-description">Сводная оценка качества ответов LLM по четырём критериям G-EVAL: связность, согласованность, беглость и релевантность.</p>
 
             <div class="radar-content">
                 <div class="radar-chart-container">
@@ -71,70 +71,56 @@
                     <div class="accordion">
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">1. Конкретность (Specificity)</span>
+                                <span class="accordion-title">1. Связность (Coherence)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Степень, с которой промт задаёт точные параметры задачи — что именно требуется описать, проанализировать или сравнить — без избыточной общности и неопределённых формулировок.
+                                    Насколько логично и структурировано организован ответ. Хорошо связанный ответ имеет чёткую структуру, плавные переходы между идеями и последовательное изложение.
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">2. Полнота задания (Completeness)</span>
+                                <span class="accordion-title">2. Согласованность (Consistency)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Наличие в промте всего необходимого контекста, условий и ограничений, позволяющих модели сформировать корректный, непротиворечивый и самодостаточный ответ без домысливания.
+                                    Фактическая точность и непротиворечивость информации в ответе. Согласованный ответ не содержит противоречий и соответствует известным фактам.
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">3. Нейтральность (Neutrality / Bias-Free)</span>
+                                <span class="accordion-title">3. Беглость (Fluency)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Отсутствие в промте эмоционально окрашенных, идеологически направленных или подталкивающих формулировок, которые могут сместить тон и содержание ответа.
+                                    Качество языка и читаемость текста. Беглый ответ написан грамматически правильно, легко читается и не содержит стилистических ошибок.
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">4. Однозначность (Clarity / Low Ambiguity)</span>
+                                <span class="accordion-title">4. Релевантность (Relevance)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Чёткая и недвусмысленная постановка вопроса, исключающая двойные интерпретации, скрытые предпосылки или неопределённые ссылки на "ситуации", "вещи" или "контекст".
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="accordion-item">
-                            <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">5. Чёткость типа задачи (Task Type Clarity)</span>
-                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m6 9 6 6 6-6"/>
-                                </svg>
-                            </div>
-                            <div class="accordion-content">
-                                <div class="accordion-body">
-                                    Ясное указание формата требуемого результата — анализ, сравнение, список, объяснение, прогноз и т.д. — позволяющее модели точно определить структуру ответа.
+                                    Насколько ответ соответствует заданному вопросу и охватывает все ключевые аспекты темы без лишней информации.
                                 </div>
                             </div>
                         </div>
@@ -146,32 +132,32 @@
         <!-- Prompts Table -->
         <div class="section-block">
             <div class="table-header-row">
-                <h3 class="section-title">Промты <span class="count-badge"><?= $tabData['totalCount'] ?? 0 ?></span></h3>
+                <h3 class="section-title">Оценки ответов <span class="count-badge"><?= $tabData['totalCount'] ?? 0 ?></span></h3>
             </div>
             <div class="table-container">
                 <table class="table prompts-table" id="overviewPromptsTable">
                     <thead>
                         <tr>
                             <th>Промпт (запрос)</th>
-                            <th>Полнота задания</th>
-                            <th>Конкретность</th>
-                            <th>Нейтральность</th>
-                            <th>Однозначность</th>
-                            <th>Тип задачи</th>
+                            <th>Связность</th>
+                            <th>Согласов.</th>
+                            <th>Беглость</th>
+                            <th>Релевант.</th>
+                            <th>Среднее</th>
                         </tr>
                     </thead>
                     <tbody id="overviewPromptsBody">
                         <?php foreach ($tabData['prompts'] ?? [] as $index => $prompt): ?>
                         <tr>
                             <td class="prompt-cell">
-                                <span class="prompt-number">Промт №<?= $index + 1 ?></span>
+                                <span class="prompt-number">№<?= $index + 1 ?></span>
                                 <a href="#" class="prompt-link"><?= htmlspecialchars($prompt['shortText']) ?></a>
                             </td>
-                            <td class="score-cell"><?= $prompt['completeness'] ?>/100</td>
-                            <td class="score-cell"><?= $prompt['specificity'] ?>/100</td>
-                            <td class="score-cell"><?= $prompt['neutrality'] ?>/100</td>
-                            <td class="score-cell"><?= $prompt['clarity'] ?>/100</td>
-                            <td class="score-cell"><?= $prompt['taskType'] ?>/100</td>
+                            <td class="score-cell"><?= $prompt['coherence'] ?? 0 ?>%</td>
+                            <td class="score-cell"><?= $prompt['consistency'] ?? 0 ?>%</td>
+                            <td class="score-cell"><?= $prompt['fluency'] ?? 0 ?>%</td>
+                            <td class="score-cell"><?= $prompt['relevance'] ?? 0 ?>%</td>
+                            <td class="score-cell"><?= $prompt['avgScore'] ?? 0 ?>%</td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -1236,31 +1222,28 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!radarCanvas) return;
 
     const radarData = <?= json_encode($tabData['radarData'] ?? [
-        'specificity' => 75,
-        'completeness' => 80,
-        'neutrality' => 85,
-        'clarity' => 70,
-        'taskType' => 78
+        'coherence' => 75,
+        'consistency' => 80,
+        'fluency' => 85,
+        'relevance' => 70
     ]) ?>;
 
     new Chart(radarCanvas, {
         type: 'radar',
         data: {
             labels: [
-                'Конкретность',
-                'Полнота задания',
-                'Нейтральность',
-                'Однозначность',
-                'Тип задачи'
+                'Связность',
+                'Согласованность',
+                'Беглость',
+                'Релевантность'
             ],
             datasets: [{
-                label: 'Оценка качества',
+                label: 'G-EVAL оценка',
                 data: [
-                    radarData.specificity,
-                    radarData.completeness,
-                    radarData.neutrality,
-                    radarData.clarity,
-                    radarData.taskType
+                    radarData.coherence,
+                    radarData.consistency,
+                    radarData.fluency,
+                    radarData.relevance
                 ],
                 backgroundColor: 'rgba(16, 185, 129, 0.2)',
                 borderColor: 'rgb(16, 185, 129)',
@@ -1338,14 +1321,14 @@ document.getElementById('loadMoreOverview')?.addEventListener('click', async fun
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td class="prompt-cell">
-                        <span class="prompt-number">Промт №${currentRows + index + 1}</span>
+                        <span class="prompt-number">№${currentRows + index + 1}</span>
                         <a href="#" class="prompt-link">${escapeHtml(prompt.shortText)}</a>
                     </td>
-                    <td class="score-cell">${prompt.completeness}/100</td>
-                    <td class="score-cell">${prompt.specificity}/100</td>
-                    <td class="score-cell">${prompt.neutrality}/100</td>
-                    <td class="score-cell">${prompt.clarity}/100</td>
-                    <td class="score-cell">${prompt.taskType}/100</td>
+                    <td class="score-cell">${prompt.coherence || 0}%</td>
+                    <td class="score-cell">${prompt.consistency || 0}%</td>
+                    <td class="score-cell">${prompt.fluency || 0}%</td>
+                    <td class="score-cell">${prompt.relevance || 0}%</td>
+                    <td class="score-cell">${prompt.avgScore || 0}%</td>
                 `;
                 tbody.appendChild(row);
             });
