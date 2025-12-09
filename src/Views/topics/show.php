@@ -625,8 +625,8 @@
 
 .radar-chart-container {
     width: 100%;
-    max-width: 500px;
-    padding: 0 20px;
+    max-width: 480px;
+    padding: 0;
 }
 
 .radar-accordion {
@@ -1260,8 +1260,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 padding: {
                     top: 0,
                     bottom: 0,
-                    left: 60,
-                    right: 60
+                    left: 40,
+                    right: 40
                 }
             },
             scales: {
@@ -1283,11 +1283,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     pointLabels: {
                         font: {
-                            size: 13,
+                            size: 12,
                             weight: '500'
                         },
                         color: '#e5e7eb',
-                        padding: 25
+                        padding: 15
                     }
                 }
             },
