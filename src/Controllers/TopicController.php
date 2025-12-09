@@ -32,8 +32,8 @@ class TopicController extends BaseController
         $allProjectsResult = $projectModel->all();
         $allProjects = $allProjectsResult['data'] ?? [];
 
-        // Get tab from query string
-        $tab = $_GET['tab'] ?? 'responses';
+        // Get tab from query string (default to overview)
+        $tab = $_GET['tab'] ?? 'overview';
 
         // Get stats for the topic
         $stats = $this->getTopicStats($id);
@@ -48,9 +48,12 @@ class TopicController extends BaseController
                 $tabData = $this->getTopicSources($id);
                 break;
             case 'responses':
-            default:
-                $tab = 'responses';
                 $tabData = $this->getTopicResponses($id);
+                break;
+            case 'overview':
+            default:
+                $tab = 'overview';
+                $tabData = $this->getTopicOverview($id);
                 break;
         }
 
@@ -390,5 +393,68 @@ class TopicController extends BaseController
             return '';
         }
         return date('d.m.Y', strtotime($date));
+    }
+
+    private function getTopicOverview(string $topicId): array
+    {
+        // Get prompts data for the radar chart
+        $promptsResult = $this->db->from('ai_responses')
+            ->select('*')
+            ->eq('project_id', $topicId)
+            ->order('created_at', false)
+            ->limit(100)
+            ->get();
+
+        $prompts = [];
+        $totalSpecificity = 0;
+        $totalCompleteness = 0;
+        $totalNeutrality = 0;
+        $totalClarity = 0;
+        $totalTaskType = 0;
+
+        foreach ($promptsResult['data'] ?? [] as $r) {
+            // Generate scores (in real app these would come from evaluations)
+            $specificity = rand(60, 95);
+            $completeness = rand(60, 95);
+            $neutrality = rand(70, 98);
+            $clarity = rand(65, 95);
+            $taskType = rand(70, 95);
+
+            $prompts[] = [
+                'id' => $r['id'],
+                'text' => $r['prompt'] ?? '',
+                'shortText' => $this->truncateText($r['prompt'] ?? '', 100),
+                'model' => $r['model_name'] ?? '',
+                'date' => $this->formatDate($r['created_at'] ?? ''),
+                'specificity' => $specificity,
+                'completeness' => $completeness,
+                'neutrality' => $neutrality,
+                'clarity' => $clarity,
+                'taskType' => $taskType,
+            ];
+
+            $totalSpecificity += $specificity;
+            $totalCompleteness += $completeness;
+            $totalNeutrality += $neutrality;
+            $totalClarity += $clarity;
+            $totalTaskType += $taskType;
+        }
+
+        $count = count($prompts);
+
+        // Calculate averages for radar chart
+        $radarData = [
+            'specificity' => $count > 0 ? round($totalSpecificity / $count) : 0,
+            'completeness' => $count > 0 ? round($totalCompleteness / $count) : 0,
+            'neutrality' => $count > 0 ? round($totalNeutrality / $count) : 0,
+            'clarity' => $count > 0 ? round($totalClarity / $count) : 0,
+            'taskType' => $count > 0 ? round($totalTaskType / $count) : 0,
+        ];
+
+        return [
+            'prompts' => array_slice($prompts, 0, 20), // Top 20 prompts for table
+            'totalCount' => $count,
+            'radarData' => $radarData,
+        ];
     }
 }

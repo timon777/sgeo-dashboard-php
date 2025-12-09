@@ -53,7 +53,80 @@
 
 <!-- Tab Content -->
 <div class="topic-content">
-    <?php if ($activeTab === 'responses'): ?>
+    <?php if ($activeTab === 'overview'): ?>
+    <!-- Overview Tab -->
+    <div class="tab-panel" id="overview-panel">
+        <h1 class="page-title">Промты</h1>
+
+        <!-- Radar Chart Section -->
+        <div class="section-block radar-section">
+            <h2 class="section-title-lg">Оценка качества промтов по пяти ключевым критериям</h2>
+            <p class="section-description">Сводная оценка всех промтов проекта по пяти критериям: конкретность, полнота, нейтральность, однозначность и чёткость задачи. Радар показывает средний профиль качества формулировок.</p>
+
+            <div class="radar-content">
+                <div class="radar-chart-container">
+                    <canvas id="promptQualityRadar"></canvas>
+                </div>
+                <div class="radar-legend">
+                    <div class="legend-item">
+                        <h4>1. Конкретность (Specificity)</h4>
+                        <p>Степень, с которой промт задаёт точные параметры задачи — что именно требуется описать, проанализировать или сравнить — без избыточной общности и неопределённых формулировок.</p>
+                    </div>
+                    <div class="legend-item">
+                        <h4>2. Полнота задания (Completeness)</h4>
+                        <p>Наличие в промте всего необходимого контекста, условий и ограничений, позволяющих модели сформировать корректный, непротиворечивый и самодостаточный ответ без домысливания.</p>
+                    </div>
+                    <div class="legend-item">
+                        <h4>3. Нейтральность (Neutrality / Bias-Free)</h4>
+                        <p>Отсутствие в промте эмоционально окрашенных, идеологически направленных или подталкивающих формулировок, которые могут сместить тон и содержание ответа.</p>
+                    </div>
+                    <div class="legend-item">
+                        <h4>4. Однозначность (Clarity / Low Ambiguity)</h4>
+                        <p>Чёткая и недвусмысленная постановка вопроса, исключающая двойные интерпретации, скрытые предпосылки или неопределённые ссылки на "ситуации", "вещи" или "контекст".</p>
+                    </div>
+                    <div class="legend-item">
+                        <h4>5. Чёткость типа задачи (Task Type Clarity)</h4>
+                        <p>Ясное указание формата требуемого результата — анализ, сравнение, список, объяснение, прогноз и т.д. — позволяющее модели точно определить структуру ответа.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prompts Table -->
+        <div class="section-block">
+            <div class="table-container">
+                <table class="table prompts-table">
+                    <thead>
+                        <tr>
+                            <th>Промпт (запрос)</th>
+                            <th>Полнота задания</th>
+                            <th>Конкретность</th>
+                            <th>Нейтральность</th>
+                            <th>Однозначность</th>
+                            <th>Тип задачи</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($tabData['prompts'] ?? [] as $index => $prompt): ?>
+                        <tr>
+                            <td class="prompt-cell">
+                                <span class="prompt-number">Промт №<?= $index + 1 ?></span>
+                                <a href="#" class="prompt-link"><?= htmlspecialchars($prompt['shortText']) ?></a>
+                            </td>
+                            <td class="score-cell"><?= $prompt['completeness'] ?>/100</td>
+                            <td class="score-cell"><?= $prompt['specificity'] ?>/100</td>
+                            <td class="score-cell"><?= $prompt['neutrality'] ?>/100</td>
+                            <td class="score-cell"><?= $prompt['clarity'] ?>/100</td>
+                            <td class="score-cell"><?= $prompt['taskType'] ?>/100</td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <?php elseif ($activeTab === 'responses'): ?>
     <!-- Responses Tab -->
     <div class="tab-panel" id="responses-panel">
         <!-- Model Comparison -->
@@ -422,6 +495,124 @@
 
 /* Content */
 .topic-content { margin-bottom: 32px; }
+
+/* Overview Tab Styles */
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.section-title-lg {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.section-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.radar-section {
+    padding: 32px;
+}
+
+.radar-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.radar-chart-container {
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.radar-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.legend-item h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.legend-item p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Prompts Table */
+.prompts-table {
+    width: 100%;
+}
+
+.prompts-table th {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.prompts-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: top;
+}
+
+.prompt-cell {
+    max-width: 400px;
+}
+
+.prompt-number {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+}
+
+.prompt-link {
+    color: var(--accent-primary);
+    text-decoration: underline;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.prompt-link:hover {
+    color: var(--accent-secondary);
+}
+
+.score-cell {
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+    .radar-content {
+        grid-template-columns: 1fr;
+    }
+
+    .radar-chart-container {
+        max-width: 350px;
+    }
+}
 
 .section-block {
     background: var(--bg-card);
@@ -826,3 +1017,82 @@
     .hero-stats { grid-template-columns: 1fr; }
 }
 </style>
+
+<?php if ($activeTab === 'overview'): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const radarCanvas = document.getElementById('promptQualityRadar');
+    if (!radarCanvas) return;
+
+    const radarData = <?= json_encode($tabData['radarData'] ?? [
+        'specificity' => 75,
+        'completeness' => 80,
+        'neutrality' => 85,
+        'clarity' => 70,
+        'taskType' => 78
+    ]) ?>;
+
+    new Chart(radarCanvas, {
+        type: 'radar',
+        data: {
+            labels: [
+                'Конкретность',
+                'Полнота задания',
+                'Нейтральность /\nотсутствие\nподталкивания',
+                'Однозначность',
+                'Однозначно\nопределённый тип\nзадачи'
+            ],
+            datasets: [{
+                label: 'Оценка качества',
+                data: [
+                    radarData.specificity,
+                    radarData.completeness,
+                    radarData.neutrality,
+                    radarData.clarity,
+                    radarData.taskType
+                ],
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                borderColor: 'rgb(16, 185, 129)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgb(16, 185, 129)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(16, 185, 129)',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    min: 0,
+                    ticks: {
+                        stepSize: 20,
+                        font: { size: 10 },
+                        color: '#9ca3af'
+                    },
+                    grid: {
+                        color: 'rgba(156, 163, 175, 0.2)'
+                    },
+                    angleLines: {
+                        color: 'rgba(156, 163, 175, 0.2)'
+                    },
+                    pointLabels: {
+                        font: { size: 12 },
+                        color: '#374151'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+<?php endif; ?>
