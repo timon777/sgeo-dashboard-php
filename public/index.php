@@ -74,8 +74,8 @@ $routes = [
         '/topics/{id}' => ['App\\Controllers\\TopicController', 'show'],
         '/prompts' => ['App\\Controllers\\PromptsController', 'index'],
         '/prompts/{id}' => ['App\\Controllers\\PromptsController', 'show'],
+        '/responses' => ['App\\Controllers\\ResponsesController', 'index'],
         '/sources' => ['App\\Controllers\\SourcesController', 'index'],
-        '/llm-monitoring' => ['App\\Controllers\\LlmMonitoringController', 'index'],
         '/trends' => ['App\\Controllers\\TrendsController', 'index'],
         '/reports' => ['App\\Controllers\\ReportsController', 'index'],
         '/settings' => ['App\\Controllers\\SettingsController', 'index'],
@@ -89,6 +89,7 @@ $routes = [
         '/api/projects/{id}' => ['App\\Controllers\\ProjectsController', 'apiShow'],
         '/api/prompts' => ['App\\Controllers\\PromptsController', 'apiList'],
         '/api/prompts/{id}' => ['App\\Controllers\\PromptsController', 'getDetail'],
+        '/api/responses' => ['App\\Controllers\\ResponsesController', 'apiList'],
         '/api/sources' => ['App\\Controllers\\SourcesController', 'apiList'],
         '/api/trends/data' => ['App\\Controllers\\TrendsController', 'apiChartData'],
         '/api/reports/export/{id}' => ['App\\Controllers\\ReportsController', 'export'],
@@ -98,7 +99,7 @@ $routes = [
         '/export/projects' => ['App\\Controllers\\ProjectsController', 'exportCsv'],
         '/export/prompts' => ['App\\Controllers\\PromptsController', 'exportCsv'],
         '/export/sources' => ['App\\Controllers\\SourcesController', 'exportCsv'],
-        '/export/llm-monitoring' => ['App\\Controllers\\LlmMonitoringController', 'exportCsv'],
+        '/export/responses' => ['App\\Controllers\\ResponsesController', 'exportCsv'],
     ],
     'POST' => [
         // Auth
