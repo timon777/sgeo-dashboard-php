@@ -250,18 +250,46 @@ class TopicController extends BaseController
     {
         // Cache all prompts data, then apply pagination
         $cachedData = Cache::remember("topic_prompts_all_{$topicId}", function() use ($topicId) {
-            // Get ALL evaluations with G-EVAL metrics for this project
+            // Try to get evaluations with G-EVAL metrics first
             $result = $this->db->from('evaluations')
                 ->select('coherence, consistency, fluency, relevance, avg_score, evaluated_at, ai_responses!inner(prompt, model_name, project_id, created_at)')
                 ->eq('ai_responses.project_id', $topicId)
                 ->order('evaluated_at', false)
                 ->get();
 
-            // Group by unique prompt text and calculate average G-EVAL scores
+            $hasEvaluations = !empty($result['data']);
+
+            // If no evaluations, fall back to ai_responses
+            if (!$hasEvaluations) {
+                $result = $this->db->from('ai_responses')
+                    ->select('prompt, model_name, created_at')
+                    ->eq('project_id', $topicId)
+                    ->order('created_at', false)
+                    ->get();
+            }
+
+            // Group by unique prompt text
             $promptGroups = [];
             foreach ($result['data'] ?? [] as $r) {
-                $aiResponse = $r['ai_responses'] ?? [];
-                $promptText = trim($aiResponse['prompt'] ?? '');
+                if ($hasEvaluations) {
+                    $aiResponse = $r['ai_responses'] ?? [];
+                    $promptText = trim($aiResponse['prompt'] ?? '');
+                    $modelName = $aiResponse['model_name'] ?? '';
+                    $date = $r['evaluated_at'] ?? $aiResponse['created_at'] ?? '';
+                    $coherence = (float)($r['coherence'] ?? 0);
+                    $consistency = (float)($r['consistency'] ?? 0);
+                    $fluency = (float)($r['fluency'] ?? 0);
+                    $relevance = (float)($r['relevance'] ?? 0);
+                } else {
+                    $promptText = trim($r['prompt'] ?? '');
+                    $modelName = $r['model_name'] ?? '';
+                    $date = $r['created_at'] ?? '';
+                    $coherence = 0;
+                    $consistency = 0;
+                    $fluency = 0;
+                    $relevance = 0;
+                }
+
                 if (empty($promptText)) continue;
 
                 if (!isset($promptGroups[$promptText])) {
@@ -272,18 +300,17 @@ class TopicController extends BaseController
                         'totalFluency' => 0,
                         'totalRelevance' => 0,
                         'count' => 0,
-                        'latestDate' => $r['evaluated_at'] ?? $aiResponse['created_at'] ?? '',
+                        'latestDate' => $date,
                         'models' => [],
                     ];
                 }
 
-                // G-EVAL scores are already 0-100 percentages
-                $promptGroups[$promptText]['totalCoherence'] += (float)($r['coherence'] ?? 0);
-                $promptGroups[$promptText]['totalConsistency'] += (float)($r['consistency'] ?? 0);
-                $promptGroups[$promptText]['totalFluency'] += (float)($r['fluency'] ?? 0);
-                $promptGroups[$promptText]['totalRelevance'] += (float)($r['relevance'] ?? 0);
+                $promptGroups[$promptText]['totalCoherence'] += $coherence;
+                $promptGroups[$promptText]['totalConsistency'] += $consistency;
+                $promptGroups[$promptText]['totalFluency'] += $fluency;
+                $promptGroups[$promptText]['totalRelevance'] += $relevance;
                 $promptGroups[$promptText]['count']++;
-                $promptGroups[$promptText]['models'][$aiResponse['model_name'] ?? ''] = true;
+                $promptGroups[$promptText]['models'][$modelName] = true;
             }
 
             // Convert to array with average scores
