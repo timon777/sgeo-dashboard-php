@@ -239,8 +239,8 @@ class TopicController extends BaseController
         // Calculate model comparison (only on first page, cached)
         $modelStats = [];
         if ($offset === 0) {
-            $modelStats = Cache::remember("topic_model_comparison_{$topicId}", function() use ($result) {
-                return $this->calculateModelComparison($result['data'] ?? []);
+            $modelStats = Cache::remember("topic_model_comparison_{$topicId}", function() use ($result, $topicId) {
+                return $this->calculateModelComparison($result['data'] ?? [], $topicId);
             }, 300);
         }
 
@@ -444,31 +444,61 @@ class TopicController extends BaseController
         ];
     }
 
-    private function calculateModelComparison(array $evaluations): array
+    private function calculateModelComparison(array $evaluations, string $topicId = ''): array
     {
-        $models = [];
+        // Get all models from ai_responses to show all LLMs
+        $allModels = [];
+        if (!empty($topicId)) {
+            $allResponsesResult = $this->db->from('ai_responses')
+                ->select('model_name')
+                ->eq('project_id', $topicId)
+                ->get();
 
+            foreach ($allResponsesResult['data'] ?? [] as $r) {
+                $model = $r['model_name'] ?? 'Unknown';
+                if (!isset($allModels[$model])) {
+                    $allModels[$model] = [
+                        'name' => $model,
+                        'count' => 0,
+                        'totalScore' => 0,
+                        'hasEvaluations' => false,
+                    ];
+                }
+                $allModels[$model]['count']++;
+            }
+        }
+
+        // Add evaluation scores
         foreach ($evaluations as $e) {
             $aiResponse = $e['ai_responses'] ?? [];
             $model = $aiResponse['model_name'] ?? 'Unknown';
-            if (!isset($models[$model])) {
-                $models[$model] = [
+            if (!isset($allModels[$model])) {
+                $allModels[$model] = [
                     'name' => $model,
-                    'count' => 0,
+                    'count' => 1,
                     'totalScore' => 0,
+                    'hasEvaluations' => false,
                 ];
             }
-            $models[$model]['count']++;
-            // avg_score is already 0-100 percentage
-            $models[$model]['totalScore'] += (float)($e['avg_score'] ?? 0);
+            $allModels[$model]['totalScore'] += (float)($e['avg_score'] ?? 0);
+            $allModels[$model]['hasEvaluations'] = true;
+        }
+
+        // Count evaluations per model
+        $evalCounts = [];
+        foreach ($evaluations as $e) {
+            $aiResponse = $e['ai_responses'] ?? [];
+            $model = $aiResponse['model_name'] ?? 'Unknown';
+            $evalCounts[$model] = ($evalCounts[$model] ?? 0) + 1;
         }
 
         $result = [];
-        foreach ($models as $name => $data) {
+        foreach ($allModels as $name => $data) {
+            $evalCount = $evalCounts[$name] ?? 0;
             $result[] = [
                 'name' => $name,
                 'count' => $data['count'],
-                'avgScore' => $data['count'] > 0 ? round($data['totalScore'] / $data['count'], 1) : 0,
+                'avgScore' => $evalCount > 0 ? round($data['totalScore'] / $evalCount, 1) : 0,
             ];
         }
 
