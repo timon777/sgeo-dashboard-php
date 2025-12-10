@@ -127,45 +127,27 @@
 </div>
 
 <!-- Charts Section -->
-<div class="charts-section">
-    <div class="chart-card">
+<div class="charts-section charts-section-single">
+    <div class="chart-card chart-card-wide">
         <div class="chart-header">
             <div>
-                <div class="chart-title">Топ проектов по упоминаниям</div>
-                <div class="chart-description">Количество обработанных запросов по каждому проекту</div>
-            </div>
-            <div class="chart-actions">
-                <button class="chart-action-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7,10 12,15 17,10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                </button>
-                <button class="chart-action-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="1"/>
-                        <circle cx="19" cy="12" r="1"/>
-                        <circle cx="5" cy="12" r="1"/>
-                    </svg>
-                </button>
+                <div class="chart-title">Динамика точности по проектам</div>
+                <div class="chart-description">Изменение средней точности ответов за последние 7 дней</div>
             </div>
         </div>
-        <div class="chart-container">
-            <canvas id="sourcesBarChart"></canvas>
+        <div class="chart-container chart-container-wide">
+            <canvas id="accuracyDynamicsChart"></canvas>
         </div>
-    </div>
-
-    <div class="chart-card">
-        <div class="chart-header">
-            <div>
-                <div class="chart-title">Производительность LLM</div>
-                <div class="chart-description">Средний балл качества ответов по моделям</div>
+        <?php if (!empty($accuracyDynamics['datasets'])): ?>
+        <div class="chart-legend">
+            <?php foreach ($accuracyDynamics['datasets'] as $dataset): ?>
+            <div class="legend-item">
+                <span class="legend-dot" style="background: <?= $dataset['color'] ?>;"></span>
+                <span><?= htmlspecialchars($dataset['label']) ?></span>
             </div>
+            <?php endforeach; ?>
         </div>
-        <div class="chart-container">
-            <canvas id="llmPerformanceChart"></canvas>
-        </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -359,6 +341,7 @@ $jsData = [
     'modelPerformance' => $modelPerformance ?? [],
     'radarData' => $radarData ?? [],
     'sourceStats' => $sourceStats ?? [],
+    'accuracyDynamics' => $accuracyDynamics ?? [],
 ];
 ?>
 <script>
@@ -381,57 +364,74 @@ function initDashboardCharts() {
         pink: '#ec4899'
     };
 
-    // Bar Chart - Top Projects (from real data)
-    const projectLabels = dashboardData.projectData.map(p => p.name);
-    const projectMentions = dashboardData.projectData.map(p => p.mentions);
+    // Line Chart - Accuracy Dynamics by Project
+    const dynamicsData = dashboardData.accuracyDynamics || { labels: [], datasets: [] };
+    const dynamicsDatasets = (dynamicsData.datasets || []).map(ds => ({
+        label: ds.label,
+        data: ds.data,
+        borderColor: ds.color,
+        backgroundColor: ds.color + '20',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: false,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: ds.color,
+        pointBorderColor: isLightTheme() ? '#fff' : '#1a1c22',
+        pointBorderWidth: 2,
+    }));
 
-    new Chart(document.getElementById('sourcesBarChart'), {
-        type: 'bar',
+    new Chart(document.getElementById('accuracyDynamicsChart'), {
+        type: 'line',
         data: {
-            labels: projectLabels.length > 0 ? projectLabels : ['Нет данных'],
-            datasets: [{
-                label: 'Количество упоминаний',
-                data: projectMentions.length > 0 ? projectMentions : [0],
-                backgroundColor: colors.primary,
-                borderRadius: 8,
-                borderSkipped: false,
+            labels: dynamicsData.labels.length > 0 ? dynamicsData.labels : ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+            datasets: dynamicsDatasets.length > 0 ? dynamicsDatasets : [{
+                label: 'Нет данных',
+                data: [0, 0, 0, 0, 0, 0, 0],
+                borderColor: colors.primary,
+                backgroundColor: colors.primary + '20',
+                borderWidth: 2,
+                tension: 0.4,
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: isLightTheme() ? '#fff' : '#1a1c22',
+                    titleColor: themeColors.textStrong,
+                    bodyColor: themeColors.text,
+                    borderColor: themeColors.grid,
+                    borderWidth: 1,
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y + '%';
+                        }
+                    }
+                }
+            },
             scales: {
-                y: { beginAtZero: true, grid: { color: themeColors.grid }, ticks: { color: themeColors.text } },
-                x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45, color: themeColors.text } }
-            }
-        }
-    });
-
-    // Horizontal Bar Chart - LLM Performance (from real data)
-    const llmNames = Object.keys(dashboardData.llmData);
-    const llmScores = llmNames.map(name => dashboardData.llmData[name].score);
-    const llmColors = llmNames.map(name => dashboardData.llmData[name].color);
-
-    new Chart(document.getElementById('llmPerformanceChart'), {
-        type: 'bar',
-        data: {
-            labels: llmNames.length > 0 ? llmNames : ['Нет данных'],
-            datasets: [{
-                data: llmScores.length > 0 ? llmScores : [0],
-                backgroundColor: llmColors.length > 0 ? llmColors : [colors.primary],
-                borderRadius: 8,
-                borderSkipped: false,
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { beginAtZero: true, max: 5, grid: { color: themeColors.grid }, ticks: { color: themeColors.text } },
-                y: { grid: { display: false }, ticks: { color: themeColors.text } }
+                y: {
+                    beginAtZero: false,
+                    min: 50,
+                    max: 100,
+                    grid: { color: themeColors.grid },
+                    ticks: {
+                        color: themeColors.text,
+                        callback: function(value) { return value + '%'; }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: themeColors.text }
+                }
             }
         }
     });

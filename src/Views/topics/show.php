@@ -395,11 +395,13 @@
                     <thead>
                         <tr>
                             <th>Домен</th>
+                            <th>DR</th>
+                            <th>UR</th>
                             <th>Тип</th>
                             <th>Страна</th>
-                            <th>Опыт</th>
                             <th>Эксперт.</th>
-                            <th>Авторитет</th>
+                            <th>Опыт</th>
+                            <th>Авторит.</th>
                             <th>Доверие</th>
                             <th>E-E-A-T</th>
                         </tr>
@@ -412,10 +414,12 @@
                                     <?= htmlspecialchars($source['domain']) ?>
                                 </a>
                             </td>
+                            <td class="mono rank-cell <?= ($source['domainRank'] ?? 0) >= 50 ? 'high' : (($source['domainRank'] ?? 0) >= 20 ? 'medium' : '') ?>"><?= $source['domainRank'] ?? 0 ?></td>
+                            <td class="mono rank-cell <?= ($source['urlRank'] ?? 0) >= 50 ? 'high' : (($source['urlRank'] ?? 0) >= 20 ? 'medium' : '') ?>"><?= $source['urlRank'] ?? 0 ?></td>
                             <td><span class="type-badge <?= $source['type'] ?>"><?= $typeLabels[$source['type']] ?? $source['type'] ?></span></td>
                             <td><?= $source['country'] ?></td>
-                            <td class="mono"><?= $source['experience'] ?></td>
                             <td class="mono"><?= $source['expertise'] ?></td>
+                            <td class="mono"><?= $source['experience'] ?></td>
                             <td class="mono"><?= $source['authority'] ?></td>
                             <td class="mono"><?= $source['trust'] ?></td>
                             <td>
@@ -1113,6 +1117,11 @@
 .eeat-badge.high { background: var(--success-bg); color: var(--success); }
 .eeat-badge.medium { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
 .eeat-badge.low { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+/* Rank cells */
+.rank-cell { font-weight: 600; color: var(--text-tertiary); }
+.rank-cell.high { color: var(--success); }
+.rank-cell.medium { color: var(--warning); }
 
 /* LLM Badge */
 .llm-badge {
