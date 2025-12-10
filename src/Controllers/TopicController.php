@@ -177,11 +177,12 @@ class TopicController extends BaseController
         $responses = [];
         foreach ($result['data'] ?? [] as $r) {
             $aiResponse = $r['ai_responses'] ?? [];
-            // G-EVAL scores are already 0-100 percentages
-            $coherence = (int)($r['coherence'] ?? 0);
-            $consistency = (int)($r['consistency'] ?? 0);
-            $fluency = (int)($r['fluency'] ?? 0);
-            $relevance = (int)($r['relevance'] ?? 0);
+            // G-EVAL individual scores are 1-5 scale, multiply by 20 to get percentage
+            // avg_score is already 0-100 percentage
+            $coherence = (int)(($r['coherence'] ?? 0) * 20);
+            $consistency = (int)(($r['consistency'] ?? 0) * 20);
+            $fluency = (int)(($r['fluency'] ?? 0) * 20);
+            $relevance = (int)(($r['relevance'] ?? 0) * 20);
             $avgScore = (int)($r['avg_score'] ?? 0);
 
             $responses[] = [
@@ -281,10 +282,11 @@ class TopicController extends BaseController
                     $promptText = trim($aiResponse['prompt'] ?? '');
                     $modelName = $aiResponse['model_name'] ?? '';
                     $date = $r['evaluated_at'] ?? $aiResponse['created_at'] ?? '';
-                    $coherence = (float)($r['coherence'] ?? 0);
-                    $consistency = (float)($r['consistency'] ?? 0);
-                    $fluency = (float)($r['fluency'] ?? 0);
-                    $relevance = (float)($r['relevance'] ?? 0);
+                    // G-EVAL individual scores are 1-5 scale, multiply by 20 to get percentage
+                    $coherence = (float)($r['coherence'] ?? 0) * 20;
+                    $consistency = (float)($r['consistency'] ?? 0) * 20;
+                    $fluency = (float)($r['fluency'] ?? 0) * 20;
+                    $relevance = (float)($r['relevance'] ?? 0) * 20;
                 } else {
                     $promptText = trim($r['prompt'] ?? '');
                     $modelName = $r['model_name'] ?? '';
@@ -518,11 +520,12 @@ class TopicController extends BaseController
 
             foreach ($evalsResult['data'] ?? [] as $r) {
                 $aiResponse = $r['ai_responses'] ?? [];
-                // G-EVAL scores are already 0-100 percentages
-                $coherence = (int)($r['coherence'] ?? 0);
-                $consistency = (int)($r['consistency'] ?? 0);
-                $fluency = (int)($r['fluency'] ?? 0);
-                $relevance = (int)($r['relevance'] ?? 0);
+                // G-EVAL individual scores are 1-5 scale, multiply by 20 to get percentage
+                // avg_score is already 0-100 percentage
+                $coherence = (int)(($r['coherence'] ?? 0) * 20);
+                $consistency = (int)(($r['consistency'] ?? 0) * 20);
+                $fluency = (int)(($r['fluency'] ?? 0) * 20);
+                $relevance = (int)(($r['relevance'] ?? 0) * 20);
 
                 $prompts[] = [
                     'id' => $r['ai_response_id'] ?? $r['id'],
@@ -609,16 +612,17 @@ class TopicController extends BaseController
         $prompts = [];
         foreach ($evalsResult['data'] ?? [] as $r) {
             $aiResponse = $r['ai_responses'] ?? [];
+            // G-EVAL individual scores are 1-5 scale, multiply by 20 to get percentage
             $prompts[] = [
                 'id' => $r['ai_response_id'] ?? $r['id'],
                 'text' => $aiResponse['prompt'] ?? '',
                 'shortText' => $this->truncateText($aiResponse['prompt'] ?? '', 100),
                 'model' => $aiResponse['model_name'] ?? '',
                 'date' => $this->formatDate($r['evaluated_at'] ?? ''),
-                'coherence' => (int)($r['coherence'] ?? 0),
-                'consistency' => (int)($r['consistency'] ?? 0),
-                'fluency' => (int)($r['fluency'] ?? 0),
-                'relevance' => (int)($r['relevance'] ?? 0),
+                'coherence' => (int)(($r['coherence'] ?? 0) * 20),
+                'consistency' => (int)(($r['consistency'] ?? 0) * 20),
+                'fluency' => (int)(($r['fluency'] ?? 0) * 20),
+                'relevance' => (int)(($r['relevance'] ?? 0) * 20),
                 'avgScore' => (int)($r['avg_score'] ?? 0),
             ];
         }
