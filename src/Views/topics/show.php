@@ -267,39 +267,11 @@
     <?php elseif ($activeTab === 'prompts'): ?>
     <!-- Prompts Tab -->
     <div class="tab-panel" id="prompts-panel">
-        <!-- Prompts Quality Stats (G-EVAL) -->
-        <div class="section-block">
-            <h3 class="section-title">Качество ответов G-EVAL</h3>
-            <div class="quality-stats">
-                <div class="quality-card">
-                    <div class="quality-label">Связность</div>
-                    <div class="quality-value"><?= $tabData['stats']['avgCoherence'] ?? 0 ?>%</div>
-                    <div class="quality-bar">
-                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgCoherence'] ?? 0 ?>%"></div>
-                    </div>
-                </div>
-                <div class="quality-card">
-                    <div class="quality-label">Согласованность</div>
-                    <div class="quality-value"><?= $tabData['stats']['avgConsistency'] ?? 0 ?>%</div>
-                    <div class="quality-bar">
-                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgConsistency'] ?? 0 ?>%"></div>
-                    </div>
-                </div>
-                <div class="quality-card">
-                    <div class="quality-label">Беглость</div>
-                    <div class="quality-value"><?= $tabData['stats']['avgFluency'] ?? 0 ?>%</div>
-                    <div class="quality-bar">
-                        <div class="quality-bar-fill" style="width: <?= $tabData['stats']['avgFluency'] ?? 0 ?>%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Prompts List -->
         <div class="section-block">
-            <h3 class="section-title">Список промтов <span class="count-badge"><?= $tabData['totalCount'] ?></span></h3>
+            <h3 class="section-title">Список промтов <span class="count-badge"><?= $tabData['totalCount'] ?? 0 ?></span></h3>
             <div class="prompts-list" id="promptsList">
-                <?php foreach ($tabData['prompts'] as $prompt): ?>
+                <?php foreach ($tabData['prompts'] ?? [] as $prompt): ?>
                 <div class="prompt-card">
                     <div class="prompt-header">
                         <span class="llm-badge models-count"><?= $prompt['modelsCount'] ?? 1 ?> LLM</span>
@@ -307,24 +279,6 @@
                         <span class="prompt-date"><?= $prompt['date'] ?></span>
                     </div>
                     <div class="prompt-text"><?= htmlspecialchars($prompt['text']) ?></div>
-                    <div class="prompt-metrics">
-                        <div class="metric-mini">
-                            <span class="metric-label">Связн.</span>
-                            <span class="metric-value"><?= $prompt['coherence'] ?? 0 ?></span>
-                        </div>
-                        <div class="metric-mini">
-                            <span class="metric-label">Согл.</span>
-                            <span class="metric-value"><?= $prompt['consistency'] ?? 0 ?></span>
-                        </div>
-                        <div class="metric-mini">
-                            <span class="metric-label">Бегл.</span>
-                            <span class="metric-value"><?= $prompt['fluency'] ?? 0 ?></span>
-                        </div>
-                        <div class="metric-mini">
-                            <span class="metric-label">Релев.</span>
-                            <span class="metric-value"><?= $prompt['relevance'] ?? 0 ?></span>
-                        </div>
-                    </div>
                 </div>
                 <?php endforeach; ?>
 

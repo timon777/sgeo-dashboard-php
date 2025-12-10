@@ -255,112 +255,53 @@ class TopicController extends BaseController
     private function getTopicPrompts(string $topicId, int $offset = 0, int $limit = 10): array
     {
         // Cache all prompts data, then apply pagination
+        // Prompts don't have G-EVAL scores - only responses do
         $cachedData = Cache::remember("topic_prompts_all_{$topicId}", function() use ($topicId) {
-            // Try to get evaluations with G-EVAL metrics first
-            $result = $this->db->from('evaluations')
-                ->select('coherence, consistency, fluency, relevance, avg_score, evaluated_at, ai_responses!inner(prompt, model_name, project_id, created_at)')
-                ->eq('ai_responses.project_id', $topicId)
-                ->order('evaluated_at', false)
+            // Get all responses to group by unique prompts
+            $result = $this->db->from('ai_responses')
+                ->select('prompt, model_name, created_at')
+                ->eq('project_id', $topicId)
+                ->order('created_at', false)
                 ->get();
-
-            $hasEvaluations = !empty($result['data']);
-
-            // If no evaluations, fall back to ai_responses
-            if (!$hasEvaluations) {
-                $result = $this->db->from('ai_responses')
-                    ->select('prompt, model_name, created_at')
-                    ->eq('project_id', $topicId)
-                    ->order('created_at', false)
-                    ->get();
-            }
 
             // Group by unique prompt text
             $promptGroups = [];
             foreach ($result['data'] ?? [] as $r) {
-                if ($hasEvaluations) {
-                    $aiResponse = $r['ai_responses'] ?? [];
-                    $promptText = trim($aiResponse['prompt'] ?? '');
-                    $modelName = $aiResponse['model_name'] ?? '';
-                    $date = $r['evaluated_at'] ?? $aiResponse['created_at'] ?? '';
-                    // G-EVAL individual scores are 1-5 scale, multiply by 20 to get percentage
-                    $coherence = (float)($r['coherence'] ?? 0) * 20;
-                    $consistency = (float)($r['consistency'] ?? 0) * 20;
-                    $fluency = (float)($r['fluency'] ?? 0) * 20;
-                    $relevance = (float)($r['relevance'] ?? 0) * 20;
-                } else {
-                    $promptText = trim($r['prompt'] ?? '');
-                    $modelName = $r['model_name'] ?? '';
-                    $date = $r['created_at'] ?? '';
-                    $coherence = 0;
-                    $consistency = 0;
-                    $fluency = 0;
-                    $relevance = 0;
-                }
+                $promptText = trim($r['prompt'] ?? '');
+                $modelName = $r['model_name'] ?? '';
+                $date = $r['created_at'] ?? '';
 
                 if (empty($promptText)) continue;
 
                 if (!isset($promptGroups[$promptText])) {
                     $promptGroups[$promptText] = [
                         'text' => $promptText,
-                        'totalCoherence' => 0,
-                        'totalConsistency' => 0,
-                        'totalFluency' => 0,
-                        'totalRelevance' => 0,
                         'count' => 0,
                         'latestDate' => $date,
                         'models' => [],
                     ];
                 }
 
-                $promptGroups[$promptText]['totalCoherence'] += $coherence;
-                $promptGroups[$promptText]['totalConsistency'] += $consistency;
-                $promptGroups[$promptText]['totalFluency'] += $fluency;
-                $promptGroups[$promptText]['totalRelevance'] += $relevance;
                 $promptGroups[$promptText]['count']++;
                 $promptGroups[$promptText]['models'][$modelName] = true;
             }
 
-            // Convert to array with average scores
+            // Convert to array
             $allPrompts = [];
-            $totalCoherence = 0;
-            $totalConsistency = 0;
-            $totalFluency = 0;
-
             foreach ($promptGroups as $text => $group) {
-                $count = $group['count'];
-                $coherence = $count > 0 ? (int)round($group['totalCoherence'] / $count) : 0;
-                $consistency = $count > 0 ? (int)round($group['totalConsistency'] / $count) : 0;
-                $fluency = $count > 0 ? (int)round($group['totalFluency'] / $count) : 0;
-                $relevance = $count > 0 ? (int)round($group['totalRelevance'] / $count) : 0;
-
                 $allPrompts[] = [
                     'id' => md5($text),
                     'text' => $text,
                     'shortText' => mb_strlen($text) > 100 ? mb_substr($text, 0, 100) . '...' : $text,
                     'modelsCount' => count($group['models']),
-                    'responsesCount' => $count,
+                    'responsesCount' => $group['count'],
                     'date' => !empty($group['latestDate']) ? date('d.m.Y', strtotime($group['latestDate'])) : '',
-                    'coherence' => $coherence,
-                    'consistency' => $consistency,
-                    'fluency' => $fluency,
-                    'relevance' => $relevance,
                 ];
-
-                $totalCoherence += $coherence;
-                $totalConsistency += $consistency;
-                $totalFluency += $fluency;
             }
-
-            $totalCount = count($allPrompts);
 
             return [
                 'allPrompts' => $allPrompts,
-                'totalCount' => $totalCount,
-                'stats' => [
-                    'avgCoherence' => $totalCount > 0 ? round($totalCoherence / $totalCount, 1) : 0,
-                    'avgConsistency' => $totalCount > 0 ? round($totalConsistency / $totalCount, 1) : 0,
-                    'avgFluency' => $totalCount > 0 ? round($totalFluency / $totalCount, 1) : 0,
-                ],
+                'totalCount' => count($allPrompts),
             ];
         }, 300); // Cache for 5 minutes
 
@@ -371,7 +312,6 @@ class TopicController extends BaseController
             'prompts' => $prompts,
             'totalCount' => $cachedData['totalCount'],
             'hasMore' => ($offset + $limit) < $cachedData['totalCount'],
-            'stats' => $cachedData['stats'],
         ];
     }
 
