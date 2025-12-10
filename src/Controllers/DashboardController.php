@@ -14,37 +14,42 @@ class DashboardController extends BaseController
 {
     public function index(): void
     {
+        // Clear cache if requested via URL parameter
+        if (isset($_GET['clear_cache']) && $_GET['clear_cache'] === '1') {
+            Cache::flush();
+        }
+
         $aiResponseModel = new AiResponse();
         $evaluationModel = new Evaluation();
         $performanceModel = new ModelPerformance();
         $projectModel = new Project();
         $sourceModel = new Source();
 
-        // Cache expensive queries for 5 minutes
+        // Cache expensive queries for 10 minutes
         $modelPerformance = Cache::remember('dashboard_model_performance', function() use ($performanceModel) {
             return $performanceModel->getMetricsComparison();
-        }, 300);
+        }, 600);
 
         $recentResponses = Cache::remember('dashboard_recent_responses', function() use ($aiResponseModel) {
             return $aiResponseModel->all(10);
-        }, 60);
+        }, 300);
 
         $recentEvaluations = Cache::remember('dashboard_recent_evaluations', function() use ($evaluationModel) {
             return $evaluationModel->recentDetailed(5);
-        }, 60);
+        }, 300);
 
         // Calculate dashboard stats from real data with caching
         $projectCount = Cache::remember('dashboard_project_count', function() use ($projectModel) {
             return $projectModel->count();
-        }, 300);
+        }, 600);
 
         $sourceCount = Cache::remember('dashboard_source_count', function() use ($sourceModel) {
             return $sourceModel->count();
-        }, 300);
+        }, 600);
 
         $responseStats = Cache::remember('dashboard_response_stats', function() use ($aiResponseModel) {
             return $aiResponseModel->getStats();
-        }, 300);
+        }, 600);
 
         $promptCount = $responseStats['total'] ?? 0;
 
@@ -71,10 +76,10 @@ class DashboardController extends BaseController
         // Get project data for bar chart from DB
         $projectData = $this->buildProjectChartData($projectModel);
 
-        // Get trend data (cached for 10 minutes)
+        // Get trend data (cached for 30 minutes - expensive operation)
         $trends = Cache::remember('dashboard_trends', function() {
             return $this->calculateTrends();
-        }, 600);
+        }, 1800);
 
         // Get radar chart data from evaluations
         $radarData = $this->buildRadarChartData($modelPerformance);
@@ -82,7 +87,7 @@ class DashboardController extends BaseController
         // Get source statistics for donut charts (cached for 5 minutes)
         $sourceStats = Cache::remember('dashboard_source_stats', function() use ($sourceModel) {
             return $this->buildSourceStats($sourceModel);
-        }, 300);
+        }, 600);
 
         $this->render('dashboard/index', [
             'pageTitle' => 'Аналитический дашборд',
@@ -191,7 +196,7 @@ class DashboardController extends BaseController
             }
 
             return $projectData;
-        }, 300);
+        }, 600);
     }
 
     private function calculateTrends(): array
@@ -379,31 +384,25 @@ class DashboardController extends BaseController
     {
         $db = new SupabaseClient();
 
-        // Get source counts by country
-        $geoResult = $db->from('sources')
-            ->select('country')
+        // Get all sources with one query instead of multiple
+        $sourcesResult = $db->from('sources')
+            ->select('country, type')
             ->get();
 
         $geoCounts = ['kz' => 0, 'ru' => 0, 'us' => 0, 'other' => 0];
-        if (isset($geoResult['data'])) {
-            foreach ($geoResult['data'] as $source) {
+        $typeCounts = ['media' => 0, 'gov' => 0, 'social' => 0, 'blog' => 0, 'science' => 0];
+
+        if (isset($sourcesResult['data'])) {
+            foreach ($sourcesResult['data'] as $source) {
+                // Count by country
                 $country = strtolower($source['country'] ?? 'other');
                 if (isset($geoCounts[$country])) {
                     $geoCounts[$country]++;
                 } else {
                     $geoCounts['other']++;
                 }
-            }
-        }
 
-        // Get source counts by type
-        $typeResult = $db->from('sources')
-            ->select('type')
-            ->get();
-
-        $typeCounts = ['media' => 0, 'gov' => 0, 'social' => 0, 'blog' => 0, 'science' => 0];
-        if (isset($typeResult['data'])) {
-            foreach ($typeResult['data'] as $source) {
+                // Count by type
                 $type = strtolower($source['type'] ?? 'other');
                 if ($type === 'media' || $type === 'сми') {
                     $typeCounts['media']++;
