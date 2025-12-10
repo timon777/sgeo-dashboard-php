@@ -1208,8 +1208,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 borderColor: 'rgb(16, 185, 129)',
                 borderWidth: 2,
                 pointBackgroundColor: 'rgb(16, 185, 129)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
+                pointBorderColor: isLightTheme() ? '#1a1c22' : '#fff',
+                pointHoverBackgroundColor: isLightTheme() ? '#1a1c22' : '#fff',
                 pointHoverBorderColor: 'rgb(16, 185, 129)',
                 pointRadius: 5
             }]

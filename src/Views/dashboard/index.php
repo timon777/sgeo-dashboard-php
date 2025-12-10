@@ -377,7 +377,7 @@ function initDashboardCharts() {
         pointRadius: 4,
         pointHoverRadius: 6,
         pointBackgroundColor: ds.color,
-        pointBorderColor: isLightTheme() ? '#fff' : '#1a1c22',
+        pointBorderColor: isLightTheme() ? '#1a1c22' : '#fff',
         pointBorderWidth: 2,
     }));
 
