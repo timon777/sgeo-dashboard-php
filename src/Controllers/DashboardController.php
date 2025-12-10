@@ -535,9 +535,7 @@ class DashboardController extends BaseController
             $data = array_map(fn($v) => $v ?? $avg, $data);
 
             $datasets[] = [
-                'label' => mb_strlen($projectNames[$projectId]) > 20
-                    ? mb_substr($projectNames[$projectId], 0, 17) . '...'
-                    : $projectNames[$projectId],
+                'label' => $projectNames[$projectId],
                 'data' => $data,
                 'color' => $colors[$colorIndex % count($colors)],
             ];
