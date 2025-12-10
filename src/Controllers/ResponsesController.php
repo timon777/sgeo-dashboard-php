@@ -24,6 +24,9 @@ class ResponsesController extends BaseController
         // Get initial responses (first page)
         $responses = $this->getResponses(0, 20);
 
+        // Get model comparison stats (cached)
+        $modelComparison = $this->getModelComparison();
+
         $this->render('responses/index', [
             'pageTitle' => 'Ответы LLM',
             'currentPage' => 'responses',
@@ -31,6 +34,7 @@ class ResponsesController extends BaseController
             'responses' => $responses['responses'],
             'totalCount' => $responses['totalCount'],
             'hasMore' => $responses['hasMore'],
+            'modelComparison' => $modelComparison,
         ]);
     }
 
@@ -103,6 +107,58 @@ class ResponsesController extends BaseController
             'totalCount' => $totalCount,
             'hasMore' => ($offset + $limit) < $totalCount,
         ];
+    }
+
+    private function getModelComparison(): array
+    {
+        return Cache::remember('responses_model_comparison', function() {
+            // Get all models and their response counts from ai_responses
+            $allModels = [];
+            $allResponsesResult = $this->db->from('ai_responses')
+                ->select('model_name')
+                ->get();
+
+            foreach ($allResponsesResult['data'] ?? [] as $r) {
+                $model = $r['model_name'] ?? 'Unknown';
+                if (!isset($allModels[$model])) {
+                    $allModels[$model] = [
+                        'name' => $model,
+                        'count' => 0,
+                        'totalScore' => 0,
+                        'evalCount' => 0,
+                    ];
+                }
+                $allModels[$model]['count']++;
+            }
+
+            // Get ALL evaluations to calculate average scores per model
+            $allEvalsResult = $this->db->from('evaluations')
+                ->select('avg_score, ai_responses!inner(model_name)')
+                ->get();
+
+            foreach ($allEvalsResult['data'] ?? [] as $e) {
+                $aiResponse = $e['ai_responses'] ?? [];
+                $model = $aiResponse['model_name'] ?? 'Unknown';
+                if (isset($allModels[$model])) {
+                    $allModels[$model]['totalScore'] += (float)($e['avg_score'] ?? 0);
+                    $allModels[$model]['evalCount']++;
+                }
+            }
+
+            $result = [];
+            foreach ($allModels as $name => $data) {
+                $result[] = [
+                    'name' => $name,
+                    'count' => $data['count'],
+                    'avgScore' => $data['evalCount'] > 0 ? round($data['totalScore'] / $data['evalCount'], 1) : 0,
+                ];
+            }
+
+            // Sort by avgScore desc
+            usort($result, fn($a, $b) => $b['avgScore'] <=> $a['avgScore']);
+
+            return $result;
+        }, 300);
     }
 
     private function truncateText(string $text, int $length): string

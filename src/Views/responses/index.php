@@ -17,13 +17,24 @@
     </div>
 </div>
 
-<!-- Stats -->
-<div class="stats-row">
-    <div class="stat-card">
-        <div class="stat-value"><?= number_format($totalCount) ?></div>
-        <div class="stat-label">Всего ответов</div>
+<!-- Model Comparison -->
+<?php if (!empty($modelComparison)): ?>
+<div class="section-block">
+    <h3 class="section-title">Сравнение моделей</h3>
+    <div class="model-comparison">
+        <?php foreach ($modelComparison as $model): ?>
+        <div class="model-card">
+            <div class="model-name"><?= htmlspecialchars($model['name']) ?></div>
+            <div class="model-score"><?= $model['avgScore'] ?></div>
+            <div class="model-meta"><?= $model['count'] ?> ответов</div>
+            <div class="model-bar">
+                <div class="model-bar-fill" style="width: <?= $model['avgScore'] ?>%"></div>
+            </div>
+        </div>
+        <?php endforeach; ?>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Responses List -->
 <div class="section-block">
@@ -94,28 +105,46 @@
 </div>
 
 <style>
-.stats-row {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 24px;
+/* Model Comparison */
+.model-comparison {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
 }
-.stat-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 20px 24px;
-    min-width: 150px;
+.model-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 20px;
 }
-.stat-value {
-    font-size: 28px;
+.model-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+.model-score {
+    font-size: 32px;
     font-weight: 700;
     color: var(--accent-primary);
     font-family: 'JetBrains Mono', monospace;
 }
-.stat-label {
-    font-size: 13px;
+.model-meta {
+    font-size: 12px;
     color: var(--text-tertiary);
     margin-top: 4px;
+    margin-bottom: 12px;
+}
+.model-bar {
+    height: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.model-bar-fill {
+    height: 100%;
+    background: var(--accent-primary);
+    border-radius: 2px;
+    transition: width 0.5s ease;
 }
 
 .responses-list {

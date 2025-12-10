@@ -135,16 +135,15 @@
         <thead>
             <tr>
                 <th class="sortable" data-sort="domain">Домен <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="domainRank">DR <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="urlRank">UR <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="type">Тип <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="country">Страна <span class="sort-icon"></span></th>
-                <th class="sortable" data-sort="expertise">Экспертиза <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="expertise">Эксперт. <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="experience">Опыт <span class="sort-icon"></span></th>
-                <th class="sortable" data-sort="authority">Авторитет <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="authority">Авторит. <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="trust">Доверие <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="eeat">E-E-A-T <span class="sort-icon"></span></th>
-                <th class="sortable" data-sort="share">Доля % <span class="sort-icon"></span></th>
-                <th>Автор</th>
-                <th>HTTPS</th>
                 <th class="no-sort">Действия</th>
             </tr>
         </thead>
@@ -153,17 +152,24 @@
             <tr data-type="<?= $source['type'] ?>"
                 data-domain="<?= strtolower($source['domain']) ?>"
                 data-country="<?= $source['country'] ?>"
+                data-domainrank="<?= $source['domainRank'] ?>"
+                data-urlrank="<?= $source['urlRank'] ?>"
                 data-expertise="<?= $source['expertise'] ?>"
                 data-experience="<?= $source['experience'] ?>"
                 data-authority="<?= $source['authority'] ?>"
                 data-trust="<?= $source['trust'] ?>"
                 data-eeat="<?= $source['eeat'] ?>"
-                data-share="<?= $source['share'] ?>"
                 data-index="<?= $index ?>">
                 <td>
                     <a href="https://<?= htmlspecialchars($source['domain']) ?>" target="_blank" style="color: var(--accent-primary); text-decoration: none;">
                         <?= htmlspecialchars($source['domain']) ?>
                     </a>
+                </td>
+                <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: <?= $source['domainRank'] >= 50 ? 'var(--success)' : ($source['domainRank'] >= 20 ? 'var(--warning)' : 'var(--text-tertiary)') ?>;">
+                    <?= $source['domainRank'] ?>
+                </td>
+                <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: <?= $source['urlRank'] >= 50 ? 'var(--success)' : ($source['urlRank'] >= 20 ? 'var(--warning)' : 'var(--text-tertiary)') ?>;">
+                    <?= $source['urlRank'] ?>
                 </td>
                 <td>
                     <span class="type-badge <?= $source['type'] ?>">
@@ -182,21 +188,6 @@
                     <span style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: <?= $source['eeat'] >= 85 ? 'var(--success)' : ($source['eeat'] >= 70 ? 'var(--warning)' : 'var(--danger)') ?>;">
                         <?= $source['eeat'] ?>
                     </span>
-                </td>
-                <td style="font-family: 'JetBrains Mono', monospace;"><?= number_format($source['share'], 1) ?>%</td>
-                <td>
-                    <?php if ($source['author']): ?>
-                        <span style="color: var(--success);">✓</span>
-                    <?php else: ?>
-                        <span style="color: var(--text-muted);">—</span>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php if ($source['https']): ?>
-                        <span style="color: var(--success);">✓</span>
-                    <?php else: ?>
-                        <span style="color: var(--danger);">✗</span>
-                    <?php endif; ?>
                 </td>
                 <td>
                     <div style="display: flex; gap: 4px;">
@@ -647,6 +638,8 @@
         'domain' => $s['domain'],
         'type' => $s['type'],
         'country' => $s['country'],
+        'domainRank' => $s['domainRank'],
+        'urlRank' => $s['urlRank'],
         'expertise' => $s['expertise'],
         'experience' => $s['experience'],
         'authority' => $s['authority'],
@@ -1278,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 let bVal = b.dataset[column] || '';
 
                 // Numeric columns
-                const numericCols = ['expertise', 'experience', 'authority', 'trust', 'eeat', 'share'];
+                const numericCols = ['domainRank', 'urlRank', 'expertise', 'experience', 'authority', 'trust', 'eeat', 'share'];
                 if (numericCols.includes(column)) {
                     aVal = parseFloat(aVal) || 0;
                     bVal = parseFloat(bVal) || 0;
