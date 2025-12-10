@@ -20,6 +20,11 @@ class TopicController extends BaseController
 
     public function show(string $id): void
     {
+        // Clear cache if requested via URL parameter
+        if (isset($_GET['clear_cache']) && $_GET['clear_cache'] === '1') {
+            Cache::flush();
+        }
+
         $projectModel = new Project();
         $topic = $projectModel->find($id);
 
