@@ -446,59 +446,52 @@ class TopicController extends BaseController
 
     private function calculateModelComparison(array $evaluations, string $topicId = ''): array
     {
-        // Get all models from ai_responses to show all LLMs
-        $allModels = [];
-        if (!empty($topicId)) {
-            $allResponsesResult = $this->db->from('ai_responses')
-                ->select('model_name')
-                ->eq('project_id', $topicId)
-                ->get();
-
-            foreach ($allResponsesResult['data'] ?? [] as $r) {
-                $model = $r['model_name'] ?? 'Unknown';
-                if (!isset($allModels[$model])) {
-                    $allModels[$model] = [
-                        'name' => $model,
-                        'count' => 0,
-                        'totalScore' => 0,
-                        'hasEvaluations' => false,
-                    ];
-                }
-                $allModels[$model]['count']++;
-            }
+        if (empty($topicId)) {
+            return [];
         }
 
-        // Add evaluation scores
-        foreach ($evaluations as $e) {
-            $aiResponse = $e['ai_responses'] ?? [];
-            $model = $aiResponse['model_name'] ?? 'Unknown';
+        // Get all models and their response counts from ai_responses
+        $allModels = [];
+        $allResponsesResult = $this->db->from('ai_responses')
+            ->select('model_name')
+            ->eq('project_id', $topicId)
+            ->get();
+
+        foreach ($allResponsesResult['data'] ?? [] as $r) {
+            $model = $r['model_name'] ?? 'Unknown';
             if (!isset($allModels[$model])) {
                 $allModels[$model] = [
                     'name' => $model,
-                    'count' => 1,
+                    'count' => 0,
                     'totalScore' => 0,
-                    'hasEvaluations' => false,
+                    'evalCount' => 0,
                 ];
             }
-            $allModels[$model]['totalScore'] += (float)($e['avg_score'] ?? 0);
-            $allModels[$model]['hasEvaluations'] = true;
+            $allModels[$model]['count']++;
         }
 
-        // Count evaluations per model
-        $evalCounts = [];
-        foreach ($evaluations as $e) {
+        // Get ALL evaluations for this project (not just paginated)
+        $allEvalsResult = $this->db->from('evaluations')
+            ->select('avg_score, ai_responses!inner(model_name, project_id)')
+            ->eq('ai_responses.project_id', $topicId)
+            ->get();
+
+        // Add evaluation scores from ALL evaluations
+        foreach ($allEvalsResult['data'] ?? [] as $e) {
             $aiResponse = $e['ai_responses'] ?? [];
             $model = $aiResponse['model_name'] ?? 'Unknown';
-            $evalCounts[$model] = ($evalCounts[$model] ?? 0) + 1;
+            if (isset($allModels[$model])) {
+                $allModels[$model]['totalScore'] += (float)($e['avg_score'] ?? 0);
+                $allModels[$model]['evalCount']++;
+            }
         }
 
         $result = [];
         foreach ($allModels as $name => $data) {
-            $evalCount = $evalCounts[$name] ?? 0;
             $result[] = [
                 'name' => $name,
                 'count' => $data['count'],
-                'avgScore' => $evalCount > 0 ? round($data['totalScore'] / $evalCount, 1) : 0,
+                'avgScore' => $data['evalCount'] > 0 ? round($data['totalScore'] / $data['evalCount'], 1) : 0,
             ];
         }
 
