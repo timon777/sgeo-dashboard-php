@@ -139,7 +139,7 @@
             <canvas id="accuracyDynamicsChart"></canvas>
         </div>
         <?php if (!empty($accuracyDynamics['datasets'])): ?>
-        <div class="chart-legend">
+        <div class="legend" style="margin-top: 16px; justify-content: center;">
             <?php foreach ($accuracyDynamics['datasets'] as $dataset): ?>
             <div class="legend-item">
                 <span class="legend-dot" style="background: <?= $dataset['color'] ?>;"></span>
@@ -381,6 +381,17 @@ function initDashboardCharts() {
         pointBorderWidth: 2,
     }));
 
+    // Calculate dynamic y-axis bounds
+    let allValues = [];
+    (dynamicsData.datasets || []).forEach(ds => {
+        if (ds.data) allValues = allValues.concat(ds.data);
+    });
+    const minVal = allValues.length > 0 ? Math.min(...allValues) : 0;
+    const maxVal = allValues.length > 0 ? Math.max(...allValues) : 100;
+    const padding = 5;
+    const yMin = Math.max(0, Math.floor((minVal - padding) / 5) * 5);
+    const yMax = Math.min(100, Math.ceil((maxVal + padding) / 5) * 5);
+
     new Chart(document.getElementById('accuracyDynamicsChart'), {
         type: 'line',
         data: {
@@ -420,8 +431,8 @@ function initDashboardCharts() {
             scales: {
                 y: {
                     beginAtZero: false,
-                    min: 50,
-                    max: 100,
+                    min: yMin,
+                    max: yMax,
                     grid: { color: themeColors.grid },
                     ticks: {
                         color: themeColors.text,

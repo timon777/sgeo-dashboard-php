@@ -803,6 +803,19 @@ a.sidebar-header:hover,
     position: relative;
 }
 
+.charts-section-single {
+    display: block;
+}
+
+.chart-card-wide {
+    width: 100%;
+}
+
+.chart-container-wide {
+    height: 350px;
+    position: relative;
+}
+
 /* Analysis Grid */
 .analysis-grid {
     display: grid;
