@@ -317,7 +317,7 @@ class TopicController extends BaseController
 
     private function getTopicSources(string $topicId, int $offset = 0, int $limit = 10): array
     {
-        // Get sources linked to this project via project_sources table
+        // Try to get sources linked to this project via project_sources table
         $result = $this->db->from('project_sources')
             ->select('source_id, usage_count, sources(id, domain, type, country, domain_rating, url_rating, expertise_score, experience_score, authority_score, trust_score, eeat_combined)')
             ->eq('project_id', $topicId)
@@ -331,43 +331,93 @@ class TopicController extends BaseController
         $typeStats = [];
         $eeatSum = 0;
 
-        foreach ($result['data'] ?? [] as $ps) {
-            $s = $ps['sources'] ?? [];
-            if (empty($s)) continue;
+        // Check if we got data from project_sources
+        $hasProjectSources = !empty($result['data']);
 
-            $eeat = (int)($s['eeat_combined'] ?? 0);
-            $sources[] = [
-                'id' => $s['id'],
-                'domain' => $s['domain'] ?? '',
-                'type' => $s['type'] ?? 'media',
-                'country' => $s['country'] ?? 'OTHER',
-                'domainRank' => (int)($s['domain_rating'] ?? 0),
-                'urlRank' => (int)($s['url_rating'] ?? 0),
-                'experience' => (int)($s['experience_score'] ?? 0),
-                'expertise' => (int)($s['expertise_score'] ?? 0),
-                'authority' => (int)($s['authority_score'] ?? 0),
-                'trust' => (int)($s['trust_score'] ?? 0),
-                'eeat' => $eeat,
-                'usage_count' => (int)($ps['usage_count'] ?? 1),
-            ];
+        if ($hasProjectSources) {
+            foreach ($result['data'] ?? [] as $ps) {
+                $s = $ps['sources'] ?? [];
+                if (empty($s)) continue;
 
-            $eeatSum += $eeat;
+                $eeat = (int)($s['eeat_combined'] ?? 0);
+                $sources[] = [
+                    'id' => $s['id'],
+                    'domain' => $s['domain'] ?? '',
+                    'type' => $s['type'] ?? 'media',
+                    'country' => $s['country'] ?? 'OTHER',
+                    'domainRank' => (int)($s['domain_rating'] ?? 0),
+                    'urlRank' => (int)($s['url_rating'] ?? 0),
+                    'experience' => (int)($s['experience_score'] ?? 0),
+                    'expertise' => (int)($s['expertise_score'] ?? 0),
+                    'authority' => (int)($s['authority_score'] ?? 0),
+                    'trust' => (int)($s['trust_score'] ?? 0),
+                    'eeat' => $eeat,
+                    'usage_count' => (int)($ps['usage_count'] ?? 1),
+                ];
 
-            // Country stats
-            $country = $s['country'] ?? 'OTHER';
-            $countryStats[$country] = ($countryStats[$country] ?? 0) + 1;
+                $eeatSum += $eeat;
 
-            // Type stats
-            $type = $s['type'] ?? 'media';
-            $typeStats[$type] = ($typeStats[$type] ?? 0) + 1;
+                // Country stats
+                $country = $s['country'] ?? 'OTHER';
+                $countryStats[$country] = ($countryStats[$country] ?? 0) + 1;
+
+                // Type stats
+                $type = $s['type'] ?? 'media';
+                $typeStats[$type] = ($typeStats[$type] ?? 0) + 1;
+            }
+        }
+
+        // Fallback: If project_sources is empty, get sources from global sources table
+        if (empty($sources)) {
+            $fallbackResult = $this->db->from('sources')
+                ->select('id, domain, type, country, domain_rating, url_rating, expertise_score, experience_score, authority_score, trust_score, eeat_combined')
+                ->order('eeat_combined', false)
+                ->offset($offset)
+                ->limit($limit)
+                ->get();
+
+            foreach ($fallbackResult['data'] ?? [] as $s) {
+                $eeat = (int)($s['eeat_combined'] ?? 0);
+                $sources[] = [
+                    'id' => $s['id'],
+                    'domain' => $s['domain'] ?? '',
+                    'type' => $s['type'] ?? 'media',
+                    'country' => $s['country'] ?? 'OTHER',
+                    'domainRank' => (int)($s['domain_rating'] ?? 0),
+                    'urlRank' => (int)($s['url_rating'] ?? 0),
+                    'experience' => (int)($s['experience_score'] ?? 0),
+                    'expertise' => (int)($s['expertise_score'] ?? 0),
+                    'authority' => (int)($s['authority_score'] ?? 0),
+                    'trust' => (int)($s['trust_score'] ?? 0),
+                    'eeat' => $eeat,
+                    'usage_count' => 1,
+                ];
+
+                $eeatSum += $eeat;
+
+                $country = $s['country'] ?? 'OTHER';
+                $countryStats[$country] = ($countryStats[$country] ?? 0) + 1;
+
+                $type = $s['type'] ?? 'media';
+                $typeStats[$type] = ($typeStats[$type] ?? 0) + 1;
+            }
         }
 
         // Get total count
-        $countResult = $this->db->from('project_sources')
-            ->select('source_id')
-            ->eq('project_id', $topicId)
-            ->get();
-        $totalCount = count($countResult['data'] ?? []);
+        $totalCount = 0;
+        if ($hasProjectSources) {
+            $countResult = $this->db->from('project_sources')
+                ->select('source_id')
+                ->eq('project_id', $topicId)
+                ->get();
+            $totalCount = count($countResult['data'] ?? []);
+        } else {
+            // Fallback: count all sources
+            $countResult = $this->db->from('sources')
+                ->select('id')
+                ->get();
+            $totalCount = count($countResult['data'] ?? []);
+        }
 
         $avgEeat = count($sources) > 0 ? round($eeatSum / count($sources), 1) : 0;
 
