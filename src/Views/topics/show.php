@@ -2232,12 +2232,16 @@ document.getElementById('loadMoreSources')?.addEventListener('click', async func
             result.data.sources.forEach(s => {
                 const row = document.createElement('tr');
                 const eeatClass = s.eeat >= 80 ? 'high' : (s.eeat >= 50 ? 'medium' : 'low');
+                const drClass = (s.domainRank || 0) >= 50 ? 'high' : ((s.domainRank || 0) >= 20 ? 'medium' : '');
+                const urClass = (s.urlRank || 0) >= 50 ? 'high' : ((s.urlRank || 0) >= 20 ? 'medium' : '');
                 row.innerHTML = `
                     <td><a href="https://${escapeHtml(s.domain)}" target="_blank" class="domain-link">${escapeHtml(s.domain)}</a></td>
+                    <td class="mono rank-cell ${drClass}">${s.domainRank || 0}</td>
+                    <td class="mono rank-cell ${urClass}">${s.urlRank || 0}</td>
                     <td><span class="type-badge ${s.type}">${typeLabels[s.type] || s.type}</span></td>
                     <td>${s.country}</td>
-                    <td class="mono">${s.experience}</td>
                     <td class="mono">${s.expertise}</td>
+                    <td class="mono">${s.experience}</td>
                     <td class="mono">${s.authority}</td>
                     <td class="mono">${s.trust}</td>
                     <td><span class="eeat-badge ${eeatClass}">${s.eeat}</span></td>
