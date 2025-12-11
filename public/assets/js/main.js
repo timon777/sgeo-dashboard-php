@@ -6,17 +6,11 @@
 let currentLang = localStorage.getItem('sgeo-lang') || 'ru';
 
 function toggleTheme() {
-    const isLight = document.documentElement.classList.toggle('light-theme');
+    const isLight = !document.documentElement.classList.contains('light-theme');
     localStorage.setItem('sgeo-theme', isLight ? 'light' : 'dark');
 
-    // Update charts if they exist
-    if (typeof updateChartsTheme === 'function') {
-        updateChartsTheme();
-    }
-
-    if (typeof SGEO !== 'undefined' && SGEO.Toast) {
-        SGEO.Toast.info(isLight ? 'Светлая тема' : 'Тёмная тема', '');
-    }
+    // Reload page to reinitialize charts with correct theme colors
+    location.reload();
 }
 
 function toggleLanguage() {
