@@ -41,6 +41,16 @@ class Evaluation
             ->get();
     }
 
+    public function byReferenceId(string $referenceId, int $limit = 50): array
+    {
+        return $this->db->from($this->table)
+            ->select('*')
+            ->eq('reference_id', $referenceId)
+            ->order('evaluated_at', false)
+            ->limit($limit)
+            ->get();
+    }
+
     public function byEvaluator(string $evaluatorModel, int $limit = 50): array
     {
         return $this->db->from($this->table)

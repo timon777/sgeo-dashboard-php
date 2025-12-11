@@ -51,6 +51,7 @@ $routes = [
         '/' => ['App\\Controllers\\DashboardController', 'index'],
         '/projects' => ['App\\Controllers\\ProjectsController', 'index'],
         '/projects/{id}' => ['App\\Controllers\\ProjectsController', 'show'],
+        '/topics/{id}' => ['App\\Controllers\\TopicsController', 'show'],
         '/prompts' => ['App\\Controllers\\PromptsController', 'index'],
         '/sources' => ['App\\Controllers\\SourcesController', 'index'],
         '/llm-monitoring' => ['App\\Controllers\\LlmMonitoringController', 'index'],
