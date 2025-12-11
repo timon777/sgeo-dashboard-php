@@ -36,16 +36,40 @@
                 <div class="stat-label">LLM моделей</div>
             </div>
         </div>
-        <div class="topic-stat-card highlight">
-            <div class="stat-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
+        <div class="topic-stat-card topic-gauge-card highlight">
+            <div class="topic-gauge-container">
+                <svg class="topic-gauge-svg" width="120" height="75" viewBox="0 0 120 75">
+                    <defs>
+                        <linearGradient id="topicGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#ef4444"/>
+                            <stop offset="25%" style="stop-color:#f97316"/>
+                            <stop offset="50%" style="stop-color:#fbbf24"/>
+                            <stop offset="75%" style="stop-color:#22c55e"/>
+                            <stop offset="100%" style="stop-color:#22c55e"/>
+                        </linearGradient>
+                        <filter id="topicNeedleShadow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
+                        </filter>
+                    </defs>
+                    <!-- Background arc -->
+                    <path d="M 12 60 A 48 48 0 0 1 108 60"
+                          stroke="var(--border-subtle)" stroke-width="12" fill="none" stroke-linecap="round"/>
+                    <!-- Gradient arc -->
+                    <path d="M 12 60 A 48 48 0 0 1 108 60"
+                          stroke="url(#topicGaugeGradient)" stroke-width="12" fill="none" stroke-linecap="round"/>
+                    <!-- Needle -->
+                    <g id="topicAccuracyNeedle" filter="url(#topicNeedleShadow)">
+                        <line x1="60" y1="60" x2="60" y2="18" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="60" cy="60" r="4" fill="var(--text-primary)"/>
+                        <circle cx="60" cy="60" r="2" fill="var(--text-secondary)"/>
+                    </g>
+                    <!-- Labels -->
+                    <text x="12" y="72" font-size="9" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">0</text>
+                    <text x="108" y="72" font-size="9" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">100</text>
+                    <!-- Value -->
+                    <text x="60" y="52" text-anchor="middle" font-size="18" font-weight="600" fill="var(--text-primary)" id="topicGaugeValue"><?= $stats['avgAccuracy'] ?></text>
                 </svg>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value"><?= $stats['avgAccuracy'] ?>%</div>
-                <div class="stat-label">Точность</div>
+                <div class="topic-gauge-label">Точность</div>
             </div>
         </div>
     </div>
@@ -1495,3 +1519,57 @@ function escapeHtml(text) {
 }
 </script>
 <?php endif; ?>
+
+<!-- Topic Gauge Animation (works on all tabs) -->
+<script>
+(function() {
+    function initTopicGaugeAnimation() {
+        const needle = document.getElementById('topicAccuracyNeedle');
+        const valueText = document.getElementById('topicGaugeValue');
+        if (!needle || !valueText) return;
+
+        const targetValue = parseInt(valueText.textContent) || 0;
+        const startAngle = -90;
+        const targetAngle = -90 + (targetValue / 100) * 180;
+
+        let startTime = null;
+        const duration = 1500;
+
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
+        function animateNeedle(currentTime) {
+            if (!startTime) startTime = currentTime;
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            const easedProgress = easeOutCubic(progress);
+            const currentAngle = startAngle + (targetAngle - startAngle) * easedProgress;
+            const currentValue = Math.round(targetValue * easedProgress);
+
+            needle.setAttribute('transform', `rotate(${currentAngle}, 60, 60)`);
+            valueText.textContent = currentValue;
+
+            if (progress < 1) {
+                requestAnimationFrame(animateNeedle);
+            } else {
+                valueText.textContent = targetValue;
+            }
+        }
+
+        needle.setAttribute('transform', `rotate(${startAngle}, 60, 60)`);
+        valueText.textContent = '0';
+
+        setTimeout(() => {
+            requestAnimationFrame(animateNeedle);
+        }, 300);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTopicGaugeAnimation);
+    } else {
+        initTopicGaugeAnimation();
+    }
+})();
+</script>
