@@ -336,7 +336,7 @@
                 </div>
                 <div class="hero-stat-card orange">
                     <div class="hero-stat-header">
-                        <span class="hero-stat-label">"Не найден" источники</span>
+                        <span class="hero-stat-label">"Не наши" источники</span>
                         <div class="hero-stat-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"/>
