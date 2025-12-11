@@ -57,10 +57,19 @@ $routes = [
         '/trends' => ['App\\Controllers\\TrendsController', 'index'],
         '/reports' => ['App\\Controllers\\ReportsController', 'index'],
         '/settings' => ['App\\Controllers\\SettingsController', 'index'],
+        '/export/sources' => ['App\\Controllers\\SourcesController', 'exportCsv'],
     ],
     'POST' => [
         '/api/prompts' => ['App\\Controllers\\Api\\PromptsApiController', 'store'],
         '/api/evaluations' => ['App\\Controllers\\Api\\EvaluationsApiController', 'store'],
+        '/api/sources' => ['App\\Controllers\\SourcesController', 'store'],
+        '/api/sources/import' => ['App\\Controllers\\SourcesController', 'import'],
+    ],
+    'PUT' => [
+        '/api/sources/{id}' => ['App\\Controllers\\SourcesController', 'update'],
+    ],
+    'DELETE' => [
+        '/api/sources/{id}' => ['App\\Controllers\\SourcesController', 'destroy'],
     ],
 ];
 

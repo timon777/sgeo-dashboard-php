@@ -40,6 +40,11 @@ class Source
             ->single();
     }
 
+    public function findByDomain(string $domain): ?array
+    {
+        return $this->byDomain($domain);
+    }
+
     public function byType(string $type, int $limit = 50): array
     {
         return $this->db->from($this->table)
