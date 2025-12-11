@@ -333,8 +333,11 @@ class TopicController extends BaseController
 
         // Process project_sources data if available
         foreach ($result['data'] ?? [] as $ps) {
+            // Skip if not an array (malformed data)
+            if (!is_array($ps)) continue;
+
             $s = $ps['sources'] ?? [];
-            if (empty($s) || empty($s['id'])) continue;
+            if (!is_array($s) || empty($s) || empty($s['id'])) continue;
 
             $eeat = (int)($s['eeat_combined'] ?? 0);
             $sources[] = [
@@ -376,9 +379,12 @@ class TopicController extends BaseController
                 ->get();
 
             foreach ($fallbackResult['data'] ?? [] as $s) {
+                // Skip if not an array (malformed data)
+                if (!is_array($s)) continue;
+
                 $eeat = (int)($s['eeat_combined'] ?? 0);
                 $sources[] = [
-                    'id' => $s['id'],
+                    'id' => $s['id'] ?? '',
                     'domain' => $s['domain'] ?? '',
                     'type' => $s['type'] ?? 'media',
                     'country' => $s['country'] ?? 'OTHER',
