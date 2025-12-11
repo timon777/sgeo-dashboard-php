@@ -1071,10 +1071,10 @@
 
 .radar-chart-container {
     width: 100%;
-    max-width: 550px;
-    min-width: 450px;
-    height: 400px;
-    padding: 30px;
+    max-width: 420px;
+    min-width: 350px;
+    height: 320px;
+    padding: 10px;
     box-sizing: border-box;
     margin: 0 auto;
     display: flex;
@@ -1085,8 +1085,6 @@
 .radar-chart-container canvas {
     width: 100% !important;
     height: 100% !important;
-    max-width: 340px;
-    max-height: 340px;
 }
 
 .radar-accordion {
@@ -1258,11 +1256,11 @@
     }
 
     .radar-chart-container {
-        max-width: 500px;
-        min-width: 320px;
-        height: 380px;
+        max-width: 380px;
+        min-width: 280px;
+        height: 300px;
         margin: 0 auto;
-        padding: 25px;
+        padding: 10px;
     }
 }
 
@@ -2422,7 +2420,7 @@ if (responsesRadarCanvas) {
     new Chart(responsesRadarCanvas, {
         type: 'radar',
         data: {
-            labels: ['Связность', 'Согласованность', 'Беглость', 'Релевантность'],
+            labels: ['Связность', 'Согласов.', 'Беглость', 'Релевант.'],
             datasets: [{
                 label: 'G-Eval',
                 data: [gEvalData.coherence, gEvalData.consistency, gEvalData.fluency, gEvalData.relevance],
