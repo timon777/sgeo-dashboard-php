@@ -458,6 +458,74 @@
     <?php elseif ($activeTab === 'responses'): ?>
     <!-- Responses Tab -->
     <div class="tab-panel" id="responses-panel">
+        <!-- Radar Chart Section - G-Eval -->
+        <div class="section-block radar-section">
+            <h2 class="section-title-lg">Оценка качества ответов по G-Eval</h2>
+            <p class="section-description">Автоматическая оценка качества ответов LLM по четырём классическим параметрам G-Eval: связность, согласованность, беглость и релевантность.</p>
+
+            <div class="radar-content">
+                <div class="radar-chart-container">
+                    <canvas id="responsesTabRadar"></canvas>
+                </div>
+                <div class="radar-accordion">
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">1. Связность (Coherence)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Насколько логично и последовательно организован ответ. Оценивает связь между предложениями и абзацами.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">2. Согласованность (Consistency)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Отсутствие противоречий в ответе. Проверяет, что факты и утверждения не конфликтуют друг с другом.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">3. Беглость (Fluency)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Качество языка и грамматики. Оценивает читаемость, естественность и правильность текста.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">4. Релевантность (Relevance)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Соответствие ответа заданному вопросу. Измеряет, насколько ответ отвечает на поставленный запрос.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Model Comparison -->
         <?php if (!empty($tabData['modelComparison'])): ?>
         <div class="section-block">
@@ -543,6 +611,74 @@
     <?php elseif ($activeTab === 'prompts'): ?>
     <!-- Prompts Tab -->
     <div class="tab-panel" id="prompts-panel">
+        <!-- Radar Chart Section - Prompt Quality -->
+        <div class="section-block radar-section">
+            <h2 class="section-title-lg">Оценка качества промтов по ключевым критериям</h2>
+            <p class="section-description">Сводная оценка всех промтов проекта по четырём критериям: нейтральность, функциональная стабильность, логическая корректность и анти-галлюцинационный потенциал.</p>
+
+            <div class="radar-content">
+                <div class="radar-chart-container">
+                    <canvas id="promptsTabRadar"></canvas>
+                </div>
+                <div class="radar-accordion">
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">1. Нейтральность (Linguistic Neutrality)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Степень отсутствия в промпте эмоционально, идеологически или коннотативно окрашенных элементов.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">2. Функциональная стабильность (Functional Stability)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Способность промпта обеспечивать сопоставимое поведение разных LLM по структуре, глубине и формату ответа.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">3. Логическая корректность (Logical Soundness)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Степень внутренней непротиворечивости, ясности и логической согласованности инструкции.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">4. Анти-галлюцинационный потенциал (Anti-hallucination Potential)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Способность промпта снижать вероятность генерации галлюцинаций.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Prompt Evaluations Table -->
         <?php if (!empty($tabData['promptEvaluations'])): ?>
         <div class="section-block">
@@ -606,6 +742,74 @@
     <?php elseif ($activeTab === 'sources'): ?>
     <!-- Sources Tab -->
     <div class="tab-panel" id="sources-panel">
+        <!-- Radar Chart Section - E-E-A-T -->
+        <div class="section-block radar-section">
+            <h2 class="section-title-lg">Оценка источников по E-E-A-T</h2>
+            <p class="section-description">Средние показатели качества источников по методологии Google E-E-A-T: Опыт, Экспертность, Авторитетность и Доверие.</p>
+
+            <div class="radar-content">
+                <div class="radar-chart-container">
+                    <canvas id="sourcesTabRadar"></canvas>
+                </div>
+                <div class="radar-accordion">
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">1. Опыт (Experience)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Демонстрация практического опыта автора в рассматриваемой теме. Реальный опыт использования продуктов или услуг.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">2. Экспертность (Expertise)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Глубина профессиональных знаний и квалификации автора. Наличие соответствующего образования и сертификаций.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">3. Авторитетность (Authoritativeness)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Репутация источника в своей области. Признание со стороны других экспертов и авторитетных организаций.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">4. Доверие (Trustworthiness)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Надёжность и честность источника. Прозрачность информации, точность фактов и отсутствие манипуляций.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Sources Stats -->
         <div class="section-block">
             <h3 class="section-title">Статистика источников</h3>
@@ -2190,6 +2394,60 @@ function escapeHtml(text) {
 
 <?php if ($activeTab === 'responses'): ?>
 <script>
+// G-Eval Radar Chart
+const responsesRadarCanvas = document.getElementById('responsesTabRadar');
+if (responsesRadarCanvas) {
+    const gEvalData = {
+        coherence: <?= $tabData['gEvalData']['coherence'] ?? 0 ?>,
+        consistency: <?= $tabData['gEvalData']['consistency'] ?? 0 ?>,
+        fluency: <?= $tabData['gEvalData']['fluency'] ?? 0 ?>,
+        relevance: <?= $tabData['gEvalData']['relevance'] ?? 0 ?>
+    };
+
+    new Chart(responsesRadarCanvas, {
+        type: 'radar',
+        data: {
+            labels: ['Связность', 'Согласованность', 'Беглость', 'Релевантность'],
+            datasets: [{
+                label: 'G-Eval',
+                data: [gEvalData.coherence, gEvalData.consistency, gEvalData.fluency, gEvalData.relevance],
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgb(59, 130, 246)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(59, 130, 246)',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20,
+                        color: '#94a3b8',
+                        backdropColor: 'transparent'
+                    },
+                    grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                    angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
+                    pointLabels: {
+                        color: '#e2e8f0',
+                        font: { size: 12 }
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
 document.getElementById('loadMoreResponses')?.addEventListener('click', async function() {
     const btn = this;
     const topicId = btn.dataset.topicId;
@@ -2249,6 +2507,60 @@ function escapeHtml(text) {
 
 <?php if ($activeTab === 'prompts'): ?>
 <script>
+// Prompt Quality Radar Chart
+const promptsRadarCanvas = document.getElementById('promptsTabRadar');
+if (promptsRadarCanvas) {
+    const radarData = {
+        neutrality: <?= $tabData['radarData']['neutrality'] ?? 0 ?>,
+        stability: <?= $tabData['radarData']['stability'] ?? 0 ?>,
+        soundness: <?= $tabData['radarData']['soundness'] ?? 0 ?>,
+        antiHallucination: <?= $tabData['radarData']['antiHallucination'] ?? 0 ?>
+    };
+
+    new Chart(promptsRadarCanvas, {
+        type: 'radar',
+        data: {
+            labels: ['Нейтральность', 'Функц. стабильность', 'Логич. корректность', 'Анти-галлюцинации'],
+            datasets: [{
+                label: 'Качество промтов',
+                data: [radarData.neutrality, radarData.stability, radarData.soundness, radarData.antiHallucination],
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                borderColor: 'rgb(16, 185, 129)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgb(16, 185, 129)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(16, 185, 129)',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20,
+                        color: '#94a3b8',
+                        backdropColor: 'transparent'
+                    },
+                    grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                    angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
+                    pointLabels: {
+                        color: '#e2e8f0',
+                        font: { size: 12 }
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
 document.getElementById('loadMorePromptEvals')?.addEventListener('click', async function() {
     const btn = this;
     const topicId = btn.dataset.topicId;
@@ -2309,6 +2621,60 @@ function escapeHtml(text) {
 
 <?php if ($activeTab === 'sources'): ?>
 <script>
+// E-E-A-T Radar Chart
+const sourcesRadarCanvas = document.getElementById('sourcesTabRadar');
+if (sourcesRadarCanvas) {
+    const eeatData = {
+        experience: <?= $tabData['eeatData']['experience'] ?? 0 ?>,
+        expertise: <?= $tabData['eeatData']['expertise'] ?? 0 ?>,
+        authoritativeness: <?= $tabData['eeatData']['authoritativeness'] ?? 0 ?>,
+        trustworthiness: <?= $tabData['eeatData']['trustworthiness'] ?? 0 ?>
+    };
+
+    new Chart(sourcesRadarCanvas, {
+        type: 'radar',
+        data: {
+            labels: ['Опыт', 'Экспертность', 'Авторитетность', 'Доверие'],
+            datasets: [{
+                label: 'E-E-A-T',
+                data: [eeatData.experience, eeatData.expertise, eeatData.authoritativeness, eeatData.trustworthiness],
+                backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                borderColor: 'rgb(168, 85, 247)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgb(168, 85, 247)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(168, 85, 247)',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20,
+                        color: '#94a3b8',
+                        backdropColor: 'transparent'
+                    },
+                    grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                    angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
+                    pointLabels: {
+                        color: '#e2e8f0',
+                        font: { size: 12 }
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
 document.getElementById('loadMoreSources')?.addEventListener('click', async function() {
     const btn = this;
     const topicId = btn.dataset.topicId;

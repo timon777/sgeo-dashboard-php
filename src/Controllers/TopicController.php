@@ -247,11 +247,44 @@ class TopicController extends BaseController
             }, 300);
         }
 
+        // Calculate G-Eval radar averages (cached)
+        $gEvalData = Cache::remember("topic_geval_radar_{$topicId}", function() use ($topicId) {
+            $allEvalsResult = $this->db->from('evaluations')
+                ->select('coherence, consistency, fluency, relevance, ai_responses!inner(project_id)')
+                ->eq('ai_responses.project_id', $topicId)
+                ->get();
+
+            $evalCount = count($allEvalsResult['data'] ?? []);
+            if ($evalCount === 0) {
+                return ['coherence' => 0, 'consistency' => 0, 'fluency' => 0, 'relevance' => 0];
+            }
+
+            $totalCoherence = 0;
+            $totalConsistency = 0;
+            $totalFluency = 0;
+            $totalRelevance = 0;
+
+            foreach ($allEvalsResult['data'] ?? [] as $e) {
+                $totalCoherence += (float)($e['coherence'] ?? 0) * 20;
+                $totalConsistency += (float)($e['consistency'] ?? 0) * 20;
+                $totalFluency += (float)($e['fluency'] ?? 0) * 20;
+                $totalRelevance += (float)($e['relevance'] ?? 0) * 20;
+            }
+
+            return [
+                'coherence' => round($totalCoherence / $evalCount),
+                'consistency' => round($totalConsistency / $evalCount),
+                'fluency' => round($totalFluency / $evalCount),
+                'relevance' => round($totalRelevance / $evalCount),
+            ];
+        }, 300);
+
         return [
             'responses' => $responses,
             'modelComparison' => $modelStats,
             'totalCount' => $totalCount,
             'hasMore' => ($offset + $limit) < $totalCount,
+            'gEvalData' => $gEvalData,
         ];
     }
 
@@ -324,6 +357,31 @@ class TopicController extends BaseController
 
         $promptEvalCount = count($promptEvalsData);
 
+        // Calculate radar data averages
+        $avgNeutrality = 0;
+        $avgStability = 0;
+        $avgSoundness = 0;
+        $avgAntiHallucination = 0;
+
+        if ($promptEvalCount > 0) {
+            $totalNeutrality = 0;
+            $totalStability = 0;
+            $totalSoundness = 0;
+            $totalAntiHallucination = 0;
+
+            foreach ($promptEvalsData as $pe) {
+                $totalNeutrality += (int)($pe['neutrality'] ?? 0);
+                $totalStability += (int)($pe['functional_stability'] ?? 0);
+                $totalSoundness += (int)($pe['logical_soundness'] ?? 0);
+                $totalAntiHallucination += (int)($pe['anti_hallucination'] ?? 0);
+            }
+
+            $avgNeutrality = round($totalNeutrality / $promptEvalCount);
+            $avgStability = round($totalStability / $promptEvalCount);
+            $avgSoundness = round($totalSoundness / $promptEvalCount);
+            $avgAntiHallucination = round($totalAntiHallucination / $promptEvalCount);
+        }
+
         return [
             'prompts' => $prompts,
             'totalCount' => $cachedData['totalCount'],
@@ -332,6 +390,13 @@ class TopicController extends BaseController
             'promptEvaluations' => array_slice($promptEvalsData, 0, 10),
             'promptEvaluationsCount' => $promptEvalCount,
             'hasMorePromptEvals' => $promptEvalCount > 10,
+            // Radar data
+            'radarData' => [
+                'neutrality' => $avgNeutrality,
+                'stability' => $avgStability,
+                'soundness' => $avgSoundness,
+                'antiHallucination' => $avgAntiHallucination,
+            ],
         ];
     }
 
@@ -478,6 +543,58 @@ class TopicController extends BaseController
         // Find weak sources (EEAT < 50)
         $weakSources = array_filter($sources, fn($s) => $s['eeat'] < 50);
 
+        // Calculate E-E-A-T radar averages
+        $eeatData = Cache::remember("topic_eeat_radar_{$topicId}", function() use ($topicId) {
+            $sourcesResult = $this->db->from('project_sources')
+                ->select('sources(experience_score, expertise_score, authority_score, trust_score)')
+                ->eq('project_id', $topicId)
+                ->get();
+
+            $data = $sourcesResult['data'] ?? [];
+            if (empty($data)) {
+                // Fallback to global sources
+                $fallback = $this->db->from('sources')
+                    ->select('experience_score, expertise_score, authority_score, trust_score')
+                    ->limit(100)
+                    ->get();
+                $data = $fallback['data'] ?? [];
+                $sourceCount = count($data);
+                if ($sourceCount === 0) {
+                    return ['experience' => 0, 'expertise' => 0, 'authoritativeness' => 0, 'trustworthiness' => 0];
+                }
+                $totalExp = 0; $totalExpertise = 0; $totalAuth = 0; $totalTrust = 0;
+                foreach ($data as $s) {
+                    $totalExp += (float)($s['experience_score'] ?? 0);
+                    $totalExpertise += (float)($s['expertise_score'] ?? 0);
+                    $totalAuth += (float)($s['authority_score'] ?? 0);
+                    $totalTrust += (float)($s['trust_score'] ?? 0);
+                }
+                return [
+                    'experience' => round($totalExp / $sourceCount),
+                    'expertise' => round($totalExpertise / $sourceCount),
+                    'authoritativeness' => round($totalAuth / $sourceCount),
+                    'trustworthiness' => round($totalTrust / $sourceCount),
+                ];
+            }
+
+            $sourceCount = count($data);
+            $totalExp = 0; $totalExpertise = 0; $totalAuth = 0; $totalTrust = 0;
+            foreach ($data as $ps) {
+                $s = $ps['sources'] ?? $ps;
+                $totalExp += (float)($s['experience_score'] ?? 0);
+                $totalExpertise += (float)($s['expertise_score'] ?? 0);
+                $totalAuth += (float)($s['authority_score'] ?? 0);
+                $totalTrust += (float)($s['trust_score'] ?? 0);
+            }
+
+            return [
+                'experience' => round($totalExp / $sourceCount),
+                'expertise' => round($totalExpertise / $sourceCount),
+                'authoritativeness' => round($totalAuth / $sourceCount),
+                'trustworthiness' => round($totalTrust / $sourceCount),
+            ];
+        }, 300);
+
         return [
             'sources' => $sources,
             'totalCount' => $totalCount,
@@ -487,6 +604,7 @@ class TopicController extends BaseController
             'typeStats' => $typeStats,
             'weakSources' => array_values($weakSources),
             'weakCount' => count($weakSources),
+            'eeatData' => $eeatData,
         ];
     }
 
