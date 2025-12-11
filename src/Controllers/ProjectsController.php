@@ -14,6 +14,12 @@ class ProjectsController extends BaseController
         $projects = [];
         if (isset($result['data']) && is_array($result['data'])) {
             foreach ($result['data'] as $p) {
+                // Calculate real accuracy from evaluations if not set
+                $accuracy = (float)($p['accuracy_score'] ?? 0);
+                if ($accuracy === 0.0) {
+                    $accuracy = $projectModel->calculateAccuracyIndex($p['id']);
+                }
+
                 $projects[] = [
                     'id' => $p['id'],
                     'title' => $p['name'],
@@ -21,7 +27,7 @@ class ProjectsController extends BaseController
                     'icon' => $p['icon'],
                     'type' => $p['type'],
                     'badge' => $p['badge'],
-                    'accuracy' => (float)$p['accuracy_score'],
+                    'accuracy' => $accuracy,
                     'trend' => ($p['trend_direction'] === 'up' ? '+' : '-') . abs($p['trend_percent']) . '%',
                     'trendUp' => $p['trend_direction'] === 'up',
                 ];
@@ -48,35 +54,36 @@ class ProjectsController extends BaseController
             return;
         }
 
-        // Project stats (mock data, can be extended with real queries)
-        $stats = [
-            'processedPrompts' => 847,
-            'uniqueSources' => 234,
-            'avgTone' => '+0.42',
-            'llmModels' => 5,
-        ];
+        // Get real project statistics from database
+        $stats = $projectModel->getProjectStats($id);
 
-        // Narratives for this project
-        $narratives = [
-            [
-                'title' => 'Реформаторская повестка',
-                'description' => 'Позиционирование как инициатора глубоких политических и экономических реформ. Отслеживаем нарративы о демократизации, деолигархизации, конституционных изменениях.',
-            ],
-            [
-                'title' => 'Независимая внешняя политика',
-                'description' => 'Анализ упоминаний многовекторной политики, баланса между ключевыми партнёрами и укрепления международного авторитета.',
-            ],
-            [
-                'title' => 'Лидерство в кризисных ситуациях',
-                'description' => 'Мониторинг оценок действий во время кризисных периодов. Оценка восприятия решительности и эффективности.',
-            ],
-        ];
+        // Get real metrics for charts
+        $metrics = $projectModel->getProjectMetrics($id);
+
+        // Get source distribution for charts
+        $sourceDistribution = $projectModel->getSourceDistribution($id);
+
+        // Get LLM distribution for charts
+        $llmDistribution = $projectModel->getLlmDistribution($id);
+
+        // Get narratives from database
+        $narratives = $projectModel->getNarratives($id);
+
+        // Calculate real accuracy index if not set in project
+        $accuracyIndex = (float)($project['accuracy_score'] ?? 0);
+        if ($accuracyIndex === 0.0) {
+            $accuracyIndex = $projectModel->calculateAccuracyIndex($id);
+            $project['accuracy_score'] = $accuracyIndex;
+        }
 
         $this->render('projects/show', [
             'pageTitle' => $project['name'],
             'currentPage' => 'projects',
             'project' => $project,
             'stats' => $stats,
+            'metrics' => $metrics,
+            'sourceDistribution' => $sourceDistribution,
+            'llmDistribution' => $llmDistribution,
             'narratives' => $narratives,
         ]);
     }
