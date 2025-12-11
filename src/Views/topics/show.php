@@ -493,9 +493,14 @@
 }
 
 .topic-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
+    justify-content: center;
     gap: 16px;
+    flex-wrap: wrap;
+}
+
+.topic-stats-grid .topic-stat-card {
+    flex: 0 1 200px;
 }
 
 .topic-stat-card {
@@ -562,18 +567,6 @@
     font-size: 12px;
     color: var(--text-tertiary);
     margin-top: 2px;
-}
-
-@media (max-width: 1200px) {
-    .topic-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 600px) {
-    .topic-stats-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* Content */
