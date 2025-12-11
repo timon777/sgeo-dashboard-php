@@ -3,6 +3,10 @@
  * SGEO Dashboard - Main Entry Point
  */
 
+// Enable error reporting for debugging (remove in production)
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 
 // Autoloader

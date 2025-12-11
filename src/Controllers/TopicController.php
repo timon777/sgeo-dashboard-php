@@ -331,41 +331,40 @@ class TopicController extends BaseController
         $typeStats = [];
         $eeatSum = 0;
 
-        // Check if we got data from project_sources
-        $hasProjectSources = !empty($result['data']);
+        // Process project_sources data if available
+        foreach ($result['data'] ?? [] as $ps) {
+            $s = $ps['sources'] ?? [];
+            if (empty($s) || empty($s['id'])) continue;
 
-        if ($hasProjectSources) {
-            foreach ($result['data'] ?? [] as $ps) {
-                $s = $ps['sources'] ?? [];
-                if (empty($s)) continue;
+            $eeat = (int)($s['eeat_combined'] ?? 0);
+            $sources[] = [
+                'id' => $s['id'],
+                'domain' => $s['domain'] ?? '',
+                'type' => $s['type'] ?? 'media',
+                'country' => $s['country'] ?? 'OTHER',
+                'domainRank' => (int)($s['domain_rating'] ?? 0),
+                'urlRank' => (int)($s['url_rating'] ?? 0),
+                'experience' => (int)($s['experience_score'] ?? 0),
+                'expertise' => (int)($s['expertise_score'] ?? 0),
+                'authority' => (int)($s['authority_score'] ?? 0),
+                'trust' => (int)($s['trust_score'] ?? 0),
+                'eeat' => $eeat,
+                'usage_count' => (int)($ps['usage_count'] ?? 1),
+            ];
 
-                $eeat = (int)($s['eeat_combined'] ?? 0);
-                $sources[] = [
-                    'id' => $s['id'],
-                    'domain' => $s['domain'] ?? '',
-                    'type' => $s['type'] ?? 'media',
-                    'country' => $s['country'] ?? 'OTHER',
-                    'domainRank' => (int)($s['domain_rating'] ?? 0),
-                    'urlRank' => (int)($s['url_rating'] ?? 0),
-                    'experience' => (int)($s['experience_score'] ?? 0),
-                    'expertise' => (int)($s['expertise_score'] ?? 0),
-                    'authority' => (int)($s['authority_score'] ?? 0),
-                    'trust' => (int)($s['trust_score'] ?? 0),
-                    'eeat' => $eeat,
-                    'usage_count' => (int)($ps['usage_count'] ?? 1),
-                ];
+            $eeatSum += $eeat;
 
-                $eeatSum += $eeat;
+            // Country stats
+            $country = $s['country'] ?? 'OTHER';
+            $countryStats[$country] = ($countryStats[$country] ?? 0) + 1;
 
-                // Country stats
-                $country = $s['country'] ?? 'OTHER';
-                $countryStats[$country] = ($countryStats[$country] ?? 0) + 1;
-
-                // Type stats
-                $type = $s['type'] ?? 'media';
-                $typeStats[$type] = ($typeStats[$type] ?? 0) + 1;
-            }
+            // Type stats
+            $type = $s['type'] ?? 'media';
+            $typeStats[$type] = ($typeStats[$type] ?? 0) + 1;
         }
+
+        // Track if we got data from project_sources
+        $hasProjectSources = !empty($sources);
 
         // Fallback: If project_sources is empty, get sources from global sources table
         if (empty($sources)) {
