@@ -2019,10 +2019,10 @@ document.addEventListener('DOMContentLoaded', function() {
         type: 'radar',
         data: {
             labels: [
-                'Нейтральность',
-                'Стабильность',
-                'Корректность',
-                'Анти-галлюц.'
+                'Нейтр.',
+                'Стабил.',
+                'Коррект.',
+                'Анти-гал.'
             ],
             datasets: [{
                 label: 'Оценка промтов',
@@ -2533,7 +2533,7 @@ if (promptsRadarCanvas) {
     new Chart(promptsRadarCanvas, {
         type: 'radar',
         data: {
-            labels: ['Нейтральность', 'Стабильность', 'Корректность', 'Анти-галлюц.'],
+            labels: ['Нейтр.', 'Стабил.', 'Коррект.', 'Анти-гал.'],
             datasets: [{
                 label: 'Качество промтов',
                 data: [radarData.neutrality, radarData.stability, radarData.soundness, radarData.antiHallucination],
