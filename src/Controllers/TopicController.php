@@ -704,25 +704,64 @@ class TopicController extends BaseController
             $evalCount = count($allEvals) > 0 ? count($allEvals) : 1;
             $sourceCount = $totalSources > 0 ? $totalSources : 1;
 
-            // Calculate prompt quality (for radarData - first section)
-            // These are derived from G-Eval but represent prompt quality
+            // Calculate G-Eval averages (for response quality)
             $avgCoherence = round($totalCoherence / $evalCount);
             $avgConsistency = round($totalConsistency / $evalCount);
             $avgFluency = round($totalFluency / $evalCount);
             $avgRelevance = round($totalRelevance / $evalCount);
+
+            // Get prompt evaluations from prompt_evaluations table (for prompt quality radar)
+            $promptEvalsResult = $this->db->from('prompt_evaluations')
+                ->select('*')
+                ->eq('project_id', $topicId)
+                ->order('created_at', false)
+                ->get();
+
+            $promptEvals = $promptEvalsResult['data'] ?? [];
+            $promptEvalCount = count($promptEvals);
+
+            // Calculate prompt quality averages
+            $avgNeutrality = 0;
+            $avgStability = 0;
+            $avgSoundness = 0;
+            $avgAntiHallucination = 0;
+
+            if ($promptEvalCount > 0) {
+                $totalNeutrality = 0;
+                $totalStability = 0;
+                $totalSoundness = 0;
+                $totalAntiHallucination = 0;
+
+                foreach ($promptEvals as $pe) {
+                    $totalNeutrality += (int)($pe['neutrality'] ?? 0);
+                    $totalStability += (int)($pe['functional_stability'] ?? 0);
+                    $totalSoundness += (int)($pe['logical_soundness'] ?? 0);
+                    $totalAntiHallucination += (int)($pe['anti_hallucination'] ?? 0);
+                }
+
+                $avgNeutrality = round($totalNeutrality / $promptEvalCount);
+                $avgStability = round($totalStability / $promptEvalCount);
+                $avgSoundness = round($totalSoundness / $promptEvalCount);
+                $avgAntiHallucination = round($totalAntiHallucination / $promptEvalCount);
+            }
 
             return [
                 'prompts' => $prompts,
                 'totalCount' => $totalCount,
                 'hasMore' => $totalCount > 10,
 
-                // Prompt quality radar (4 params for prompt evaluation)
+                // Prompt quality radar (4 params from prompt_evaluations table)
                 'radarData' => [
-                    'neutrality' => min(100, max(0, round(($avgFluency + $avgConsistency) / 2))),
-                    'stability' => min(100, max(0, round(($avgCoherence + $avgConsistency) / 2))),
-                    'soundness' => min(100, max(0, round(($avgCoherence + $avgRelevance) / 2))),
-                    'antiHallucination' => min(100, max(0, round(($avgConsistency + $avgRelevance) / 2))),
+                    'neutrality' => $avgNeutrality,
+                    'stability' => $avgStability,
+                    'soundness' => $avgSoundness,
+                    'antiHallucination' => $avgAntiHallucination,
                 ],
+
+                // Prompt evaluations list for display
+                'promptEvaluations' => array_slice($promptEvals, 0, 10),
+                'promptEvaluationsCount' => $promptEvalCount,
+                'hasMorePromptEvals' => $promptEvalCount > 10,
 
                 // Response stats (3 hero cards)
                 'responsesStats' => [
@@ -739,9 +778,9 @@ class TopicController extends BaseController
                     'relevance' => $avgRelevance,
                 ],
 
-                // Average G-Eval score for progress bar
+                // Average scores for progress bars
                 'promptQuality' => [
-                    'avgScore' => round(($avgCoherence + $avgConsistency + $avgFluency + $avgRelevance) / 4),
+                    'avgScore' => $promptEvalCount > 0 ? round(($avgNeutrality + $avgStability + $avgSoundness + $avgAntiHallucination) / 4) : 0,
                 ],
 
                 // Sources stats (3 hero cards)
