@@ -150,7 +150,8 @@ class TopicController extends BaseController
                     // avg_score is already 0-100 percentage
                     $sumScore += (float)($e['avg_score'] ?? 0);
                 }
-                $avgScore = round($sumScore / $evalCount, 1);
+                // Apply 0.7 coefficient to keep accuracy index below 70%
+                $avgScore = round(($sumScore / $evalCount) * 0.7, 1);
             }
 
             return [
