@@ -2022,9 +2022,9 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
             labels: [
                 'Нейтральность',
-                'Функц. стабильность',
-                'Логич. корректность',
-                'Анти-галлюцинации'
+                'Стабильность',
+                'Корректность',
+                'Анти-галлюц.'
             ],
             datasets: [{
                 label: 'Оценка промтов',
@@ -2535,7 +2535,7 @@ if (promptsRadarCanvas) {
     new Chart(promptsRadarCanvas, {
         type: 'radar',
         data: {
-            labels: ['Нейтральность', 'Функц. стабильность', 'Логич. корректность', 'Анти-галлюцинации'],
+            labels: ['Нейтральность', 'Стабильность', 'Корректность', 'Анти-галлюц.'],
             datasets: [{
                 label: 'Качество промтов',
                 data: [radarData.neutrality, radarData.stability, radarData.soundness, radarData.antiHallucination],
