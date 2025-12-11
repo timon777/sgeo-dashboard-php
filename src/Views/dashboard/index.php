@@ -97,32 +97,53 @@
         <div class="stat-description">За последние 7 дней</div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-header">
-            <div class="stat-icon-container orange">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2v4"/>
-                    <path d="m16.24 7.76 2.83-2.83"/>
-                    <path d="M22 12h-4"/>
-                    <path d="m16.24 16.24 2.83 2.83"/>
-                    <path d="M12 22v-4"/>
-                    <path d="m7.76 16.24-2.83 2.83"/>
-                    <path d="M2 12h4"/>
-                    <path d="m7.76 7.76-2.83-2.83"/>
-                </svg>
-            </div>
-            <div class="stat-trend <?= ($trends['accuracy']['up'] ?? true) ? 'up' : 'down' ?>">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="<?= ($trends['accuracy']['up'] ?? true) ? 'm18 15-6-6-6 6' : 'm6 9 6 6 6-6' ?>"/>
-                </svg>
-                <?= $trends['accuracy']['value'] ?? '0%' ?>
+    <!-- Gauge Card for Accuracy -->
+    <div class="stat-card gauge-card">
+        <div class="gauge-container">
+            <svg class="gauge-svg" width="180" height="115" viewBox="0 0 180 115">
+                <defs>
+                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#ef4444"/>
+                        <stop offset="25%" style="stop-color:#f97316"/>
+                        <stop offset="50%" style="stop-color:#fbbf24"/>
+                        <stop offset="75%" style="stop-color:#22c55e"/>
+                        <stop offset="100%" style="stop-color:#22c55e"/>
+                    </linearGradient>
+                    <filter id="needleShadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
+                    </filter>
+                </defs>
+
+                <!-- Background arc -->
+                <path d="M 18 90 A 72 72 0 0 1 162 90"
+                      stroke="var(--border-subtle)" stroke-width="20" fill="none" stroke-linecap="round"/>
+
+                <!-- Gradient arc -->
+                <path d="M 18 90 A 72 72 0 0 1 162 90"
+                      stroke="url(#gaugeGradient)" stroke-width="20" fill="none" stroke-linecap="round"/>
+
+                <!-- Needle -->
+                <g id="accuracyNeedle" filter="url(#needleShadow)">
+                    <line x1="90" y1="90" x2="90" y2="25"
+                          stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="90" cy="90" r="6" fill="var(--text-primary)"/>
+                    <circle cx="90" cy="90" r="3" fill="var(--text-secondary)"/>
+                </g>
+
+                <!-- Labels -->
+                <text x="18" y="108" font-size="11" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">0</text>
+                <text x="162" y="108" font-size="11" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">100</text>
+
+                <!-- Value -->
+                <text x="90" y="78" text-anchor="middle" font-size="28" font-weight="600" fill="var(--text-primary)" id="gaugeValue"><?= $stats['averageAccuracy'] ?></text>
+            </svg>
+            <div class="gauge-label">
+                <span class="gauge-title">Индекс точности</span>
+                <span class="gauge-trend <?= ($trends['accuracy']['up'] ?? true) ? 'up' : 'down' ?>">
+                    <?= $trends['accuracy']['value'] ?? '0%' ?>
+                </span>
             </div>
         </div>
-        <div class="stat-content">
-            <div class="stat-label">Средняя точность</div>
-            <div class="stat-value"><?= $stats['averageAccuracy'] ?>%</div>
-        </div>
-        <div class="stat-description">За последние 7 дней</div>
     </div>
 </div>
 
@@ -572,6 +593,55 @@ function initDashboardCharts() {
 }
 
 document.addEventListener('DOMContentLoaded', initDashboardCharts);
+
+// Gauge Animation
+function initGaugeAnimation() {
+    const needle = document.getElementById('accuracyNeedle');
+    const valueText = document.getElementById('gaugeValue');
+    if (!needle || !valueText) return;
+
+    const targetValue = parseInt(valueText.textContent) || 0;
+    const startAngle = -90; // 0% position (left side)
+    const targetAngle = -90 + (targetValue / 100) * 180; // Map 0-100 to -90 to 90 degrees
+
+    let startTime = null;
+    const duration = 1500; // Animation duration in ms
+
+    // Easing function (easeOutCubic)
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    function animateNeedle(currentTime) {
+        if (!startTime) startTime = currentTime;
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        const easedProgress = easeOutCubic(progress);
+        const currentAngle = startAngle + (targetAngle - startAngle) * easedProgress;
+        const currentValue = Math.round(targetValue * easedProgress);
+
+        needle.setAttribute('transform', `rotate(${currentAngle}, 90, 90)`);
+        valueText.textContent = currentValue;
+
+        if (progress < 1) {
+            requestAnimationFrame(animateNeedle);
+        } else {
+            valueText.textContent = targetValue;
+        }
+    }
+
+    // Start with needle at 0 position
+    needle.setAttribute('transform', `rotate(${startAngle}, 90, 90)`);
+    valueText.textContent = '0';
+
+    // Start animation after a short delay
+    setTimeout(() => {
+        requestAnimationFrame(animateNeedle);
+    }, 300);
+}
+
+document.addEventListener('DOMContentLoaded', initGaugeAnimation);
 </script>
 SCRIPTS;
 ?>
