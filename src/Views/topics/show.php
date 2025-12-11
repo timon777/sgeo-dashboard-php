@@ -2002,6 +2002,13 @@
 }
 </style>
 
+<!-- Global theme helper for all charts -->
+<script>
+window.isLightTheme = function() {
+    return document.documentElement.classList.contains('light-theme');
+};
+</script>
+
 <?php if ($activeTab === 'overview'): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
