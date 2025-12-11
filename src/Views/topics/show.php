@@ -2438,7 +2438,7 @@ if (responsesRadarCanvas) {
             responsive: true,
             maintainAspectRatio: true,
             layout: {
-                padding: 20
+                padding: { top: 5, bottom: 5, left: 30, right: 30 }
             },
             scales: {
                 r: {
@@ -2453,7 +2453,8 @@ if (responsesRadarCanvas) {
                     angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
                         color: '#e2e8f0',
-                        font: { size: 11 }
+                        font: { size: 11 },
+                        padding: 5
                     }
                 }
             },
@@ -2554,7 +2555,7 @@ if (promptsRadarCanvas) {
             responsive: true,
             maintainAspectRatio: true,
             layout: {
-                padding: 20
+                padding: { top: 5, bottom: 5, left: 30, right: 30 }
             },
             scales: {
                 r: {
@@ -2569,7 +2570,8 @@ if (promptsRadarCanvas) {
                     angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
                         color: '#e2e8f0',
-                        font: { size: 11 }
+                        font: { size: 11 },
+                        padding: 5
                     }
                 }
             },
@@ -2671,7 +2673,7 @@ if (sourcesRadarCanvas) {
             responsive: true,
             maintainAspectRatio: true,
             layout: {
-                padding: 20
+                padding: { top: 5, bottom: 5, left: 30, right: 30 }
             },
             scales: {
                 r: {
@@ -2686,7 +2688,8 @@ if (sourcesRadarCanvas) {
                     angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
                         color: '#e2e8f0',
-                        font: { size: 11 }
+                        font: { size: 11 },
+                        padding: 5
                     }
                 }
             },
