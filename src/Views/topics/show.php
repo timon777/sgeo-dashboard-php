@@ -2002,13 +2002,6 @@
 }
 </style>
 
-<!-- Global theme helper for all charts -->
-<script>
-window.isLightTheme = function() {
-    return document.documentElement.classList.contains('light-theme');
-};
-</script>
-
 <?php if ($activeTab === 'overview'): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -2414,9 +2407,6 @@ function escapeHtml(text) {
 
 <?php if ($activeTab === 'responses'): ?>
 <script>
-// Theme helper
-const isLightTheme = () => document.documentElement.classList.contains('light-theme');
-
 // G-Eval Radar Chart
 const responsesRadarCanvas = document.getElementById('responsesTabRadar');
 if (responsesRadarCanvas) {
@@ -2534,9 +2524,6 @@ function escapeHtml(text) {
 
 <?php if ($activeTab === 'prompts'): ?>
 <script>
-// Theme helper
-const isLightTheme = () => document.documentElement.classList.contains('light-theme');
-
 // Prompt Quality Radar Chart
 const promptsRadarCanvas = document.getElementById('promptsTabRadar');
 if (promptsRadarCanvas) {
@@ -2655,9 +2642,6 @@ function escapeHtml(text) {
 
 <?php if ($activeTab === 'sources'): ?>
 <script>
-// Theme helper
-const isLightTheme = () => document.documentElement.classList.contains('light-theme');
-
 // E-E-A-T Radar Chart
 const sourcesRadarCanvas = document.getElementById('sourcesTabRadar');
 if (sourcesRadarCanvas) {
