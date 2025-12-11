@@ -165,53 +165,321 @@
             </div>
         </div>
 
-        <!-- Prompts Table -->
+        <!-- Responses Section -->
         <div class="section-block">
-            <div class="table-header-row">
-                <h3 class="section-title">Оценки промтов <span class="count-badge"><?= $tabData['totalCount'] ?? 0 ?></span></h3>
+            <h2 class="section-title-xl">Ответы</h2>
+            <div class="hero-stats-grid">
+                <div class="hero-stat-card blue">
+                    <div class="hero-stat-header">
+                        <span class="hero-stat-label">Всего ответов</span>
+                        <div class="hero-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m5 12 5 5L20 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="hero-stat-value"><?= number_format($tabData['responsesStats']['total'] ?? 35000) ?></div>
+                    <div class="hero-stat-description">Общее количество ответов, сгенерированных LLM по проекту.</div>
+                </div>
+                <div class="hero-stat-card green">
+                    <div class="hero-stat-header">
+                        <span class="hero-stat-label">Корректные ответы</span>
+                        <div class="hero-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="hero-stat-value"><?= number_format($tabData['responsesStats']['correct'] ?? 28000) ?></div>
+                    <div class="hero-stat-description">Ответы, соответствующие запросу, фактически точные, нейтральные, последовательные, без смещений и логических ошибок.</div>
+                </div>
+                <div class="hero-stat-card orange">
+                    <div class="hero-stat-header">
+                        <span class="hero-stat-label">Проблемные ответы</span>
+                        <div class="hero-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="hero-stat-value"><?= number_format($tabData['responsesStats']['problematic'] ?? 7000) ?></div>
+                    <div class="hero-stat-description">Ответы с искажениями: фактические ошибки, политический bias, логические разрывы, эмоциональная окраска, недостоверные выводы.</div>
+                </div>
             </div>
-            <div class="table-container">
-                <table class="table prompts-table" id="overviewPromptsTable">
-                    <thead>
-                        <tr>
-                            <th>Промпт (запрос)</th>
-                            <th>Нейтральн.</th>
-                            <th>Стабильн.</th>
-                            <th>Логичность</th>
-                            <th>Антигаллюц.</th>
-                            <th>Среднее</th>
-                        </tr>
-                    </thead>
-                    <tbody id="overviewPromptsBody">
-                        <?php foreach ($tabData['prompts'] ?? [] as $index => $prompt): ?>
-                        <tr>
-                            <td class="prompt-cell">
-                                <span class="prompt-number">№<?= $index + 1 ?></span>
-                                <a href="#" class="prompt-link"><?= htmlspecialchars($prompt['shortText']) ?></a>
-                            </td>
-                            <td class="score-cell"><?= $prompt['neutrality'] ?? $prompt['coherence'] ?? 0 ?>%</td>
-                            <td class="score-cell"><?= $prompt['stability'] ?? $prompt['consistency'] ?? 0 ?>%</td>
-                            <td class="score-cell"><?= $prompt['soundness'] ?? $prompt['fluency'] ?? 0 ?>%</td>
-                            <td class="score-cell"><?= $prompt['antiHallucination'] ?? $prompt['relevance'] ?? 0 ?>%</td>
-                            <td class="score-cell"><?= $prompt['avgScore'] ?? 0 ?>%</td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+        </div>
+
+        <!-- Prompt Quality Radar Section -->
+        <div class="section-block radar-section">
+            <h2 class="section-title-lg">Оценка качества промтов по пяти ключевым критериям</h2>
+            <p class="section-description">Сводная оценка всех промтов проекта по пяти критериям: конкретность, полнота, нейтральность, однозначность и чёткость задачи. Радар показывает средний профиль качества формулировок.</p>
+
+            <div class="quality-progress-bar">
+                <div class="quality-progress-fill" style="width: <?= $tabData['promptQuality']['avgScore'] ?? 75 ?>%;"></div>
             </div>
-            <?php if ($tabData['hasMore'] ?? false): ?>
-            <div class="load-more-container">
-                <button type="button" class="btn-load-more" id="loadMoreOverview"
-                        data-topic-id="<?= htmlspecialchars($topic['id']) ?>"
-                        data-offset="10"
-                        data-tab="overview">
-                    <span class="btn-text">Загрузить ещё</span>
-                    <span class="btn-loader" style="display:none;">
-                        <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 60"/></svg>
-                    </span>
-                </button>
+
+            <div class="radar-content">
+                <div class="radar-chart-container">
+                    <canvas id="promptQualityRadar2"></canvas>
+                </div>
+                <div class="radar-accordion">
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">1. Конкретность (Specificity)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Степень детализации ответа — насколько чётко модель указывает факты, параметры и связи, избегая общих и размытых формулировок.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">2. Полнота (Completeness)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Насколько ответ охватывает все ключевые аспекты запроса: контекст, аргументы, нюансы и необходимые пояснения, без пропусков и недосказанности.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">3. Соответствие запросу (Relevance)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Степень точности соответствия ответа исходному промпту — отсутствие отклонений от темы, лишних интерпретаций или ухода в парафразы.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">4. Нейтральность (Neutrality)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Отсутствие субъективной оценки, эмоциональной окраски, политического или идеологического смещения, способного исказить содержание.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">5. Ясность и логическая связность (Clarity / Coherence)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Понятность изложения, структурированность аргументации, логическая последовательность и отсутствие противоречий внутри ответа.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">6. Фактическая точность (Factuality)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Корректность приведённых данных и утверждений, отсутствие вымышленных фактов или искажённых интерпретаций (галлюцинаций).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <?php endif; ?>
+        </div>
+
+        <!-- Sources Section -->
+        <div class="section-block">
+            <h2 class="section-title-xl">Источники</h2>
+
+            <!-- Sources Filters -->
+            <div class="sources-filters">
+                <div class="filter-group">
+                    <button class="filter-btn active">Все источники</button>
+                    <button class="filter-btn">Казахстанские</button>
+                    <button class="filter-btn">Зарубежные</button>
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn active">Все LLM</button>
+                    <button class="filter-btn">Copilot</button>
+                    <button class="filter-btn">GPT</button>
+                    <button class="filter-btn">Claude</button>
+                    <button class="filter-btn">Gemini</button>
+                    <button class="filter-btn">Perplexity</button>
+                </div>
+            </div>
+
+            <!-- Sources Stats -->
+            <div class="hero-stats-grid">
+                <div class="hero-stat-card blue">
+                    <div class="hero-stat-header">
+                        <span class="hero-stat-label">Всего источников</span>
+                        <div class="hero-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m5 12 5 5L20 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="hero-stat-value"><?= number_format($tabData['sourcesStats']['total'] ?? 1200) ?></div>
+                    <div class="hero-stat-description">Общее количество уникальных доменов, откуда LLM черпают данные для ответов.</div>
+                </div>
+                <div class="hero-stat-card green">
+                    <div class="hero-stat-header">
+                        <span class="hero-stat-label">"Чаще" источники</span>
+                        <div class="hero-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="hero-stat-value"><?= number_format($tabData['sourcesStats']['frequent'] ?? 1000) ?></div>
+                    <div class="hero-stat-description">Площадки, на которые может оказывать прямое или косвенное влияние.</div>
+                </div>
+                <div class="hero-stat-card orange">
+                    <div class="hero-stat-header">
+                        <span class="hero-stat-label">"Не найден" источники</span>
+                        <div class="hero-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="hero-stat-value"><?= number_format($tabData['sourcesStats']['notFound'] ?? 200) ?></div>
+                    <div class="hero-stat-description">Недоступные медиа и отключённые сайты.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- E-E-A-T Section -->
+        <div class="section-block radar-section">
+            <h2 class="section-title-lg">Комплексная оценка источников по критериям E-E-A-T</h2>
+            <p class="section-description">График отражает агрегированные показатели опыта, экспертизы, авторитетности и надёжности источников, используемых LLM для генерации ответов.</p>
+
+            <div class="radar-content">
+                <div class="radar-chart-container">
+                    <canvas id="eeatRadarChart"></canvas>
+                </div>
+                <div class="radar-accordion">
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">Опыт (Experience)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Степень непосредственного вовлечения автора в предмет описания — наличие личного, практического или эмпирического опыта, подтверждающего, что утверждения основаны на реальном взаимодействии с объектом анализа.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">Экспертиза (Expertise)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Уровень профессиональных знаний автора по теме, подкреплённый профильным образованием, квалификацией или глубоким теоретическим пониманием, позволяющим формировать корректные и квалитативные суждения.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">Авторитетность (Authoritativeness)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Признание источника или автора как значимого голоса в своей области — репутационный вес, цитируемость, институциональная принадлежность или широкое профессиональное признание.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <span class="accordion-title">Надёжность (Trustworthiness)</span>
+                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    Степень достоверности и объективности информации — отсутствие манипулятивных приёмов, ошибок, непроверенных утверждений или конфликтов интересов, подрывающих доверие к контенту.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pie Charts Section -->
+        <div class="section-block">
+            <div class="pie-charts-grid">
+                <div class="pie-chart-card">
+                    <h3 class="pie-chart-title">Географическое распределение источников</h3>
+                    <p class="pie-chart-description">Показывает долю казахстанских, российских, американских и иных доменов, участвующих в формировании ответов LLM. Позволяет оценить географическую структуру информационного поля и степень локального и внешней представленности источников.</p>
+                    <div class="pie-chart-container">
+                        <canvas id="geoDistributionPie"></canvas>
+                    </div>
+                    <div class="pie-legend" id="geoLegend"></div>
+                </div>
+
+                <div class="pie-chart-card">
+                    <h3 class="pie-chart-title">Типология источников по характеру площадок</h3>
+                    <p class="pie-chart-description">Отражает распределение источников по их функциональному типу: СМИ, блоги, социальные сети, государственные ресурсы и другие категории. Позволяет определить, какие типы площадок формируют основную часть информационного контента.</p>
+                    <div class="pie-chart-container">
+                        <canvas id="typeDistributionPie"></canvas>
+                    </div>
+                    <div class="pie-legend" id="typeLegend"></div>
+                </div>
+
+                <div class="pie-chart-card">
+                    <h3 class="pie-chart-title">Распределение источников по моделям LLM</h3>
+                    <p class="pie-chart-description">Показывает, какие группы источников преимущественно используются различными LLM. Позволяет сравнить источниковые профили моделей и выявить различия в их информационной базе.</p>
+                    <div class="pie-chart-container">
+                        <canvas id="llmDistributionPie"></canvas>
+                    </div>
+                    <div class="pie-legend" id="llmLegend"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1201,6 +1469,252 @@
     .topic-tabs { flex-direction: column; }
     .hero-stats { grid-template-columns: 1fr; }
 }
+
+/* Section Title XL */
+.section-title-xl {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+}
+
+/* Hero Stats Grid */
+.hero-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+@media (max-width: 1200px) {
+    .hero-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Hero Stat Card */
+.hero-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 28px;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.hero-stat-card.blue::before {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.hero-stat-card.green::before {
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.hero-stat-card.orange::before {
+    background: linear-gradient(90deg, #f97316, #fb923c);
+}
+
+.hero-stat-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.hero-stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.hero-stat-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.hero-stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-stat-card.blue .hero-stat-icon {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+
+.hero-stat-card.green .hero-stat-icon {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.hero-stat-card.orange .hero-stat-icon {
+    background: rgba(249, 115, 22, 0.15);
+    color: #f97316;
+}
+
+.hero-stat-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.hero-stat-value {
+    font-size: 42px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.1;
+    margin-bottom: 12px;
+}
+
+.hero-stat-card.blue .hero-stat-value {
+    color: #3b82f6;
+}
+
+.hero-stat-card.green .hero-stat-value {
+    color: #22c55e;
+}
+
+.hero-stat-card.orange .hero-stat-value {
+    color: #f97316;
+}
+
+.hero-stat-description {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+}
+
+/* Quality Progress Bar */
+.quality-progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 32px;
+}
+
+.quality-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #22c55e, #4ade80);
+    border-radius: 4px;
+    transition: width 0.8s ease;
+}
+
+/* Sources Filters */
+.sources-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.filter-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-medium);
+}
+
+.filter-btn.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+}
+
+/* Pie Charts Grid */
+.pie-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+@media (max-width: 1200px) {
+    .pie-charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pie-chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    transition: all var(--transition-base);
+}
+
+.pie-chart-card:hover {
+    border-color: var(--border-medium);
+}
+
+.pie-chart-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.pie-chart-description {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.pie-chart-container {
+    height: 200px;
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.pie-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+}
+
+.pie-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.pie-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
 </style>
 
 <?php if ($activeTab === 'overview'): ?>
@@ -1287,6 +1801,266 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
+    });
+
+    // Prompt Quality Radar 2 (6 parameters)
+    const radarCanvas2 = document.getElementById('promptQualityRadar2');
+    if (radarCanvas2) {
+        const radarData2 = <?= json_encode($tabData['radarData2'] ?? [
+            'specificity' => 78,
+            'completeness' => 82,
+            'relevance' => 85,
+            'neutrality' => 75,
+            'clarity' => 80,
+            'factuality' => 72
+        ]) ?>;
+
+        new Chart(radarCanvas2, {
+            type: 'radar',
+            data: {
+                labels: [
+                    'Конкретность',
+                    'Полнота',
+                    'Соответствие',
+                    'Нейтральность',
+                    'Ясность',
+                    'Фактическая точность'
+                ],
+                datasets: [{
+                    label: 'Оценка ответов',
+                    data: [
+                        radarData2.specificity || 78,
+                        radarData2.completeness || 82,
+                        radarData2.relevance || 85,
+                        radarData2.neutrality || 75,
+                        radarData2.clarity || 80,
+                        radarData2.factuality || 72
+                    ],
+                    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                    borderColor: 'rgb(99, 102, 241)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgb(99, 102, 241)',
+                    pointBorderColor: isLightTheme() ? '#1a1c22' : '#fff',
+                    pointHoverBackgroundColor: isLightTheme() ? '#1a1c22' : '#fff',
+                    pointHoverBorderColor: 'rgb(99, 102, 241)',
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: { top: 0, bottom: 0, left: 30, right: 30 }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        min: 0,
+                        ticks: {
+                            stepSize: 20,
+                            font: { size: 10 },
+                            color: '#9ca3af',
+                            backdropColor: 'transparent'
+                        },
+                        grid: { color: 'rgba(156, 163, 175, 0.2)' },
+                        angleLines: { color: 'rgba(156, 163, 175, 0.2)' },
+                        pointLabels: {
+                            font: { size: 11, weight: '500' },
+                            color: '#e5e7eb',
+                            padding: 12
+                        }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // E-E-A-T Radar Chart
+    const eeatCanvas = document.getElementById('eeatRadarChart');
+    if (eeatCanvas) {
+        const eeatData = <?= json_encode($tabData['eeatData'] ?? [
+            'experience' => 72,
+            'expertise' => 78,
+            'authoritativeness' => 68,
+            'trustworthiness' => 75
+        ]) ?>;
+
+        new Chart(eeatCanvas, {
+            type: 'radar',
+            data: {
+                labels: ['Опыт', 'Экспертиза', 'Авторитетность', 'Надёжность'],
+                datasets: [{
+                    label: 'E-E-A-T',
+                    data: [
+                        eeatData.experience || 72,
+                        eeatData.expertise || 78,
+                        eeatData.authoritativeness || 68,
+                        eeatData.trustworthiness || 75
+                    ],
+                    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                    borderColor: 'rgb(139, 92, 246)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgb(139, 92, 246)',
+                    pointBorderColor: isLightTheme() ? '#1a1c22' : '#fff',
+                    pointHoverBackgroundColor: isLightTheme() ? '#1a1c22' : '#fff',
+                    pointHoverBorderColor: 'rgb(139, 92, 246)',
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: { top: 0, bottom: 0, left: 40, right: 40 }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        min: 0,
+                        ticks: {
+                            stepSize: 20,
+                            font: { size: 10 },
+                            color: '#9ca3af',
+                            backdropColor: 'transparent'
+                        },
+                        grid: { color: 'rgba(156, 163, 175, 0.2)' },
+                        angleLines: { color: 'rgba(156, 163, 175, 0.2)' },
+                        pointLabels: {
+                            font: { size: 12, weight: '500' },
+                            color: '#e5e7eb',
+                            padding: 15
+                        }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // Pie Charts
+    const pieColors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+    const pieOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' + context.parsed + '%';
+                    }
+                }
+            }
+        }
+    };
+
+    // Geography Distribution Pie
+    const geoCanvas = document.getElementById('geoDistributionPie');
+    if (geoCanvas) {
+        const geoData = <?= json_encode($tabData['geoDistribution'] ?? [
+            ['label' => 'Казахстан', 'value' => 45],
+            ['label' => 'Россия', 'value' => 25],
+            ['label' => 'США', 'value' => 15],
+            ['label' => 'Другие', 'value' => 15]
+        ]) ?>;
+
+        new Chart(geoCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: geoData.map(d => d.label),
+                datasets: [{
+                    data: geoData.map(d => d.value),
+                    backgroundColor: pieColors.slice(0, geoData.length),
+                    borderWidth: 0
+                }]
+            },
+            options: pieOptions
+        });
+
+        // Build legend
+        const geoLegend = document.getElementById('geoLegend');
+        if (geoLegend) {
+            geoLegend.innerHTML = geoData.map((d, i) =>
+                `<span class="pie-legend-item"><span class="pie-legend-dot" style="background:${pieColors[i]}"></span>${d.label}: ${d.value}%</span>`
+            ).join('');
+        }
+    }
+
+    // Type Distribution Pie
+    const typeCanvas = document.getElementById('typeDistributionPie');
+    if (typeCanvas) {
+        const typeData = <?= json_encode($tabData['typeDistribution'] ?? [
+            ['label' => 'СМИ', 'value' => 40],
+            ['label' => 'Блоги', 'value' => 20],
+            ['label' => 'Гос. сайты', 'value' => 15],
+            ['label' => 'Соцсети', 'value' => 15],
+            ['label' => 'Другие', 'value' => 10]
+        ]) ?>;
+
+        new Chart(typeCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: typeData.map(d => d.label),
+                datasets: [{
+                    data: typeData.map(d => d.value),
+                    backgroundColor: pieColors.slice(0, typeData.length),
+                    borderWidth: 0
+                }]
+            },
+            options: pieOptions
+        });
+
+        const typeLegend = document.getElementById('typeLegend');
+        if (typeLegend) {
+            typeLegend.innerHTML = typeData.map((d, i) =>
+                `<span class="pie-legend-item"><span class="pie-legend-dot" style="background:${pieColors[i]}"></span>${d.label}: ${d.value}%</span>`
+            ).join('');
+        }
+    }
+
+    // LLM Distribution Pie
+    const llmCanvas = document.getElementById('llmDistributionPie');
+    if (llmCanvas) {
+        const llmColors = ['#10a37f', '#4285f4', '#cc965c', '#8b5cf6', '#20b2aa'];
+        const llmData = <?= json_encode($tabData['llmDistribution'] ?? [
+            ['label' => 'GPT', 'value' => 35],
+            ['label' => 'Gemini', 'value' => 25],
+            ['label' => 'Claude', 'value' => 20],
+            ['label' => 'Perplexity', 'value' => 12],
+            ['label' => 'Copilot', 'value' => 8]
+        ]) ?>;
+
+        new Chart(llmCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: llmData.map(d => d.label),
+                datasets: [{
+                    data: llmData.map(d => d.value),
+                    backgroundColor: llmColors.slice(0, llmData.length),
+                    borderWidth: 0
+                }]
+            },
+            options: pieOptions
+        });
+
+        const llmLegend = document.getElementById('llmLegend');
+        if (llmLegend) {
+            llmLegend.innerHTML = llmData.map((d, i) =>
+                `<span class="pie-legend-item"><span class="pie-legend-dot" style="background:${llmColors[i]}"></span>${d.label}: ${d.value}%</span>`
+            ).join('');
+        }
+    }
+
+    // Filter buttons functionality
+    document.querySelectorAll('.sources-filters .filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const group = this.closest('.filter-group');
+            group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
     });
 });
 
