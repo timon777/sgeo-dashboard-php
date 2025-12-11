@@ -2075,7 +2075,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             size: 12,
                             weight: '500'
                         },
-                        color: '#e5e7eb',
+                        color: isLightTheme() ? '#0f172a' : '#f1f5f9',
                         padding: 15
                     }
                 }
@@ -2146,7 +2146,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         angleLines: { color: 'rgba(156, 163, 175, 0.2)' },
                         pointLabels: {
                             font: { size: 11, weight: '500' },
-                            color: '#e5e7eb',
+                            color: isLightTheme() ? '#0f172a' : '#f1f5f9',
                             padding: 12
                         }
                     }
@@ -2209,7 +2209,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         angleLines: { color: 'rgba(156, 163, 175, 0.2)' },
                         pointLabels: {
                             font: { size: 12, weight: '500' },
-                            color: '#e5e7eb',
+                            color: isLightTheme() ? '#0f172a' : '#f1f5f9',
                             padding: 15
                         }
                     }
@@ -2455,7 +2455,7 @@ if (responsesRadarCanvas) {
                     grid: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     angleLines: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
-                        color: isLightTheme() ? '#1e293b' : '#f8fafc',
+                        color: isLightTheme() ? '#0f172a' : '#f1f5f9',
                         font: { size: 11, weight: '500' },
                         padding: 5
                     }
@@ -2575,7 +2575,7 @@ if (promptsRadarCanvas) {
                     grid: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     angleLines: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
-                        color: isLightTheme() ? '#1e293b' : '#f8fafc',
+                        color: isLightTheme() ? '#0f172a' : '#f1f5f9',
                         font: { size: 11, weight: '500' },
                         padding: 5
                     }
@@ -2696,7 +2696,7 @@ if (sourcesRadarCanvas) {
                     grid: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     angleLines: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
-                        color: isLightTheme() ? '#1e293b' : '#f8fafc',
+                        color: isLightTheme() ? '#0f172a' : '#f1f5f9',
                         font: { size: 11, weight: '500' },
                         padding: 5
                     }
