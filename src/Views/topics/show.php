@@ -2002,6 +2002,15 @@
 }
 </style>
 
+<script>
+// Theme helper - must be defined before chart scripts
+if (typeof isLightTheme === 'undefined') {
+    window.isLightTheme = function() {
+        return document.documentElement.classList.contains('light-theme');
+    };
+}
+</script>
+
 <?php if ($activeTab === 'overview'): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
