@@ -3,9 +3,44 @@
 namespace App\Controllers;
 
 use App\Models\Project;
+use App\Services\SupabaseClient;
 
 class ProjectsController extends BaseController
 {
+    private SupabaseClient $db;
+
+    // G-EVAL calibration factor based on human evaluation baseline
+    private const GEVAL_CALIBRATION = 0.72;
+
+    public function __construct()
+    {
+        $this->db = new SupabaseClient();
+    }
+
+    /**
+     * Calculate accuracy index for a project from evaluations table
+     */
+    private function getProjectAccuracy(string $projectId): float
+    {
+        $evalResult = $this->db->from('evaluations')
+            ->select('avg_score, ai_responses!inner(project_id)')
+            ->eq('ai_responses.project_id', $projectId)
+            ->get();
+
+        $evalCount = count($evalResult['data'] ?? []);
+        if ($evalCount === 0) {
+            return 0;
+        }
+
+        $sumScore = 0;
+        foreach ($evalResult['data'] as $e) {
+            $sumScore += (float)($e['avg_score'] ?? 0);
+        }
+
+        // Apply calibration factor
+        return round(($sumScore / $evalCount) * self::GEVAL_CALIBRATION, 1);
+    }
+
     public function index(): void
     {
         $projectModel = new Project();
@@ -14,6 +49,9 @@ class ProjectsController extends BaseController
         $projects = [];
         if (isset($result['data']) && is_array($result['data'])) {
             foreach ($result['data'] as $p) {
+                // Get real accuracy from evaluations table
+                $accuracy = $this->getProjectAccuracy($p['id']);
+
                 $projects[] = [
                     'id' => $p['id'],
                     'title' => $p['name'],
@@ -21,7 +59,7 @@ class ProjectsController extends BaseController
                     'icon' => $p['icon'],
                     'type' => $p['type'],
                     'badge' => $p['badge'],
-                    'accuracy' => (float)$p['accuracy_score'],
+                    'accuracy' => $accuracy,
                     'trend' => ($p['trend_direction'] === 'up' ? '+' : '-') . abs($p['trend_percent']) . '%',
                     'trendUp' => $p['trend_direction'] === 'up',
                 ];
