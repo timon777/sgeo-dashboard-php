@@ -258,7 +258,7 @@ class QueryBuilder
     {
         $this->limit(1);
         $result = $this->get();
-        if (isset($result['data']) && is_array($result['data']) && count($result['data']) > 0) {
+        if (isset($result['data']) && is_array($result['data']) && !empty($result['data']) && isset($result['data'][0])) {
             return $result['data'][0];
         }
         return null;
