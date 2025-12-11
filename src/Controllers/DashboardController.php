@@ -349,32 +349,30 @@ class DashboardController extends BaseController
         // Calculate average for legend
         $avgScore = $count > 0 ? round(array_sum($metrics) / count($metrics), 1) : 0;
 
+        // 4 parameters for each radar chart (matching project pages)
         return [
             'prompts' => [
-                'labels' => ['Конкретность', 'Полнота', 'Нейтральность', 'Однозначность', 'Тип задачи'],
+                'labels' => ['Нейтральность', 'Стабильность', 'Корректность', 'Анти-гал.'],
                 'data' => [
                     $metrics['coherence'],
                     $metrics['consistency'],
                     $metrics['fluency'],
-                    $metrics['relevance'],
-                    round(($metrics['coherence'] + $metrics['fluency']) / 2)
+                    $metrics['relevance']
                 ],
                 'avg' => $avgScore,
             ],
             'answers' => [
-                'labels' => ['Конкретность', 'Полнота', 'Соответствие', 'Нейтральность', 'Ясность', 'Точность'],
+                'labels' => ['Связность', 'Согласованность', 'Беглость', 'Релевантность'],
                 'data' => [
                     $metrics['coherence'],
                     $metrics['consistency'],
-                    $metrics['relevance'],
                     $metrics['fluency'],
-                    round(($metrics['fluency'] + $metrics['coherence']) / 2),
-                    round(($metrics['relevance'] + $metrics['consistency']) / 2)
+                    $metrics['relevance']
                 ],
                 'avg' => $avgScore,
             ],
             'eeat' => [
-                'labels' => ['Опыт', 'Экспертиза', 'Авторитетность', 'Надёжность'],
+                'labels' => ['Опыт', 'Экспертность', 'Авторитетность', 'Доверие'],
                 'data' => [
                     $metrics['coherence'],
                     $metrics['fluency'],

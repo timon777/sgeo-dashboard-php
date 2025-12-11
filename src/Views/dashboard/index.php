@@ -419,10 +419,13 @@ function initDashboardCharts() {
         }
     });
 
-    // Radar Charts
+    // Radar Charts (4 parameters each, matching project pages)
     const radarOptions = {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+            padding: { top: 10, bottom: 10, left: 40, right: 40 }
+        },
         plugins: { legend: { display: false } },
         scales: {
             r: {
@@ -431,7 +434,7 @@ function initDashboardCharts() {
                 ticks: { stepSize: 20, backdropColor: 'transparent', color: themeColors.text },
                 grid: { color: themeColors.gridStrong },
                 angleLines: { color: themeColors.gridStrong },
-                pointLabels: { font: { size: 10 }, color: themeColors.textStrong }
+                pointLabels: { font: { size: 11, weight: '500' }, color: themeColors.textStrong, padding: 10 }
             }
         }
     };
