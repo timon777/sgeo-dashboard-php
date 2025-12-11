@@ -319,7 +319,7 @@ class TopicController extends BaseController
     {
         // Try to get sources linked to this project via project_sources table
         $result = $this->db->from('project_sources')
-            ->select('source_id, usage_count, sources(id, domain, type, country, domain_rating, url_rating, expertise_score, experience_score, authority_score, trust_score, eeat_combined)')
+            ->select('source_id, usage_count, sources(id, domain, type, country, expertise_score, experience_score, authority_score, trust_score, eeat_combined)')
             ->eq('project_id', $topicId)
             ->order('usage_count', false)
             ->offset($offset)
@@ -345,8 +345,8 @@ class TopicController extends BaseController
                 'domain' => $s['domain'] ?? '',
                 'type' => $s['type'] ?? 'media',
                 'country' => $s['country'] ?? 'OTHER',
-                'domainRank' => (int)($s['domain_rating'] ?? 0),
-                'urlRank' => (int)($s['url_rating'] ?? 0),
+                'domainRank' => 0,
+                'urlRank' => 0,
                 'experience' => (int)($s['experience_score'] ?? 0),
                 'expertise' => (int)($s['expertise_score'] ?? 0),
                 'authority' => (int)($s['authority_score'] ?? 0),
@@ -372,7 +372,7 @@ class TopicController extends BaseController
         // Fallback: If project_sources is empty, get sources from global sources table
         if (empty($sources)) {
             $fallbackResult = $this->db->from('sources')
-                ->select('id, domain, type, country, domain_rating, url_rating, expertise_score, experience_score, authority_score, trust_score, eeat_combined')
+                ->select('id, domain, type, country, expertise_score, experience_score, authority_score, trust_score, eeat_combined')
                 ->order('eeat_combined', false)
                 ->offset($offset)
                 ->limit($limit)
@@ -388,8 +388,8 @@ class TopicController extends BaseController
                     'domain' => $s['domain'] ?? '',
                     'type' => $s['type'] ?? 'media',
                     'country' => $s['country'] ?? 'OTHER',
-                    'domainRank' => (int)($s['domain_rating'] ?? 0),
-                    'urlRank' => (int)($s['url_rating'] ?? 0),
+                    'domainRank' => 0,
+                    'urlRank' => 0,
                     'experience' => (int)($s['experience_score'] ?? 0),
                     'expertise' => (int)($s['expertise_score'] ?? 0),
                     'authority' => (int)($s['authority_score'] ?? 0),
