@@ -1071,9 +1071,11 @@
 
 .radar-chart-container {
     width: 100%;
-    max-width: 480px;
-    height: 300px;
-    padding: 0;
+    max-width: 520px;
+    min-width: 400px;
+    height: 350px;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .radar-accordion {
@@ -1245,9 +1247,11 @@
     }
 
     .radar-chart-container {
-        max-width: 400px;
-        height: 280px;
+        max-width: 450px;
+        min-width: 320px;
+        height: 320px;
         margin: 0 auto;
+        padding: 15px;
     }
 }
 
