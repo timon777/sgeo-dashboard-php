@@ -1,3 +1,51 @@
+<!-- Hero Gauge Section -->
+<div class="hero-gauge-section">
+    <div class="hero-gauge-card">
+        <div class="hero-gauge-container">
+            <svg class="hero-gauge-svg" width="320" height="200" viewBox="0 0 320 200">
+                <defs>
+                    <linearGradient id="topicGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#ef4444"/>
+                        <stop offset="25%" style="stop-color:#f97316"/>
+                        <stop offset="50%" style="stop-color:#fbbf24"/>
+                        <stop offset="75%" style="stop-color:#22c55e"/>
+                        <stop offset="100%" style="stop-color:#22c55e"/>
+                    </linearGradient>
+                    <filter id="topicNeedleShadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+                    </filter>
+                </defs>
+
+                <!-- Background arc -->
+                <path d="M 30 160 A 130 130 0 0 1 290 160"
+                      stroke="var(--border-subtle)" stroke-width="28" fill="none" stroke-linecap="round"/>
+
+                <!-- Gradient arc -->
+                <path d="M 30 160 A 130 130 0 0 1 290 160"
+                      stroke="url(#topicGaugeGradient)" stroke-width="28" fill="none" stroke-linecap="round"/>
+
+                <!-- Needle -->
+                <g id="topicAccuracyNeedle" filter="url(#topicNeedleShadow)">
+                    <line x1="160" y1="160" x2="160" y2="45"
+                          stroke="var(--text-primary)" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="160" cy="160" r="10" fill="var(--text-primary)"/>
+                    <circle cx="160" cy="160" r="5" fill="var(--text-secondary)"/>
+                </g>
+
+                <!-- Labels -->
+                <text x="30" y="185" font-size="14" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">0</text>
+                <text x="290" y="185" font-size="14" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">100</text>
+
+                <!-- Value -->
+                <text x="160" y="140" text-anchor="middle" font-size="48" font-weight="700" fill="var(--text-primary)" id="topicGaugeValue"><?= $stats['avgAccuracy'] ?></text>
+            </svg>
+            <div class="hero-gauge-label">
+                <span class="hero-gauge-title">Индекс точности</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Topic Stats Header -->
 <div class="topic-stats-header">
     <div class="topic-stats-grid">
@@ -34,42 +82,6 @@
             <div class="stat-content">
                 <div class="stat-value"><?= number_format($stats['modelsCount']) ?></div>
                 <div class="stat-label">LLM моделей</div>
-            </div>
-        </div>
-        <div class="topic-stat-card topic-gauge-card highlight">
-            <div class="topic-gauge-container">
-                <svg class="topic-gauge-svg" width="120" height="75" viewBox="0 0 120 75">
-                    <defs>
-                        <linearGradient id="topicGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#ef4444"/>
-                            <stop offset="25%" style="stop-color:#f97316"/>
-                            <stop offset="50%" style="stop-color:#fbbf24"/>
-                            <stop offset="75%" style="stop-color:#22c55e"/>
-                            <stop offset="100%" style="stop-color:#22c55e"/>
-                        </linearGradient>
-                        <filter id="topicNeedleShadow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
-                        </filter>
-                    </defs>
-                    <!-- Background arc -->
-                    <path d="M 12 60 A 48 48 0 0 1 108 60"
-                          stroke="var(--border-subtle)" stroke-width="12" fill="none" stroke-linecap="round"/>
-                    <!-- Gradient arc -->
-                    <path d="M 12 60 A 48 48 0 0 1 108 60"
-                          stroke="url(#topicGaugeGradient)" stroke-width="12" fill="none" stroke-linecap="round"/>
-                    <!-- Needle -->
-                    <g id="topicAccuracyNeedle" filter="url(#topicNeedleShadow)">
-                        <line x1="60" y1="60" x2="60" y2="18" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="60" cy="60" r="4" fill="var(--text-primary)"/>
-                        <circle cx="60" cy="60" r="2" fill="var(--text-secondary)"/>
-                    </g>
-                    <!-- Labels -->
-                    <text x="12" y="72" font-size="9" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">0</text>
-                    <text x="108" y="72" font-size="9" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">100</text>
-                    <!-- Value -->
-                    <text x="60" y="52" text-anchor="middle" font-size="18" font-weight="600" fill="var(--text-primary)" id="topicGaugeValue"><?= $stats['avgAccuracy'] ?></text>
-                </svg>
-                <div class="topic-gauge-label">Точность</div>
             </div>
         </div>
     </div>
@@ -1548,7 +1560,7 @@ function escapeHtml(text) {
             const currentAngle = startAngle + (targetAngle - startAngle) * easedProgress;
             const currentValue = Math.round(targetValue * easedProgress);
 
-            needle.setAttribute('transform', `rotate(${currentAngle}, 60, 60)`);
+            needle.setAttribute('transform', `rotate(${currentAngle}, 160, 160)`);
             valueText.textContent = currentValue;
 
             if (progress < 1) {
@@ -1558,7 +1570,7 @@ function escapeHtml(text) {
             }
         }
 
-        needle.setAttribute('transform', `rotate(${startAngle}, 60, 60)`);
+        needle.setAttribute('transform', `rotate(${startAngle}, 160, 160)`);
         valueText.textContent = '0';
 
         setTimeout(() => {
