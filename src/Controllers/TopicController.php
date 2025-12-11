@@ -13,20 +13,9 @@ class TopicController extends BaseController
 {
     private SupabaseClient $db;
 
-    // G-EVAL calibration factor based on human evaluation baseline
-    private const GEVAL_CALIBRATION = 0.72;
-
     public function __construct()
     {
         $this->db = new SupabaseClient();
-    }
-
-    /**
-     * Calibrate G-EVAL score against human evaluation baseline
-     */
-    private function calibrateScore(float $score): float
-    {
-        return round($score * self::GEVAL_CALIBRATION, 1);
     }
 
     public function show(string $id): void

@@ -9,9 +9,6 @@ class ProjectsController extends BaseController
 {
     private SupabaseClient $db;
 
-    // G-EVAL calibration factor based on human evaluation baseline
-    private const GEVAL_CALIBRATION = 0.72;
-
     public function __construct()
     {
         $this->db = new SupabaseClient();
@@ -37,8 +34,7 @@ class ProjectsController extends BaseController
             $sumScore += (float)($e['avg_score'] ?? 0);
         }
 
-        // Apply calibration factor
-        return round(($sumScore / $evalCount) * self::GEVAL_CALIBRATION, 1);
+        return round($sumScore / $evalCount, 1);
     }
 
     public function index(): void
