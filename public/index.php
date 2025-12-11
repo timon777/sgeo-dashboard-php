@@ -116,6 +116,7 @@ $routes = [
         '/api/settings/change-password' => ['App\\Controllers\\SettingsController', 'changePassword'],
         '/api/settings/reset-statistics' => ['App\\Controllers\\SettingsController', 'resetStatistics'],
         '/api/settings/delete-all-data' => ['App\\Controllers\\SettingsController', 'deleteAllData'],
+        '/api/settings/seed-prompt-evaluations' => ['App\\Controllers\\SettingsController', 'seedPromptEvaluations'],
         '/api/settings/api-keys' => ['App\\Controllers\\SettingsController', 'createApiKey'],
 
         // API CRUD
