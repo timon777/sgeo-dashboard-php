@@ -1066,16 +1066,27 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 40px;
-    align-items: start;
+    align-items: center;
 }
 
 .radar-chart-container {
     width: 100%;
-    max-width: 520px;
-    min-width: 400px;
-    height: 350px;
-    padding: 20px;
+    max-width: 550px;
+    min-width: 450px;
+    height: 400px;
+    padding: 30px;
     box-sizing: border-box;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.radar-chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 340px;
+    max-height: 340px;
 }
 
 .radar-accordion {
@@ -1247,11 +1258,11 @@
     }
 
     .radar-chart-container {
-        max-width: 450px;
+        max-width: 500px;
         min-width: 320px;
-        height: 320px;
+        height: 380px;
         margin: 0 auto;
-        padding: 15px;
+        padding: 25px;
     }
 }
 
