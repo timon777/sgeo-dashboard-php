@@ -34,8 +34,8 @@ class SourcesController extends BaseController
                     'domain' => $s['domain'],
                     'type' => $s['type'] ?? 'media',
                     'country' => $s['country'] ?? 'OTHER',
-                    'domainRank' => 0,
-                    'urlRank' => 0,
+                    'domainRating' => (int)($s['domain_rating'] ?? 0),
+                    'urlRating' => (int)($s['url_rating'] ?? 0),
                     'expertise' => (int)($s['expertise_score'] ?? 0),
                     'experience' => (int)($s['experience_score'] ?? 0),
                     'authority' => (int)($s['authority_score'] ?? 0),
@@ -121,6 +121,8 @@ class SourcesController extends BaseController
             'share_percent' => (float)($data['share_percent'] ?? 0),
             'has_author' => (bool)($data['has_author'] ?? false),
             'has_https' => (bool)($data['has_https'] ?? true),
+            'domain_rating' => (int)($data['domain_rating'] ?? 0),
+            'url_rating' => (int)($data['url_rating'] ?? 0),
         ]);
 
         if ($result['status'] >= 200 && $result['status'] < 300) {
@@ -164,6 +166,8 @@ class SourcesController extends BaseController
         if (isset($data['share_percent'])) $updateData['share_percent'] = (float)$data['share_percent'];
         if (isset($data['has_author'])) $updateData['has_author'] = (bool)$data['has_author'];
         if (isset($data['has_https'])) $updateData['has_https'] = (bool)$data['has_https'];
+        if (isset($data['domain_rating'])) $updateData['domain_rating'] = (int)$data['domain_rating'];
+        if (isset($data['url_rating'])) $updateData['url_rating'] = (int)$data['url_rating'];
 
         // Recalculate E-E-A-T if any score changed
         if (isset($data['expertise_score']) || isset($data['experience_score']) ||
@@ -258,6 +262,8 @@ class SourcesController extends BaseController
                 'share_percent' => (float)($sourceData['share_percent'] ?? 0),
                 'has_author' => (bool)($sourceData['has_author'] ?? false),
                 'has_https' => (bool)($sourceData['has_https'] ?? true),
+                'domain_rating' => (int)($sourceData['domain_rating'] ?? 0),
+                'url_rating' => (int)($sourceData['url_rating'] ?? 0),
             ];
 
             // If E-E-A-T combined is 0, calculate it
@@ -326,7 +332,7 @@ class SourcesController extends BaseController
         $output = fopen('php://output', 'w');
         fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 
-        fputcsv($output, ['Домен', 'Тип', 'Страна', 'Экспертиза', 'Опыт', 'Авторитетность', 'Доверие', 'E-E-A-T', 'Доля (%)', 'Автор', 'HTTPS']);
+        fputcsv($output, ['Домен', 'Тип', 'Страна', 'Domain Rating', 'URL Rating', 'Экспертиза', 'Опыт', 'Авторитетность', 'Доверие', 'E-E-A-T', 'Доля (%)', 'Автор', 'HTTPS']);
 
         if (isset($result['data'])) {
             foreach ($result['data'] as $s) {
@@ -334,6 +340,8 @@ class SourcesController extends BaseController
                     $s['domain'],
                     $s['type'],
                     $s['country'],
+                    $s['domain_rating'] ?? 0,
+                    $s['url_rating'] ?? 0,
                     $s['expertise_score'],
                     $s['experience_score'],
                     $s['authority_score'],
