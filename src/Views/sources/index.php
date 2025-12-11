@@ -135,8 +135,8 @@
         <thead>
             <tr>
                 <th class="sortable" data-sort="domain">Домен <span class="sort-icon"></span></th>
-                <th class="sortable" data-sort="domainRank">DR <span class="sort-icon"></span></th>
-                <th class="sortable" data-sort="urlRank">UR <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="domainrank">DR <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="urlrank">UR <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="type">Тип <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="country">Страна <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="expertise">Эксперт. <span class="sort-icon"></span></th>
@@ -1271,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 let bVal = b.dataset[column] || '';
 
                 // Numeric columns
-                const numericCols = ['domainRank', 'urlRank', 'expertise', 'experience', 'authority', 'trust', 'eeat', 'share'];
+                const numericCols = ['domainrank', 'urlrank', 'expertise', 'experience', 'authority', 'trust', 'eeat', 'share'];
                 if (numericCols.includes(column)) {
                     aVal = parseFloat(aVal) || 0;
                     bVal = parseFloat(bVal) || 0;
