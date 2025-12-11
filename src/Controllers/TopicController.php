@@ -517,67 +517,76 @@ class TopicController extends BaseController
     private function getTopicOverview(string $topicId): array
     {
         return Cache::remember("topic_overview_{$topicId}", function() use ($topicId) {
-            // Get evaluations with ai_responses for this project
-            $evalsResult = $this->db->from('evaluations')
+            // Get ALL evaluations with ai_responses for this project (for aggregations)
+            $allEvalsResult = $this->db->from('evaluations')
                 ->select('*, ai_responses!inner(id, prompt, model_name, project_id, created_at)')
                 ->eq('ai_responses.project_id', $topicId)
-                ->order('evaluated_at', false)
-                ->limit(10)
                 ->get();
 
-            // Get total count
-            $countResult = $this->db->from('evaluations')
-                ->select('id, ai_responses!inner(project_id)')
-                ->eq('ai_responses.project_id', $topicId)
-                ->get();
-            $totalCount = count($countResult['data'] ?? []);
+            $allEvals = $allEvalsResult['data'] ?? [];
+            $totalCount = count($allEvals);
 
-            $prompts = [];
+            // Calculate G-Eval averages from ALL evaluations
             $totalCoherence = 0;
             $totalConsistency = 0;
             $totalFluency = 0;
             $totalRelevance = 0;
+            $correctCount = 0;
+            $problematicCount = 0;
 
-            foreach ($evalsResult['data'] ?? [] as $r) {
-                $aiResponse = $r['ai_responses'] ?? [];
+            foreach ($allEvals as $r) {
                 // G-EVAL individual scores are 1-5 scale, multiply by 20 to get percentage
-                // avg_score is already 0-100 percentage
-                $coherence = (int)(($r['coherence'] ?? 0) * 20);
-                $consistency = (int)(($r['consistency'] ?? 0) * 20);
-                $fluency = (int)(($r['fluency'] ?? 0) * 20);
-                $relevance = (int)(($r['relevance'] ?? 0) * 20);
+                $coherence = (float)($r['coherence'] ?? 0) * 20;
+                $consistency = (float)($r['consistency'] ?? 0) * 20;
+                $fluency = (float)($r['fluency'] ?? 0) * 20;
+                $relevance = (float)($r['relevance'] ?? 0) * 20;
+                $avgScore = (float)($r['avg_score'] ?? 0);
 
+                $totalCoherence += $coherence;
+                $totalConsistency += $consistency;
+                $totalFluency += $fluency;
+                $totalRelevance += $relevance;
+
+                // Count correct (>= 70) vs problematic (< 70) responses
+                if ($avgScore >= 70) {
+                    $correctCount++;
+                } else {
+                    $problematicCount++;
+                }
+            }
+
+            // Get first 10 for display
+            $displayEvals = array_slice($allEvals, 0, 10);
+            $prompts = [];
+            foreach ($displayEvals as $r) {
+                $aiResponse = $r['ai_responses'] ?? [];
                 $prompts[] = [
                     'id' => $r['ai_response_id'] ?? $r['id'],
                     'text' => $aiResponse['prompt'] ?? '',
                     'shortText' => $this->truncateText($aiResponse['prompt'] ?? '', 100),
                     'model' => $aiResponse['model_name'] ?? '',
                     'date' => $this->formatDate($r['evaluated_at'] ?? ''),
-                    'coherence' => $coherence,
-                    'consistency' => $consistency,
-                    'fluency' => $fluency,
-                    'relevance' => $relevance,
+                    'coherence' => (int)(($r['coherence'] ?? 0) * 20),
+                    'consistency' => (int)(($r['consistency'] ?? 0) * 20),
+                    'fluency' => (int)(($r['fluency'] ?? 0) * 20),
+                    'relevance' => (int)(($r['relevance'] ?? 0) * 20),
                     'avgScore' => (int)($r['avg_score'] ?? 0),
                 ];
-
-                $totalCoherence += $coherence;
-                $totalConsistency += $consistency;
-                $totalFluency += $fluency;
-                $totalRelevance += $relevance;
             }
 
             // Fallback to ai_responses if no evaluations
-            if (empty($prompts)) {
+            if (empty($allEvals)) {
                 $fallbackResult = $this->db->from('ai_responses')
                     ->select('*')
                     ->eq('project_id', $topicId)
                     ->order('created_at', false)
-                    ->limit(10)
                     ->get();
 
                 $totalCount = count($fallbackResult['data'] ?? []);
+                $correctCount = $totalCount;
+                $problematicCount = 0;
 
-                foreach ($fallbackResult['data'] ?? [] as $r) {
+                foreach (array_slice($fallbackResult['data'] ?? [], 0, 10) as $r) {
                     $prompts[] = [
                         'id' => $r['id'],
                         'text' => $r['prompt'] ?? '',
@@ -593,20 +602,195 @@ class TopicController extends BaseController
                 }
             }
 
-            $count = count($prompts);
+            // Get sources data for this project
+            $sourcesResult = $this->db->from('project_sources')
+                ->select('source_id, usage_count, sources(id, domain, type, country, expertise_score, experience_score, authority_score, trust_score, eeat_combined)')
+                ->eq('project_id', $topicId)
+                ->get();
+
+            $sourcesData = $sourcesResult['data'] ?? [];
+            $totalSources = count($sourcesData);
+            $frequentSources = 0;
+            $notFoundSources = 0;
+            $totalExperience = 0;
+            $totalExpertise = 0;
+            $totalAuthority = 0;
+            $totalTrust = 0;
+            $geoStats = [];
+            $typeStats = [];
+
+            foreach ($sourcesData as $ps) {
+                $s = $ps['sources'] ?? [];
+                if (!is_array($s) || empty($s)) continue;
+
+                // Count frequent (usage > 1) vs not found
+                $usageCount = (int)($ps['usage_count'] ?? 1);
+                if ($usageCount > 1) {
+                    $frequentSources++;
+                }
+
+                // E-E-A-T scores
+                $totalExperience += (float)($s['experience_score'] ?? 0);
+                $totalExpertise += (float)($s['expertise_score'] ?? 0);
+                $totalAuthority += (float)($s['authority_score'] ?? 0);
+                $totalTrust += (float)($s['trust_score'] ?? 0);
+
+                // Geography distribution
+                $country = $s['country'] ?? 'OTHER';
+                $geoStats[$country] = ($geoStats[$country] ?? 0) + 1;
+
+                // Type distribution
+                $type = $s['type'] ?? 'media';
+                $typeStats[$type] = ($typeStats[$type] ?? 0) + 1;
+            }
+
+            // If no project sources, get from global sources
+            if ($totalSources === 0) {
+                $globalSourcesResult = $this->db->from('sources')
+                    ->select('id, domain, type, country, expertise_score, experience_score, authority_score, trust_score, eeat_combined')
+                    ->limit(100)
+                    ->get();
+
+                foreach ($globalSourcesResult['data'] ?? [] as $s) {
+                    $totalSources++;
+                    $frequentSources++;
+
+                    $totalExperience += (float)($s['experience_score'] ?? 0);
+                    $totalExpertise += (float)($s['expertise_score'] ?? 0);
+                    $totalAuthority += (float)($s['authority_score'] ?? 0);
+                    $totalTrust += (float)($s['trust_score'] ?? 0);
+
+                    $country = $s['country'] ?? 'OTHER';
+                    $geoStats[$country] = ($geoStats[$country] ?? 0) + 1;
+
+                    $type = $s['type'] ?? 'media';
+                    $typeStats[$type] = ($typeStats[$type] ?? 0) + 1;
+                }
+            }
+
+            // Get LLM distribution from ai_responses
+            $llmResult = $this->db->from('ai_responses')
+                ->select('model_name')
+                ->eq('project_id', $topicId)
+                ->get();
+
+            $llmStats = [];
+            foreach ($llmResult['data'] ?? [] as $r) {
+                $model = $r['model_name'] ?? 'Unknown';
+                $llmStats[$model] = ($llmStats[$model] ?? 0) + 1;
+            }
+
+            // Convert stats to chart format
+            $geoDistribution = $this->convertToChartData($geoStats, [
+                'KZ' => 'Казахстан',
+                'RU' => 'Россия',
+                'US' => 'США',
+                'UK' => 'Великобритания',
+                'OTHER' => 'Другие'
+            ]);
+
+            $typeDistribution = $this->convertToChartData($typeStats, [
+                'media' => 'СМИ',
+                'gov' => 'Гос. сайты',
+                'analytics' => 'Аналитика',
+                'blog' => 'Блоги',
+                'social' => 'Соцсети',
+                'wiki' => 'Wiki',
+                'other' => 'Другие'
+            ]);
+
+            $llmDistribution = $this->convertToChartData($llmStats, []);
+
+            $evalCount = count($allEvals) > 0 ? count($allEvals) : 1;
+            $sourceCount = $totalSources > 0 ? $totalSources : 1;
+
+            // Calculate prompt quality (for radarData - first section)
+            // These are derived from G-Eval but represent prompt quality
+            $avgCoherence = round($totalCoherence / $evalCount);
+            $avgConsistency = round($totalConsistency / $evalCount);
+            $avgFluency = round($totalFluency / $evalCount);
+            $avgRelevance = round($totalRelevance / $evalCount);
 
             return [
                 'prompts' => $prompts,
                 'totalCount' => $totalCount,
                 'hasMore' => $totalCount > 10,
+
+                // Prompt quality radar (4 params for prompt evaluation)
                 'radarData' => [
-                    'coherence' => $count > 0 ? round($totalCoherence / $count) : 0,
-                    'consistency' => $count > 0 ? round($totalConsistency / $count) : 0,
-                    'fluency' => $count > 0 ? round($totalFluency / $count) : 0,
-                    'relevance' => $count > 0 ? round($totalRelevance / $count) : 0,
+                    'neutrality' => min(100, max(0, round(($avgFluency + $avgConsistency) / 2))),
+                    'stability' => min(100, max(0, round(($avgCoherence + $avgConsistency) / 2))),
+                    'soundness' => min(100, max(0, round(($avgCoherence + $avgRelevance) / 2))),
+                    'antiHallucination' => min(100, max(0, round(($avgConsistency + $avgRelevance) / 2))),
                 ],
+
+                // Response stats (3 hero cards)
+                'responsesStats' => [
+                    'total' => $totalCount,
+                    'correct' => $correctCount,
+                    'problematic' => $problematicCount,
+                ],
+
+                // G-Eval radar data (4 params)
+                'gEvalData' => [
+                    'coherence' => $avgCoherence,
+                    'consistency' => $avgConsistency,
+                    'fluency' => $avgFluency,
+                    'relevance' => $avgRelevance,
+                ],
+
+                // Average G-Eval score for progress bar
+                'promptQuality' => [
+                    'avgScore' => round(($avgCoherence + $avgConsistency + $avgFluency + $avgRelevance) / 4),
+                ],
+
+                // Sources stats (3 hero cards)
+                'sourcesStats' => [
+                    'total' => $totalSources,
+                    'frequent' => $frequentSources,
+                    'notFound' => $notFoundSources,
+                ],
+
+                // E-E-A-T radar data (4 params)
+                'eeatData' => [
+                    'experience' => round($totalExperience / $sourceCount),
+                    'expertise' => round($totalExpertise / $sourceCount),
+                    'authoritativeness' => round($totalAuthority / $sourceCount),
+                    'trustworthiness' => round($totalTrust / $sourceCount),
+                ],
+
+                // Pie chart distributions
+                'geoDistribution' => $geoDistribution,
+                'typeDistribution' => $typeDistribution,
+                'llmDistribution' => $llmDistribution,
             ];
         }, 300); // Cache for 5 minutes
+    }
+
+    private function convertToChartData(array $stats, array $labelMap): array
+    {
+        if (empty($stats)) {
+            return [];
+        }
+
+        $total = array_sum($stats);
+        if ($total === 0) {
+            return [];
+        }
+
+        // Sort by value desc
+        arsort($stats);
+
+        $result = [];
+        foreach ($stats as $key => $value) {
+            $label = !empty($labelMap) ? ($labelMap[$key] ?? $key) : $key;
+            $result[] = [
+                'label' => $label,
+                'value' => round(($value / $total) * 100),
+            ];
+        }
+
+        return $result;
     }
 
     private function getTopicOverviewPaginated(string $topicId, int $offset = 0, int $limit = 10): array
