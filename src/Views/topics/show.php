@@ -2,7 +2,7 @@
 <div class="hero-gauge-section">
     <div class="hero-gauge-card">
         <div class="hero-gauge-container">
-            <svg class="hero-gauge-svg" width="320" height="200" viewBox="0 0 320 200">
+            <svg class="hero-gauge-svg" width="320" height="200" viewBox="0 0 320 200" style="overflow: visible;">
                 <defs>
                     <linearGradient id="topicGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" style="stop-color:#ef4444"/>
@@ -24,20 +24,20 @@
                 <path d="M 30 160 A 130 130 0 0 1 290 160"
                       stroke="url(#topicGaugeGradient)" stroke-width="28" fill="none" stroke-linecap="round"/>
 
-                <!-- Needle -->
-                <g id="topicAccuracyNeedle" filter="url(#topicNeedleShadow)">
-                    <line x1="160" y1="160" x2="160" y2="45"
-                          stroke="var(--text-primary)" stroke-width="4" stroke-linecap="round"/>
-                    <circle cx="160" cy="160" r="10" fill="var(--text-primary)"/>
-                    <circle cx="160" cy="160" r="5" fill="var(--text-secondary)"/>
-                </g>
-
                 <!-- Labels -->
                 <text x="30" y="185" font-size="14" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">0</text>
                 <text x="290" y="185" font-size="14" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">100</text>
 
                 <!-- Value -->
                 <text x="160" y="140" text-anchor="middle" font-size="48" font-weight="700" fill="var(--text-primary)" id="topicGaugeValue"><?= $stats['avgAccuracy'] ?></text>
+
+                <!-- Needle (rendered last to be on top) -->
+                <g id="topicAccuracyNeedle">
+                    <line x1="160" y1="160" x2="160" y2="50"
+                          stroke="var(--text-primary)" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="160" cy="160" r="10" fill="var(--text-primary)"/>
+                    <circle cx="160" cy="160" r="5" fill="var(--bg-card)"/>
+                </g>
             </svg>
             <div class="hero-gauge-label">
                 <span class="hero-gauge-title">Индекс точности</span>

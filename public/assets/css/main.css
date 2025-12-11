@@ -902,11 +902,6 @@ a.sidebar-header:hover,
     font-weight: 500;
 }
 
-#topicAccuracyNeedle {
-    transform-origin: 160px 160px;
-    transition: transform 0.1s ease-out;
-}
-
 /* Charts Section */
 .charts-section {
     display: grid;
