@@ -94,10 +94,10 @@
     <div class="tab-panel" id="overview-panel">
         <h1 class="page-title">Промты</h1>
 
-        <!-- Radar Chart Section -->
+        <!-- Radar Chart Section - Prompt Quality -->
         <div class="section-block radar-section">
-            <h2 class="section-title-lg">Оценка качества ответов G-EVAL</h2>
-            <p class="section-description">Сводная оценка качества ответов LLM по четырём критериям G-EVAL: связность, согласованность, беглость и релевантность.</p>
+            <h2 class="section-title-lg">Оценка качества промтов по ключевым критериям</h2>
+            <p class="section-description">Сводная оценка всех промтов проекта по пяти критериям: нейтральность, стабильность, логичность и риск галлюцинаций. Радар показывает средний профиль качества формулировок.</p>
 
             <div class="radar-content">
                 <div class="radar-chart-container">
@@ -107,56 +107,56 @@
                     <div class="accordion">
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">1. Связность (Coherence)</span>
+                                <span class="accordion-title">1. Нейтральность (Linguistic Neutrality)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Насколько логично и структурировано организован ответ. Хорошо связанный ответ имеет чёткую структуру, плавные переходы между идеями и последовательное изложение.
+                                    Степень отсутствия в промпте эмоционально, идеологически или коннотативно окрашенных элементов. Максимальная оценка присваивается, если формулировка полностью объективна и не склоняет модель к позитивной или негативной интерпретации.
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">2. Согласованность (Consistency)</span>
+                                <span class="accordion-title">2. Функциональная стабильность (Functional Stability)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Фактическая точность и непротиворечивость информации в ответе. Согласованный ответ не содержит противоречий и соответствует известным фактам.
+                                    Способность промпта обеспечивать сопоставимое поведение разных LLM по структуре, глубине и формату ответа. Максимальная оценка присваивается, если промпт вызывает единообразные по формату и уровню детализации ответы во всех моделях.
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">3. Беглость (Fluency)</span>
+                                <span class="accordion-title">3. Логическая корректность (Logical Soundness)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Качество языка и читаемость текста. Беглый ответ написан грамматически правильно, легко читается и не содержит стилистических ошибок.
+                                    Степень внутренней непротиворечивости, ясности и логической согласованности инструкции. Максимальная оценка присваивается, если промпт логичен, однозначен и не содержит конфликтующих условий.
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">4. Релевантность (Relevance)</span>
+                                <span class="accordion-title">4. Защита от галлюцинаций (Anti-Hallucination)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Насколько ответ соответствует заданному вопросу и охватывает все ключевые аспекты темы без лишней информации.
+                                    Устойчивость промпта к провоцированию модели на генерацию недостоверной или вымышленной информации. Максимальная оценка присваивается, если промпт не содержит ложных предпосылок и минимизирует риск спекулятивных выводов.
                                 </div>
                             </div>
                         </div>
@@ -168,17 +168,17 @@
         <!-- Prompts Table -->
         <div class="section-block">
             <div class="table-header-row">
-                <h3 class="section-title">Оценки ответов <span class="count-badge"><?= $tabData['totalCount'] ?? 0 ?></span></h3>
+                <h3 class="section-title">Оценки промтов <span class="count-badge"><?= $tabData['totalCount'] ?? 0 ?></span></h3>
             </div>
             <div class="table-container">
                 <table class="table prompts-table" id="overviewPromptsTable">
                     <thead>
                         <tr>
                             <th>Промпт (запрос)</th>
-                            <th>Связность</th>
-                            <th>Согласов.</th>
-                            <th>Беглость</th>
-                            <th>Релевант.</th>
+                            <th>Нейтральн.</th>
+                            <th>Стабильн.</th>
+                            <th>Логичность</th>
+                            <th>Антигаллюц.</th>
                             <th>Среднее</th>
                         </tr>
                     </thead>
@@ -189,10 +189,10 @@
                                 <span class="prompt-number">№<?= $index + 1 ?></span>
                                 <a href="#" class="prompt-link"><?= htmlspecialchars($prompt['shortText']) ?></a>
                             </td>
-                            <td class="score-cell"><?= $prompt['coherence'] ?? 0 ?>%</td>
-                            <td class="score-cell"><?= $prompt['consistency'] ?? 0 ?>%</td>
-                            <td class="score-cell"><?= $prompt['fluency'] ?? 0 ?>%</td>
-                            <td class="score-cell"><?= $prompt['relevance'] ?? 0 ?>%</td>
+                            <td class="score-cell"><?= $prompt['neutrality'] ?? $prompt['coherence'] ?? 0 ?>%</td>
+                            <td class="score-cell"><?= $prompt['stability'] ?? $prompt['consistency'] ?? 0 ?>%</td>
+                            <td class="score-cell"><?= $prompt['soundness'] ?? $prompt['fluency'] ?? 0 ?>%</td>
+                            <td class="score-cell"><?= $prompt['antiHallucination'] ?? $prompt['relevance'] ?? 0 ?>%</td>
                             <td class="score-cell"><?= $prompt['avgScore'] ?? 0 ?>%</td>
                         </tr>
                         <?php endforeach; ?>
@@ -1210,28 +1210,28 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!radarCanvas) return;
 
     const radarData = <?= json_encode($tabData['radarData'] ?? [
-        'coherence' => 75,
-        'consistency' => 80,
-        'fluency' => 85,
-        'relevance' => 70
+        'neutrality' => 75,
+        'stability' => 80,
+        'soundness' => 85,
+        'antiHallucination' => 70
     ]) ?>;
 
     new Chart(radarCanvas, {
         type: 'radar',
         data: {
             labels: [
-                'Связность',
-                'Согласованность',
-                'Беглость',
-                'Релевантность'
+                'Нейтральность',
+                'Стабильность',
+                'Логичность',
+                'Защита от галлюцинаций'
             ],
             datasets: [{
-                label: 'G-EVAL оценка',
+                label: 'Оценка промтов',
                 data: [
-                    radarData.coherence,
-                    radarData.consistency,
-                    radarData.fluency,
-                    radarData.relevance
+                    radarData.neutrality || 75,
+                    radarData.stability || 80,
+                    radarData.soundness || 85,
+                    radarData.antiHallucination || 70
                 ],
                 backgroundColor: 'rgba(16, 185, 129, 0.2)',
                 borderColor: 'rgb(16, 185, 129)',
@@ -1317,10 +1317,10 @@ document.getElementById('loadMoreOverview')?.addEventListener('click', async fun
                         <span class="prompt-number">№${currentRows + index + 1}</span>
                         <a href="#" class="prompt-link">${escapeHtml(prompt.shortText)}</a>
                     </td>
-                    <td class="score-cell">${prompt.coherence || 0}%</td>
-                    <td class="score-cell">${prompt.consistency || 0}%</td>
-                    <td class="score-cell">${prompt.fluency || 0}%</td>
-                    <td class="score-cell">${prompt.relevance || 0}%</td>
+                    <td class="score-cell">${prompt.neutrality || prompt.coherence || 0}%</td>
+                    <td class="score-cell">${prompt.stability || prompt.consistency || 0}%</td>
+                    <td class="score-cell">${prompt.soundness || prompt.fluency || 0}%</td>
+                    <td class="score-cell">${prompt.antiHallucination || prompt.relevance || 0}%</td>
                     <td class="score-cell">${prompt.avgScore || 0}%</td>
                 `;
                 tbody.appendChild(row);
