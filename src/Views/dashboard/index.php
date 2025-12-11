@@ -31,6 +31,57 @@
     </div>
 </div>
 
+<!-- Hero Gauge Section -->
+<div class="hero-gauge-section">
+    <div class="hero-gauge-card">
+        <div class="hero-gauge-container">
+            <svg class="hero-gauge-svg" width="320" height="200" viewBox="0 0 320 200">
+                <defs>
+                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#ef4444"/>
+                        <stop offset="25%" style="stop-color:#f97316"/>
+                        <stop offset="50%" style="stop-color:#fbbf24"/>
+                        <stop offset="75%" style="stop-color:#22c55e"/>
+                        <stop offset="100%" style="stop-color:#22c55e"/>
+                    </linearGradient>
+                    <filter id="needleShadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+                    </filter>
+                </defs>
+
+                <!-- Background arc -->
+                <path d="M 30 160 A 130 130 0 0 1 290 160"
+                      stroke="var(--border-subtle)" stroke-width="28" fill="none" stroke-linecap="round"/>
+
+                <!-- Gradient arc -->
+                <path d="M 30 160 A 130 130 0 0 1 290 160"
+                      stroke="url(#gaugeGradient)" stroke-width="28" fill="none" stroke-linecap="round"/>
+
+                <!-- Needle -->
+                <g id="accuracyNeedle" filter="url(#needleShadow)">
+                    <line x1="160" y1="160" x2="160" y2="45"
+                          stroke="var(--text-primary)" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="160" cy="160" r="10" fill="var(--text-primary)"/>
+                    <circle cx="160" cy="160" r="5" fill="var(--text-secondary)"/>
+                </g>
+
+                <!-- Labels -->
+                <text x="30" y="185" font-size="14" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">0</text>
+                <text x="290" y="185" font-size="14" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">100</text>
+
+                <!-- Value -->
+                <text x="160" y="140" text-anchor="middle" font-size="48" font-weight="700" fill="var(--text-primary)" id="gaugeValue"><?= $stats['averageAccuracy'] ?></text>
+            </svg>
+            <div class="hero-gauge-label">
+                <span class="hero-gauge-title">Индекс точности</span>
+                <span class="hero-gauge-trend <?= ($trends['accuracy']['up'] ?? true) ? 'up' : 'down' ?>">
+                    <?= $trends['accuracy']['value'] ?? '0%' ?>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Stats Grid -->
 <div class="stats-grid stagger-children">
     <div class="stat-card">
@@ -95,55 +146,6 @@
             <div class="stat-value"><?= number_format($stats['analyzedSources']) ?></div>
         </div>
         <div class="stat-description">За последние 7 дней</div>
-    </div>
-
-    <!-- Gauge Card for Accuracy -->
-    <div class="stat-card gauge-card">
-        <div class="gauge-container">
-            <svg class="gauge-svg" width="180" height="115" viewBox="0 0 180 115">
-                <defs>
-                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" style="stop-color:#ef4444"/>
-                        <stop offset="25%" style="stop-color:#f97316"/>
-                        <stop offset="50%" style="stop-color:#fbbf24"/>
-                        <stop offset="75%" style="stop-color:#22c55e"/>
-                        <stop offset="100%" style="stop-color:#22c55e"/>
-                    </linearGradient>
-                    <filter id="needleShadow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
-                    </filter>
-                </defs>
-
-                <!-- Background arc -->
-                <path d="M 18 90 A 72 72 0 0 1 162 90"
-                      stroke="var(--border-subtle)" stroke-width="20" fill="none" stroke-linecap="round"/>
-
-                <!-- Gradient arc -->
-                <path d="M 18 90 A 72 72 0 0 1 162 90"
-                      stroke="url(#gaugeGradient)" stroke-width="20" fill="none" stroke-linecap="round"/>
-
-                <!-- Needle -->
-                <g id="accuracyNeedle" filter="url(#needleShadow)">
-                    <line x1="90" y1="90" x2="90" y2="25"
-                          stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
-                    <circle cx="90" cy="90" r="6" fill="var(--text-primary)"/>
-                    <circle cx="90" cy="90" r="3" fill="var(--text-secondary)"/>
-                </g>
-
-                <!-- Labels -->
-                <text x="18" y="108" font-size="11" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">0</text>
-                <text x="162" y="108" font-size="11" font-weight="500" fill="var(--text-tertiary)" text-anchor="middle">100</text>
-
-                <!-- Value -->
-                <text x="90" y="78" text-anchor="middle" font-size="28" font-weight="600" fill="var(--text-primary)" id="gaugeValue"><?= $stats['averageAccuracy'] ?></text>
-            </svg>
-            <div class="gauge-label">
-                <span class="gauge-title">Индекс точности</span>
-                <span class="gauge-trend <?= ($trends['accuracy']['up'] ?? true) ? 'up' : 'down' ?>">
-                    <?= $trends['accuracy']['value'] ?? '0%' ?>
-                </span>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -621,7 +623,7 @@ function initGaugeAnimation() {
         const currentAngle = startAngle + (targetAngle - startAngle) * easedProgress;
         const currentValue = Math.round(targetValue * easedProgress);
 
-        needle.setAttribute('transform', `rotate(${currentAngle}, 90, 90)`);
+        needle.setAttribute('transform', `rotate(${currentAngle}, 160, 160)`);
         valueText.textContent = currentValue;
 
         if (progress < 1) {
@@ -632,7 +634,7 @@ function initGaugeAnimation() {
     }
 
     // Start with needle at 0 position
-    needle.setAttribute('transform', `rotate(${startAngle}, 90, 90)`);
+    needle.setAttribute('transform', `rotate(${startAngle}, 160, 160)`);
     valueText.textContent = '0';
 
     // Start animation after a short delay

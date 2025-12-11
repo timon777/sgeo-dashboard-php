@@ -735,6 +735,83 @@ a.sidebar-header:hover,
     color: var(--text-muted);
 }
 
+/* Hero Gauge Section */
+.hero-gauge-section {
+    margin-bottom: 24px;
+}
+
+.hero-gauge-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all var(--transition-base);
+}
+
+.hero-gauge-card:hover {
+    border-color: var(--border-medium);
+}
+
+.hero-gauge-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.hero-gauge-svg {
+    display: block;
+}
+
+.hero-gauge-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.hero-gauge-title {
+    font-size: 18px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.hero-gauge-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.hero-gauge-trend.up {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.hero-gauge-trend.up::before {
+    content: '↑';
+}
+
+.hero-gauge-trend.down {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.hero-gauge-trend.down::before {
+    content: '↓';
+}
+
+#accuracyNeedle {
+    transform-origin: 160px 160px;
+    transition: transform 0.1s ease-out;
+}
+
 /* Gauge Card */
 .gauge-card {
     display: flex;
@@ -798,11 +875,6 @@ a.sidebar-header:hover,
 
 .gauge-trend.down::before {
     content: '↓';
-}
-
-#accuracyNeedle {
-    transform-origin: 90px 90px;
-    transition: transform 0.1s ease-out;
 }
 
 /* Topic Gauge Card */
