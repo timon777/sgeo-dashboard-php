@@ -1071,10 +1071,10 @@
 
 .radar-chart-container {
     width: 100%;
-    max-width: 420px;
-    min-width: 350px;
-    height: 320px;
-    padding: 10px;
+    max-width: 500px;
+    min-width: 400px;
+    height: 380px;
+    padding: 20px;
     box-sizing: border-box;
     margin: 0 auto;
     display: flex;
@@ -1256,11 +1256,11 @@
     }
 
     .radar-chart-container {
-        max-width: 380px;
-        min-width: 280px;
-        height: 300px;
+        max-width: 450px;
+        min-width: 320px;
+        height: 350px;
         margin: 0 auto;
-        padding: 10px;
+        padding: 15px;
     }
 }
 
@@ -2420,7 +2420,7 @@ if (responsesRadarCanvas) {
     new Chart(responsesRadarCanvas, {
         type: 'radar',
         data: {
-            labels: ['Связность', 'Согласов.', 'Беглость', 'Релевант.'],
+            labels: ['Связность', 'Согласованность', 'Беглость', 'Релевантность'],
             datasets: [{
                 label: 'G-Eval',
                 data: [gEvalData.coherence, gEvalData.consistency, gEvalData.fluency, gEvalData.relevance],
@@ -2437,6 +2437,9 @@ if (responsesRadarCanvas) {
         options: {
             responsive: true,
             maintainAspectRatio: true,
+            layout: {
+                padding: 20
+            },
             scales: {
                 r: {
                     beginAtZero: true,
@@ -2450,7 +2453,7 @@ if (responsesRadarCanvas) {
                     angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
                         color: '#e2e8f0',
-                        font: { size: 12 }
+                        font: { size: 11 }
                     }
                 }
             },
@@ -2533,7 +2536,7 @@ if (promptsRadarCanvas) {
     new Chart(promptsRadarCanvas, {
         type: 'radar',
         data: {
-            labels: ['Нейтр.', 'Стабил.', 'Коррект.', 'Анти-гал.'],
+            labels: ['Нейтральность', 'Стабильность', 'Корректность', 'Анти-галлюцинация'],
             datasets: [{
                 label: 'Качество промтов',
                 data: [radarData.neutrality, radarData.stability, radarData.soundness, radarData.antiHallucination],
@@ -2550,6 +2553,9 @@ if (promptsRadarCanvas) {
         options: {
             responsive: true,
             maintainAspectRatio: true,
+            layout: {
+                padding: 20
+            },
             scales: {
                 r: {
                     beginAtZero: true,
@@ -2563,7 +2569,7 @@ if (promptsRadarCanvas) {
                     angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
                         color: '#e2e8f0',
-                        font: { size: 12 }
+                        font: { size: 11 }
                     }
                 }
             },
@@ -2664,6 +2670,9 @@ if (sourcesRadarCanvas) {
         options: {
             responsive: true,
             maintainAspectRatio: true,
+            layout: {
+                padding: 20
+            },
             scales: {
                 r: {
                     beginAtZero: true,
@@ -2677,7 +2686,7 @@ if (sourcesRadarCanvas) {
                     angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
                         color: '#e2e8f0',
-                        font: { size: 12 }
+                        font: { size: 11 }
                     }
                 }
             },
