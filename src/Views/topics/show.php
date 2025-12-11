@@ -2428,8 +2428,8 @@ if (responsesRadarCanvas) {
                 borderColor: 'rgb(59, 130, 246)',
                 borderWidth: 2,
                 pointBackgroundColor: 'rgb(59, 130, 246)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
+                pointBorderColor: isLightTheme() ? '#1a1c22' : '#fff',
+                pointHoverBackgroundColor: isLightTheme() ? '#1a1c22' : '#fff',
                 pointHoverBorderColor: 'rgb(59, 130, 246)',
                 pointRadius: 5
             }]
@@ -2446,14 +2446,14 @@ if (responsesRadarCanvas) {
                     max: 100,
                     ticks: {
                         stepSize: 20,
-                        color: '#94a3b8',
+                        color: isLightTheme() ? '#64748b' : '#94a3b8',
                         backdropColor: 'transparent'
                     },
-                    grid: { color: 'rgba(148, 163, 184, 0.2)' },
-                    angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
+                    grid: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
+                    angleLines: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
-                        color: '#e2e8f0',
-                        font: { size: 11 },
+                        color: isLightTheme() ? '#1e293b' : '#e2e8f0',
+                        font: { size: 11, weight: '500' },
                         padding: 5
                     }
                 }
@@ -2545,8 +2545,8 @@ if (promptsRadarCanvas) {
                 borderColor: 'rgb(16, 185, 129)',
                 borderWidth: 2,
                 pointBackgroundColor: 'rgb(16, 185, 129)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
+                pointBorderColor: isLightTheme() ? '#1a1c22' : '#fff',
+                pointHoverBackgroundColor: isLightTheme() ? '#1a1c22' : '#fff',
                 pointHoverBorderColor: 'rgb(16, 185, 129)',
                 pointRadius: 5
             }]
@@ -2563,14 +2563,14 @@ if (promptsRadarCanvas) {
                     max: 100,
                     ticks: {
                         stepSize: 20,
-                        color: '#94a3b8',
+                        color: isLightTheme() ? '#64748b' : '#94a3b8',
                         backdropColor: 'transparent'
                     },
-                    grid: { color: 'rgba(148, 163, 184, 0.2)' },
-                    angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
+                    grid: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
+                    angleLines: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
-                        color: '#e2e8f0',
-                        font: { size: 11 },
+                        color: isLightTheme() ? '#1e293b' : '#e2e8f0',
+                        font: { size: 11, weight: '500' },
                         padding: 5
                     }
                 }
@@ -2663,8 +2663,8 @@ if (sourcesRadarCanvas) {
                 borderColor: 'rgb(168, 85, 247)',
                 borderWidth: 2,
                 pointBackgroundColor: 'rgb(168, 85, 247)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
+                pointBorderColor: isLightTheme() ? '#1a1c22' : '#fff',
+                pointHoverBackgroundColor: isLightTheme() ? '#1a1c22' : '#fff',
                 pointHoverBorderColor: 'rgb(168, 85, 247)',
                 pointRadius: 5
             }]
@@ -2681,14 +2681,14 @@ if (sourcesRadarCanvas) {
                     max: 100,
                     ticks: {
                         stepSize: 20,
-                        color: '#94a3b8',
+                        color: isLightTheme() ? '#64748b' : '#94a3b8',
                         backdropColor: 'transparent'
                     },
-                    grid: { color: 'rgba(148, 163, 184, 0.2)' },
-                    angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
+                    grid: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
+                    angleLines: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
-                        color: '#e2e8f0',
-                        font: { size: 11 },
+                        color: isLightTheme() ? '#1e293b' : '#e2e8f0',
+                        font: { size: 11, weight: '500' },
                         padding: 5
                     }
                 }
