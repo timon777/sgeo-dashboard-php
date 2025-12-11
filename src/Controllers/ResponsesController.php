@@ -90,6 +90,7 @@ class ResponsesController extends BaseController
                 'relevance' => $relevance,
                 'avgScore' => $avgScore,
                 'tone' => $r['tone'] ?? 'neutral',
+                'sentiment' => $r['sentiment'] ?? 'neutral',
                 'date' => $this->formatDate($r['evaluated_at'] ?? $aiResponse['created_at'] ?? ''),
             ];
         }

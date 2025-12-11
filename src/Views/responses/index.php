@@ -46,10 +46,10 @@
                 <span class="llm-badge <?= strtolower($response['model']) ?>"><?= strtoupper($response['model']) ?></span>
                 <a href="/topics/<?= htmlspecialchars($response['projectId']) ?>" class="project-link"><?= htmlspecialchars($response['projectName']) ?></a>
                 <span class="response-date"><?= $response['date'] ?></span>
-                <span class="tone-badge <?= $response['tone'] ?>">
+                <span class="sentiment-badge <?= $response['sentiment'] ?>">
                     <?php
-                    $toneLabels = ['positive' => 'Позитивный', 'neutral' => 'Нейтральный', 'negative' => 'Негативный'];
-                    echo $toneLabels[$response['tone']] ?? $response['tone'];
+                    $sentimentLabels = ['positive' => 'Позитивный', 'neutral' => 'Нейтральный', 'negative' => 'Негативный'];
+                    echo $sentimentLabels[$response['sentiment']] ?? 'Нейтральный';
                     ?>
                 </span>
             </div>
@@ -184,6 +184,29 @@
     color: var(--text-tertiary);
     font-size: 12px;
     margin-left: auto;
+}
+
+.sentiment-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.sentiment-badge.positive {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+.sentiment-badge.neutral {
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+}
+.sentiment-badge.negative {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
 }
 
 .response-prompt {
@@ -344,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function createResponseCard(response) {
-        const toneLabels = { positive: 'Позитивный', neutral: 'Нейтральный', negative: 'Негативный' };
+        const sentimentLabels = { positive: 'Позитивный', neutral: 'Нейтральный', negative: 'Негативный' };
         const getScoreClass = (score) => score >= 80 ? 'high' : (score >= 60 ? 'medium' : 'low');
 
         const card = document.createElement('div');
@@ -354,7 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="llm-badge ${response.model.toLowerCase()}">${response.model.toUpperCase()}</span>
                 <a href="/topics/${response.projectId}" class="project-link">${escapeHtml(response.projectName)}</a>
                 <span class="response-date">${response.date}</span>
-                <span class="tone-badge ${response.tone}">${toneLabels[response.tone] || response.tone}</span>
+                <span class="sentiment-badge ${response.sentiment || 'neutral'}">${sentimentLabels[response.sentiment] || 'Нейтральный'}</span>
             </div>
             <div class="response-prompt">
                 <strong>Промт:</strong> ${escapeHtml(response.prompt)}
