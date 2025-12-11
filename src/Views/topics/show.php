@@ -2449,13 +2449,13 @@ if (responsesRadarCanvas) {
                     max: 100,
                     ticks: {
                         stepSize: 20,
-                        color: isLightTheme() ? '#64748b' : '#94a3b8',
+                        color: isLightTheme() ? '#475569' : '#cbd5e1',
                         backdropColor: 'transparent'
                     },
                     grid: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     angleLines: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
-                        color: isLightTheme() ? '#1e293b' : '#e2e8f0',
+                        color: isLightTheme() ? '#1e293b' : '#f8fafc',
                         font: { size: 11, weight: '500' },
                         padding: 5
                     }
@@ -2569,13 +2569,13 @@ if (promptsRadarCanvas) {
                     max: 100,
                     ticks: {
                         stepSize: 20,
-                        color: isLightTheme() ? '#64748b' : '#94a3b8',
+                        color: isLightTheme() ? '#475569' : '#cbd5e1',
                         backdropColor: 'transparent'
                     },
                     grid: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     angleLines: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
-                        color: isLightTheme() ? '#1e293b' : '#e2e8f0',
+                        color: isLightTheme() ? '#1e293b' : '#f8fafc',
                         font: { size: 11, weight: '500' },
                         padding: 5
                     }
@@ -2690,13 +2690,13 @@ if (sourcesRadarCanvas) {
                     max: 100,
                     ticks: {
                         stepSize: 20,
-                        color: isLightTheme() ? '#64748b' : '#94a3b8',
+                        color: isLightTheme() ? '#475569' : '#cbd5e1',
                         backdropColor: 'transparent'
                     },
                     grid: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     angleLines: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
                     pointLabels: {
-                        color: isLightTheme() ? '#1e293b' : '#e2e8f0',
+                        color: isLightTheme() ? '#1e293b' : '#f8fafc',
                         font: { size: 11, weight: '500' },
                         padding: 5
                     }
