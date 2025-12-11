@@ -211,10 +211,10 @@
             </div>
         </div>
 
-        <!-- Prompt Quality Radar Section -->
+        <!-- G-Eval Response Quality Section -->
         <div class="section-block radar-section">
-            <h2 class="section-title-lg">Оценка качества промтов по пяти ключевым критериям</h2>
-            <p class="section-description">Сводная оценка всех промтов проекта по пяти критериям: конкретность, полнота, нейтральность, однозначность и чёткость задачи. Радар показывает средний профиль качества формулировок.</p>
+            <h2 class="section-title-lg">Оценка качества ответов по методологии G-Eval</h2>
+            <p class="section-description">Классические параметры G-Eval для оценки качества сгенерированных ответов: связность, согласованность, беглость и релевантность.</p>
 
             <div class="quality-progress-bar">
                 <div class="quality-progress-fill" style="width: <?= $tabData['promptQuality']['avgScore'] ?? 75 ?>%;"></div>
@@ -228,84 +228,56 @@
                     <div class="accordion">
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">1. Конкретность (Specificity)</span>
+                                <span class="accordion-title">1. Связность (Coherence)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Степень детализации ответа — насколько чётко модель указывает факты, параметры и связи, избегая общих и размытых формулировок.
+                                    Логическая организация текста, последовательность изложения и структурная целостность ответа.
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">2. Полнота (Completeness)</span>
+                                <span class="accordion-title">2. Согласованность (Consistency)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Насколько ответ охватывает все ключевые аспекты запроса: контекст, аргументы, нюансы и необходимые пояснения, без пропусков и недосказанности.
+                                    Отсутствие противоречий, соответствие фактам из источника и внутренняя непротиворечивость.
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">3. Соответствие запросу (Relevance)</span>
+                                <span class="accordion-title">3. Беглость (Fluency)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Степень точности соответствия ответа исходному промпту — отсутствие отклонений от темы, лишних интерпретаций или ухода в парафразы.
+                                    Грамматическая правильность, естественность языка и читабельность текста.
                                 </div>
                             </div>
                         </div>
 
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">4. Нейтральность (Neutrality)</span>
+                                <span class="accordion-title">4. Релевантность (Relevance)</span>
                                 <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="m6 9 6 6 6-6"/>
                                 </svg>
                             </div>
                             <div class="accordion-content">
                                 <div class="accordion-body">
-                                    Отсутствие субъективной оценки, эмоциональной окраски, политического или идеологического смещения, способного исказить содержание.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="accordion-item">
-                            <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">5. Ясность и логическая связность (Clarity / Coherence)</span>
-                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m6 9 6 6 6-6"/>
-                                </svg>
-                            </div>
-                            <div class="accordion-content">
-                                <div class="accordion-body">
-                                    Понятность изложения, структурированность аргументации, логическая последовательность и отсутствие противоречий внутри ответа.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="accordion-item">
-                            <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <span class="accordion-title">6. Фактическая точность (Factuality)</span>
-                                <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m6 9 6 6 6-6"/>
-                                </svg>
-                            </div>
-                            <div class="accordion-content">
-                                <div class="accordion-body">
-                                    Корректность приведённых данных и утверждений, отсутствие вымышленных фактов или искажённых интерпретаций (галлюцинаций).
+                                    Соответствие запросу, полнота ответа и фокус на важной информации.
                                 </div>
                             </div>
                         </div>
@@ -1803,38 +1775,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Prompt Quality Radar 2 (6 parameters)
+    // G-Eval Response Quality Radar (4 parameters)
     const radarCanvas2 = document.getElementById('promptQualityRadar2');
     if (radarCanvas2) {
-        const radarData2 = <?= json_encode($tabData['radarData2'] ?? [
-            'specificity' => 78,
-            'completeness' => 82,
-            'relevance' => 85,
-            'neutrality' => 75,
-            'clarity' => 80,
-            'factuality' => 72
+        const radarData2 = <?= json_encode($tabData['gEvalData'] ?? [
+            'coherence' => 78,
+            'consistency' => 82,
+            'fluency' => 85,
+            'relevance' => 75
         ]) ?>;
 
         new Chart(radarCanvas2, {
             type: 'radar',
             data: {
                 labels: [
-                    'Конкретность',
-                    'Полнота',
-                    'Соответствие',
-                    'Нейтральность',
-                    'Ясность',
-                    'Фактическая точность'
+                    'Связность',
+                    'Согласованность',
+                    'Беглость',
+                    'Релевантность'
                 ],
                 datasets: [{
-                    label: 'Оценка ответов',
+                    label: 'G-Eval',
                     data: [
-                        radarData2.specificity || 78,
-                        radarData2.completeness || 82,
-                        radarData2.relevance || 85,
-                        radarData2.neutrality || 75,
-                        radarData2.clarity || 80,
-                        radarData2.factuality || 72
+                        radarData2.coherence || 78,
+                        radarData2.consistency || 82,
+                        radarData2.fluency || 85,
+                        radarData2.relevance || 75
                     ],
                     backgroundColor: 'rgba(99, 102, 241, 0.2)',
                     borderColor: 'rgb(99, 102, 241)',
