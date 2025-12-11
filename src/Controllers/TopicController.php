@@ -308,10 +308,27 @@ class TopicController extends BaseController
         // Apply pagination from cached data
         $prompts = array_slice($cachedData['allPrompts'], $offset, $limit);
 
+        // Get prompt evaluations from prompt_evaluations table
+        $promptEvalsData = Cache::remember("topic_prompt_evals_{$topicId}", function() use ($topicId) {
+            $promptEvalsResult = $this->db->from('prompt_evaluations')
+                ->select('*')
+                ->eq('project_id', $topicId)
+                ->order('created_at', false)
+                ->get();
+
+            return $promptEvalsResult['data'] ?? [];
+        }, 300);
+
+        $promptEvalCount = count($promptEvalsData);
+
         return [
             'prompts' => $prompts,
             'totalCount' => $cachedData['totalCount'],
             'hasMore' => ($offset + $limit) < $cachedData['totalCount'],
+            // Prompt evaluations data
+            'promptEvaluations' => array_slice($promptEvalsData, 0, 10),
+            'promptEvaluationsCount' => $promptEvalCount,
+            'hasMorePromptEvals' => $promptEvalCount > 10,
         ];
     }
 

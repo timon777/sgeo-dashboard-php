@@ -165,65 +165,6 @@
             </div>
         </div>
 
-        <!-- Prompt Evaluations Table -->
-        <?php if (!empty($tabData['promptEvaluations'])): ?>
-        <div class="section-block">
-            <h2 class="section-title-lg">Оценки промтов</h2>
-            <p class="section-description">Детальная оценка каждого промта по четырём ключевым критериям качества.</p>
-
-            <div class="table-container">
-                <table class="table" id="promptEvalsTable">
-                    <thead>
-                        <tr>
-                            <th>Промпт</th>
-                            <th>Нейтральность</th>
-                            <th>Функц. стабильность</th>
-                            <th>Логич. корректность</th>
-                            <th>Анти-галлюц.</th>
-                            <th>Средняя</th>
-                        </tr>
-                    </thead>
-                    <tbody id="promptEvalsBody">
-                        <?php foreach ($tabData['promptEvaluations'] as $pe): ?>
-                        <tr>
-                            <td class="prompt-cell">
-                                <span class="prompt-text" title="<?= htmlspecialchars($pe['prompt_text']) ?>">
-                                    <?= htmlspecialchars(mb_strlen($pe['prompt_text']) > 60 ? mb_substr($pe['prompt_text'], 0, 60) . '...' : $pe['prompt_text']) ?>
-                                </span>
-                                <?php if (!empty($pe['language'])): ?>
-                                <span class="lang-badge <?= $pe['language'] ?>"><?= strtoupper($pe['language']) ?></span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="mono score-cell <?= $pe['neutrality'] >= 80 ? 'high' : ($pe['neutrality'] >= 60 ? 'medium' : 'low') ?>"><?= $pe['neutrality'] ?></td>
-                            <td class="mono score-cell <?= $pe['functional_stability'] >= 80 ? 'high' : ($pe['functional_stability'] >= 60 ? 'medium' : 'low') ?>"><?= $pe['functional_stability'] ?></td>
-                            <td class="mono score-cell <?= $pe['logical_soundness'] >= 80 ? 'high' : ($pe['logical_soundness'] >= 60 ? 'medium' : 'low') ?>"><?= $pe['logical_soundness'] ?></td>
-                            <td class="mono score-cell <?= $pe['anti_hallucination'] >= 80 ? 'high' : ($pe['anti_hallucination'] >= 60 ? 'medium' : 'low') ?>"><?= $pe['anti_hallucination'] ?></td>
-                            <td class="mono">
-                                <span class="avg-badge <?= ($pe['avg_score'] ?? 0) >= 80 ? 'high' : (($pe['avg_score'] ?? 0) >= 60 ? 'medium' : 'low') ?>">
-                                    <?= $pe['avg_score'] ?? round(($pe['neutrality'] + $pe['functional_stability'] + $pe['logical_soundness'] + $pe['anti_hallucination']) / 4) ?>
-                                </span>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <?php if ($tabData['hasMorePromptEvals'] ?? false): ?>
-            <div class="load-more-container">
-                <button type="button" class="btn-load-more" id="loadMorePromptEvals"
-                        data-topic-id="<?= htmlspecialchars($topic['id']) ?>"
-                        data-offset="10">
-                    <span class="btn-text">Загрузить ещё</span>
-                    <span class="btn-loader" style="display:none;">
-                        <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 60"/></svg>
-                    </span>
-                </button>
-            </div>
-            <?php endif; ?>
-        </div>
-        <?php endif; ?>
-
         <!-- Responses Section -->
         <div class="section-block">
             <h2 class="section-title-xl">Ответы</h2>
@@ -641,6 +582,65 @@
             </div>
             <?php endif; ?>
         </div>
+
+        <!-- Prompt Evaluations Table -->
+        <?php if (!empty($tabData['promptEvaluations'])): ?>
+        <div class="section-block">
+            <h3 class="section-title">Оценки промтов <span class="count-badge"><?= $tabData['promptEvaluationsCount'] ?? count($tabData['promptEvaluations']) ?></span></h3>
+            <p class="section-description">Детальная оценка каждого промта по четырём ключевым критериям качества.</p>
+
+            <div class="table-container">
+                <table class="table" id="promptEvalsTable">
+                    <thead>
+                        <tr>
+                            <th>Промпт</th>
+                            <th>Нейтральность</th>
+                            <th>Функц. стабильность</th>
+                            <th>Логич. корректность</th>
+                            <th>Анти-галлюц.</th>
+                            <th>Средняя</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promptEvalsBody">
+                        <?php foreach ($tabData['promptEvaluations'] as $pe): ?>
+                        <tr>
+                            <td class="prompt-cell">
+                                <span class="prompt-text" title="<?= htmlspecialchars($pe['prompt_text']) ?>">
+                                    <?= htmlspecialchars(mb_strlen($pe['prompt_text']) > 60 ? mb_substr($pe['prompt_text'], 0, 60) . '...' : $pe['prompt_text']) ?>
+                                </span>
+                                <?php if (!empty($pe['language'])): ?>
+                                <span class="lang-badge <?= $pe['language'] ?>"><?= strtoupper($pe['language']) ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="mono score-cell <?= $pe['neutrality'] >= 80 ? 'high' : ($pe['neutrality'] >= 60 ? 'medium' : 'low') ?>"><?= $pe['neutrality'] ?></td>
+                            <td class="mono score-cell <?= $pe['functional_stability'] >= 80 ? 'high' : ($pe['functional_stability'] >= 60 ? 'medium' : 'low') ?>"><?= $pe['functional_stability'] ?></td>
+                            <td class="mono score-cell <?= $pe['logical_soundness'] >= 80 ? 'high' : ($pe['logical_soundness'] >= 60 ? 'medium' : 'low') ?>"><?= $pe['logical_soundness'] ?></td>
+                            <td class="mono score-cell <?= $pe['anti_hallucination'] >= 80 ? 'high' : ($pe['anti_hallucination'] >= 60 ? 'medium' : 'low') ?>"><?= $pe['anti_hallucination'] ?></td>
+                            <td class="mono">
+                                <span class="avg-badge <?= ($pe['avg_score'] ?? 0) >= 80 ? 'high' : (($pe['avg_score'] ?? 0) >= 60 ? 'medium' : 'low') ?>">
+                                    <?= $pe['avg_score'] ?? round(($pe['neutrality'] + $pe['functional_stability'] + $pe['logical_soundness'] + $pe['anti_hallucination']) / 4) ?>
+                                </span>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <?php if ($tabData['hasMorePromptEvals'] ?? false): ?>
+            <div class="load-more-container">
+                <button type="button" class="btn-load-more" id="loadMorePromptEvals"
+                        data-topic-id="<?= htmlspecialchars($topic['id']) ?>"
+                        data-offset="10">
+                    <span class="btn-text">Загрузить ещё</span>
+                    <span class="btn-loader" style="display:none;">
+                        <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 60"/></svg>
+                    </span>
+                </button>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
     </div>
 
     <?php elseif ($activeTab === 'sources'): ?>
