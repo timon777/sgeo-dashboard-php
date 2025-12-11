@@ -88,6 +88,9 @@ class TopicController extends BaseController
             case 'prompts':
                 $data = $this->getTopicPrompts($id, $offset, $limit);
                 break;
+            case 'prompt_evaluations':
+                $data = $this->getPromptEvaluationsPaginated($id, $offset, $limit);
+                break;
             case 'sources':
                 $data = $this->getTopicSources($id, $offset, $limit);
                 break;
@@ -329,6 +332,35 @@ class TopicController extends BaseController
             'promptEvaluations' => array_slice($promptEvalsData, 0, 10),
             'promptEvaluationsCount' => $promptEvalCount,
             'hasMorePromptEvals' => $promptEvalCount > 10,
+        ];
+    }
+
+    private function getPromptEvaluationsPaginated(string $topicId, int $offset = 0, int $limit = 10): array
+    {
+        // Get prompt evaluations with pagination
+        $result = $this->db->from('prompt_evaluations')
+            ->select('*')
+            ->eq('project_id', $topicId)
+            ->order('created_at', false)
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
+
+        $evaluations = $result['data'] ?? [];
+
+        // Get total count (cached)
+        $totalCount = Cache::remember("topic_prompt_evals_count_{$topicId}", function() use ($topicId) {
+            $countResult = $this->db->from('prompt_evaluations')
+                ->select('id')
+                ->eq('project_id', $topicId)
+                ->get();
+            return count($countResult['data'] ?? []);
+        }, 300);
+
+        return [
+            'evaluations' => $evaluations,
+            'totalCount' => $totalCount,
+            'hasMore' => ($offset + $limit) < $totalCount,
         ];
     }
 

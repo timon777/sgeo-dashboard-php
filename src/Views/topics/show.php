@@ -543,46 +543,6 @@
     <?php elseif ($activeTab === 'prompts'): ?>
     <!-- Prompts Tab -->
     <div class="tab-panel" id="prompts-panel">
-        <!-- Prompts List -->
-        <div class="section-block">
-            <h3 class="section-title">Список промтов <span class="count-badge"><?= $tabData['totalCount'] ?? 0 ?></span></h3>
-            <div class="prompts-list" id="promptsList">
-                <?php foreach ($tabData['prompts'] ?? [] as $prompt): ?>
-                <div class="prompt-card">
-                    <div class="prompt-header">
-                        <span class="llm-badge models-count"><?= $prompt['modelsCount'] ?? 1 ?> LLM</span>
-                        <span class="responses-count"><?= $prompt['responsesCount'] ?? 1 ?> ответов</span>
-                        <span class="prompt-date"><?= $prompt['date'] ?></span>
-                    </div>
-                    <div class="prompt-text"><?= htmlspecialchars($prompt['text']) ?></div>
-                </div>
-                <?php endforeach; ?>
-
-                <?php if (empty($tabData['prompts'])): ?>
-                <div class="empty-state">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14,2 14,8 20,8"/>
-                    </svg>
-                    <p>Нет промтов по этой теме</p>
-                </div>
-                <?php endif; ?>
-            </div>
-            <?php if ($tabData['hasMore'] ?? false): ?>
-            <div class="load-more-container">
-                <button type="button" class="btn-load-more" id="loadMorePrompts"
-                        data-topic-id="<?= htmlspecialchars($topic['id']) ?>"
-                        data-offset="10"
-                        data-tab="prompts">
-                    <span class="btn-text">Загрузить ещё</span>
-                    <span class="btn-loader" style="display:none;">
-                        <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 60"/></svg>
-                    </span>
-                </button>
-            </div>
-            <?php endif; ?>
-        </div>
-
         <!-- Prompt Evaluations Table -->
         <?php if (!empty($tabData['promptEvaluations'])): ?>
         <div class="section-block">
@@ -2289,7 +2249,7 @@ function escapeHtml(text) {
 
 <?php if ($activeTab === 'prompts'): ?>
 <script>
-document.getElementById('loadMorePrompts')?.addEventListener('click', async function() {
+document.getElementById('loadMorePromptEvals')?.addEventListener('click', async function() {
     const btn = this;
     const topicId = btn.dataset.topicId;
     const offset = parseInt(btn.dataset.offset);
@@ -2299,30 +2259,32 @@ document.getElementById('loadMorePrompts')?.addEventListener('click', async func
     btn.querySelector('.btn-loader').style.display = 'inline-flex';
 
     try {
-        const response = await fetch(`/api/topics/${topicId}/data?tab=prompts&offset=${offset}&limit=10`);
+        const response = await fetch(`/api/topics/${topicId}/data?tab=prompt_evaluations&offset=${offset}&limit=10`);
         const result = await response.json();
 
-        if (result.success && result.data.prompts) {
-            const list = document.getElementById('promptsList');
+        if (result.success && result.data.evaluations) {
+            const tbody = document.getElementById('promptEvalsBody');
 
-            result.data.prompts.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'prompt-card';
-                card.innerHTML = `
-                    <div class="prompt-header">
-                        <span class="llm-badge models-count">${p.modelsCount || 1} LLM</span>
-                        <span class="responses-count">${p.responsesCount || 1} ответов</span>
-                        <span class="prompt-date">${p.date}</span>
-                    </div>
-                    <div class="prompt-text">${escapeHtml(p.text)}</div>
-                    <div class="prompt-metrics">
-                        <div class="metric-mini"><span class="metric-label">Связн.</span><span class="metric-value">${p.coherence || 0}</span></div>
-                        <div class="metric-mini"><span class="metric-label">Согл.</span><span class="metric-value">${p.consistency || 0}</span></div>
-                        <div class="metric-mini"><span class="metric-label">Бегл.</span><span class="metric-value">${p.fluency || 0}</span></div>
-                        <div class="metric-mini"><span class="metric-label">Релев.</span><span class="metric-value">${p.relevance || 0}</span></div>
-                    </div>
+            result.data.evaluations.forEach(pe => {
+                const row = document.createElement('tr');
+                const avgScore = pe.avg_score || Math.round((pe.neutrality + pe.functional_stability + pe.logical_soundness + pe.anti_hallucination) / 4);
+                const promptText = pe.prompt_text || '';
+                const truncated = promptText.length > 60 ? promptText.substring(0, 60) + '...' : promptText;
+
+                const getScoreClass = (score) => score >= 80 ? 'high' : (score >= 60 ? 'medium' : 'low');
+
+                row.innerHTML = `
+                    <td class="prompt-cell">
+                        <span class="prompt-text" title="${escapeHtml(promptText)}">${escapeHtml(truncated)}</span>
+                        ${pe.language ? `<span class="lang-badge ${pe.language}">${pe.language.toUpperCase()}</span>` : ''}
+                    </td>
+                    <td class="mono score-cell ${getScoreClass(pe.neutrality)}">${pe.neutrality}</td>
+                    <td class="mono score-cell ${getScoreClass(pe.functional_stability)}">${pe.functional_stability}</td>
+                    <td class="mono score-cell ${getScoreClass(pe.logical_soundness)}">${pe.logical_soundness}</td>
+                    <td class="mono score-cell ${getScoreClass(pe.anti_hallucination)}">${pe.anti_hallucination}</td>
+                    <td class="mono"><span class="avg-badge ${getScoreClass(avgScore)}">${avgScore}</span></td>
                 `;
-                list.appendChild(card);
+                tbody.appendChild(row);
             });
 
             btn.dataset.offset = offset + 10;
