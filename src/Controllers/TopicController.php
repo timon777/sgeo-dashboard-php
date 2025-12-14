@@ -198,7 +198,7 @@ class TopicController extends BaseController
                 'fluency' => $fluency,
                 'relevance' => $relevance,
                 'avgScore' => $avgScore,
-                'tone' => $r['tone'] ?? 'neutral',
+                'tone' => $r['sentiment'] ?? 'neutral',
                 'date' => $this->formatDate($r['evaluated_at'] ?? ''),
             ];
         }
