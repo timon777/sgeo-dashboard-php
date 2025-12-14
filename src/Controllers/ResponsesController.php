@@ -89,7 +89,6 @@ class ResponsesController extends BaseController
                 'fluency' => $fluency,
                 'relevance' => $relevance,
                 'avgScore' => $avgScore,
-                'tone' => $r['tone'] ?? 'neutral',
                 'sentiment' => $r['sentiment'] ?? 'neutral',
                 'date' => $this->formatDate($r['evaluated_at'] ?? $aiResponse['created_at'] ?? ''),
             ];
@@ -209,7 +208,7 @@ class ResponsesController extends BaseController
                 (int)(($r['fluency'] ?? 0) * 20) . '%',
                 (int)(($r['relevance'] ?? 0) * 20) . '%',
                 (int)($r['avg_score'] ?? 0) . '%',
-                $r['tone'] ?? '',
+                $r['sentiment'] ?? '',
                 $this->formatDate($r['evaluated_at'] ?? $aiResponse['created_at'] ?? ''),
             ]);
         }
