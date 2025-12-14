@@ -2546,10 +2546,20 @@ if (promptsRadarCanvas) {
     new Chart(promptsRadarCanvas, {
         type: 'radar',
         data: {
-            labels: ['Нейтральность', 'Стабильность', 'Корректность', 'Анти-галлюцинация'],
+            labels: [
+                'Нейтр.',
+                'Стабил.',
+                'Коррект.',
+                'Анти-гал.'
+            ],
             datasets: [{
-                label: 'Качество промтов',
-                data: [radarData.neutrality, radarData.stability, radarData.soundness, radarData.antiHallucination],
+                label: 'Оценка промтов',
+                data: [
+                    radarData.neutrality || 0,
+                    radarData.stability || 0,
+                    radarData.soundness || 0,
+                    radarData.antiHallucination || 0
+                ],
                 backgroundColor: 'rgba(16, 185, 129, 0.2)',
                 borderColor: 'rgb(16, 185, 129)',
                 borderWidth: 2,
@@ -2562,30 +2572,46 @@ if (promptsRadarCanvas) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             layout: {
-                padding: { top: 10, bottom: 10, left: 60, right: 60 }
+                padding: {
+                    top: 0,
+                    bottom: 0,
+                    left: 40,
+                    right: 40
+                }
             },
             scales: {
                 r: {
                     beginAtZero: true,
                     max: 100,
+                    min: 0,
                     ticks: {
                         stepSize: 20,
-                        color: isLightTheme() ? '#475569' : '#cbd5e1',
+                        font: { size: 10 },
+                        color: '#9ca3af',
                         backdropColor: 'transparent'
                     },
-                    grid: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
-                    angleLines: { color: isLightTheme() ? 'rgba(100, 116, 139, 0.2)' : 'rgba(148, 163, 184, 0.2)' },
+                    grid: {
+                        color: 'rgba(156, 163, 175, 0.2)'
+                    },
+                    angleLines: {
+                        color: 'rgba(156, 163, 175, 0.2)'
+                    },
                     pointLabels: {
+                        font: {
+                            size: 12,
+                            weight: '500'
+                        },
                         color: isLightTheme() ? '#0f172a' : '#f1f5f9',
-                        font: { size: 11, weight: '500' },
-                        padding: 10
+                        padding: 15
                     }
                 }
             },
             plugins: {
-                legend: { display: false }
+                legend: {
+                    display: false
+                }
             }
         }
     });
