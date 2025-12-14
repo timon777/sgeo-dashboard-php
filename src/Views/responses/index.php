@@ -343,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Append new responses
                 result.data.responses.forEach(response => {
                     const card = createResponseCard(response);
-                    responsesList.insertBefore(card, loadMoreBtn.parentElement);
+                    responsesList.appendChild(card);
                 });
 
                 // Update offset
