@@ -73,7 +73,7 @@ class ResponsesController extends BaseController
             $consistency = (int)(($r['consistency'] ?? 0) * 20);
             $fluency = (int)(($r['fluency'] ?? 0) * 20);
             $relevance = (int)(($r['relevance'] ?? 0) * 20);
-            $avgScore = (int)($r['avg_score'] ?? 0);
+            $avgScore = (int)(($coherence + $consistency + $fluency + $relevance) / 4);
 
             $responses[] = [
                 'id' => $r['ai_response_id'],
