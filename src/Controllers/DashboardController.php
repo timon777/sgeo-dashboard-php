@@ -39,8 +39,18 @@ class DashboardController extends BaseController
         }, 300);
 
         // Calculate dashboard stats from real data with caching
-        $projectCount = Cache::remember('dashboard_project_count', function() use ($projectModel) {
-            return $projectModel->count();
+        $projectFilter = $this->getProjectFilter();
+        $projectCount = Cache::remember("dashboard_project_count_{$projectFilter}", function() use ($projectModel) {
+            $result = $projectModel->all();
+            $count = 0;
+            if (isset($result['data']) && is_array($result['data'])) {
+                foreach ($result['data'] as $project) {
+                    if ($this->canAccessProject($project)) {
+                        $count++;
+                    }
+                }
+            }
+            return $count;
         }, 600);
 
         $sourceCount = Cache::remember('dashboard_source_count', function() use ($sourceModel) {
@@ -90,7 +100,7 @@ class DashboardController extends BaseController
         }, 600);
 
         // Get project accuracy dynamics data for line chart
-        $accuracyDynamics = Cache::remember('dashboard_accuracy_dynamics', function() {
+        $accuracyDynamics = Cache::remember("dashboard_accuracy_dynamics_{$projectFilter}", function() {
             return $this->buildAccuracyDynamicsData();
         }, 600);
 
@@ -154,7 +164,8 @@ class DashboardController extends BaseController
 
     private function buildProjectChartData(Project $projectModel): array
     {
-        return Cache::remember('dashboard_project_chart_data', function() use ($projectModel) {
+        $projectFilter = $this->getProjectFilter();
+        return Cache::remember("dashboard_project_chart_data_{$projectFilter}", function() use ($projectModel) {
             $result = $projectModel->all();
             $projectData = [];
 
