@@ -34,9 +34,21 @@ class TopicController extends BaseController
             return;
         }
 
-        // Get all projects for the sidebar dropdown
+        // Check if user can access this project
+        if (!$this->canAccessProject($topic)) {
+            http_response_code(403);
+            include __DIR__ . '/../Views/errors/403.php';
+            return;
+        }
+
+        // Get all projects for the sidebar dropdown (filtered)
         $allProjectsResult = $projectModel->all();
-        $allProjects = $allProjectsResult['data'] ?? [];
+        $allProjects = [];
+        foreach ($allProjectsResult['data'] ?? [] as $p) {
+            if ($this->canAccessProject($p)) {
+                $allProjects[] = $p;
+            }
+        }
 
         // Get tab from query string (default to overview)
         $tab = $_GET['tab'] ?? 'overview';

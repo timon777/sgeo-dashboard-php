@@ -174,6 +174,11 @@ class DashboardController extends BaseController
                 }
 
                 foreach ($result['data'] as $project) {
+                    // Apply project filter
+                    if (!$this->canAccessProject($project)) {
+                        continue;
+                    }
+
                     $projectId = $project['id'];
                     $projectName = $project['name'];
 
@@ -489,6 +494,10 @@ class DashboardController extends BaseController
         $projectScores = [];
         $projectNames = [];
         foreach ($projects as $p) {
+            // Apply project filter
+            if (!$this->canAccessProject($p)) {
+                continue;
+            }
             $projectScores[$p['id']] = [];
             $projectNames[$p['id']] = $p['name'];
         }

@@ -13,13 +13,21 @@ class ProjectsController extends BaseController
     public function index(): void
     {
         $projectModel = new Project();
-        $result = Cache::remember('projects_list', function() use ($projectModel) {
+        $projectFilter = $this->getProjectFilter();
+
+        $cacheKey = 'projects_list_' . $projectFilter;
+        $result = Cache::remember($cacheKey, function() use ($projectModel) {
             return $projectModel->all();
         }, 180);
 
         $projects = [];
         if (isset($result['data']) && is_array($result['data'])) {
             foreach ($result['data'] as $p) {
+                // Apply project filter
+                if (!$this->canAccessProject($p)) {
+                    continue;
+                }
+
                 $projects[] = [
                     'id' => $p['id'],
                     'title' => $p['name'],
@@ -51,6 +59,13 @@ class ProjectsController extends BaseController
         if (!$project) {
             http_response_code(404);
             include __DIR__ . '/../Views/errors/404.php';
+            return;
+        }
+
+        // Check if user can access this project
+        if (!$this->canAccessProject($project)) {
+            http_response_code(403);
+            include __DIR__ . '/../Views/errors/403.php';
             return;
         }
 

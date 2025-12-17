@@ -80,6 +80,7 @@ class AuthController extends BaseController
         $_SESSION['user_email'] = $result['email'];
         $_SESSION['user_role'] = $result['role'];
         $_SESSION['user_avatar'] = $result['avatar_initials'];
+        $_SESSION['user_project_filter'] = $result['project_filter'] ?? 'all';
         $_SESSION['auth_token'] = $token;
 
         // Redirect to dashboard

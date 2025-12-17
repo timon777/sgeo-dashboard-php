@@ -33,4 +33,64 @@ abstract class BaseController
         header('Location: ' . $url);
         exit;
     }
+
+    /**
+     * Get current user's project filter
+     * Returns: 'all', 'gov', or 'private:partner_name'
+     */
+    protected function getProjectFilter(): string
+    {
+        return $_SESSION['user_project_filter'] ?? 'all';
+    }
+
+    /**
+     * Check if user can access a specific project
+     */
+    protected function canAccessProject(array $project): bool
+    {
+        $filter = $this->getProjectFilter();
+
+        if ($filter === 'all') {
+            return true;
+        }
+
+        // Filter for government projects only
+        if ($filter === 'gov') {
+            return ($project['type'] ?? '') === 'gov';
+        }
+
+        // Filter for specific private partner (e.g., 'private:freedom')
+        if (str_starts_with($filter, 'private:')) {
+            $partnerName = substr($filter, 8); // Remove 'private:' prefix
+            return ($project['type'] ?? '') === 'private' &&
+                   stripos($project['name'] ?? '', $partnerName) !== false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Apply project filter to Supabase query builder
+     */
+    protected function applyProjectFilter($queryBuilder): mixed
+    {
+        $filter = $this->getProjectFilter();
+
+        if ($filter === 'all') {
+            return $queryBuilder;
+        }
+
+        // Filter for government projects only
+        if ($filter === 'gov') {
+            return $queryBuilder->eq('type', 'gov');
+        }
+
+        // Filter for specific private partner (e.g., 'private:freedom')
+        if (str_starts_with($filter, 'private:')) {
+            $partnerName = substr($filter, 8); // Remove 'private:' prefix
+            return $queryBuilder->eq('type', 'private')->ilike('name', "%{$partnerName}%");
+        }
+
+        return $queryBuilder;
+    }
 }
