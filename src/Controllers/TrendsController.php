@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\AiResponse;
 use App\Models\Source;
+use App\Services\Cache;
 
 class TrendsController extends BaseController
 {
