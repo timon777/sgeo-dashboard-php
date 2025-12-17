@@ -117,36 +117,52 @@ class TrendsController extends BaseController
         // Different growth rates per period
         $projectsData = [
             '24h' => [
-                ['name' => 'Цифровой Казахстан', 'growth' => '+2.5%', 'icon' => '💻'],
-                ['name' => 'Имидж Президента', 'growth' => '+1.8%', 'icon' => '🏛️'],
-                ['name' => 'Freedom Bank', 'growth' => '+1.5%', 'icon' => '🏦'],
-                ['name' => 'Закон и порядок', 'growth' => '+1.2%', 'icon' => '⚖️'],
-                ['name' => 'АЭС', 'growth' => '+0.8%', 'icon' => '⚛️'],
+                ['name' => 'Цифровой Казахстан', 'growth' => '+2.5%', 'icon' => '💻', 'type' => 'gov'],
+                ['name' => 'Имидж Президента', 'growth' => '+1.8%', 'icon' => '🏛️', 'type' => 'gov'],
+                ['name' => 'Freedom Bank', 'growth' => '+1.5%', 'icon' => '🏦', 'type' => 'private'],
+                ['name' => 'Закон и порядок', 'growth' => '+1.2%', 'icon' => '⚖️', 'type' => 'gov'],
+                ['name' => 'АЭС', 'growth' => '+0.8%', 'icon' => '⚛️', 'type' => 'gov'],
             ],
             '7d' => [
-                ['name' => 'Цифровой Казахстан', 'growth' => '+12%', 'icon' => '💻'],
-                ['name' => 'Имидж Президента', 'growth' => '+10%', 'icon' => '🏛️'],
-                ['name' => 'Закон и порядок', 'growth' => '+8%', 'icon' => '⚖️'],
-                ['name' => 'Freedom Bank', 'growth' => '+7%', 'icon' => '🏦'],
-                ['name' => 'Январь 2022', 'growth' => '+5%', 'icon' => '📅'],
+                ['name' => 'Цифровой Казахстан', 'growth' => '+12%', 'icon' => '💻', 'type' => 'gov'],
+                ['name' => 'Имидж Президента', 'growth' => '+10%', 'icon' => '🏛️', 'type' => 'gov'],
+                ['name' => 'Закон и порядок', 'growth' => '+8%', 'icon' => '⚖️', 'type' => 'gov'],
+                ['name' => 'Freedom Bank', 'growth' => '+7%', 'icon' => '🏦', 'type' => 'private'],
+                ['name' => 'Январь 2022', 'growth' => '+5%', 'icon' => '📅', 'type' => 'gov'],
             ],
             '30d' => [
-                ['name' => 'Имидж Президента', 'growth' => '+28%', 'icon' => '🏛️'],
-                ['name' => 'Цифровой Казахстан', 'growth' => '+24%', 'icon' => '💻'],
-                ['name' => 'АЭС', 'growth' => '+19%', 'icon' => '⚛️'],
-                ['name' => 'Закон и порядок', 'growth' => '+15%', 'icon' => '⚖️'],
-                ['name' => 'Freedom Bank', 'growth' => '+12%', 'icon' => '🏦'],
+                ['name' => 'Имидж Президента', 'growth' => '+28%', 'icon' => '🏛️', 'type' => 'gov'],
+                ['name' => 'Цифровой Казахстан', 'growth' => '+24%', 'icon' => '💻', 'type' => 'gov'],
+                ['name' => 'АЭС', 'growth' => '+19%', 'icon' => '⚛️', 'type' => 'gov'],
+                ['name' => 'Закон и порядок', 'growth' => '+15%', 'icon' => '⚖️', 'type' => 'gov'],
+                ['name' => 'Freedom Bank', 'growth' => '+12%', 'icon' => '🏦', 'type' => 'private'],
             ],
             '90d' => [
-                ['name' => 'АЭС', 'growth' => '+45%', 'icon' => '⚛️'],
-                ['name' => 'Имидж Президента', 'growth' => '+38%', 'icon' => '🏛️'],
-                ['name' => 'Цифровой Казахстан', 'growth' => '+35%', 'icon' => '💻'],
-                ['name' => 'Январь 2022', 'growth' => '+22%', 'icon' => '📅'],
-                ['name' => 'Freedom Bank', 'growth' => '+18%', 'icon' => '🏦'],
+                ['name' => 'АЭС', 'growth' => '+45%', 'icon' => '⚛️', 'type' => 'gov'],
+                ['name' => 'Имидж Президента', 'growth' => '+38%', 'icon' => '🏛️', 'type' => 'gov'],
+                ['name' => 'Цифровой Казахстан', 'growth' => '+35%', 'icon' => '💻', 'type' => 'gov'],
+                ['name' => 'Январь 2022', 'growth' => '+22%', 'icon' => '📅', 'type' => 'gov'],
+                ['name' => 'Freedom Bank', 'growth' => '+18%', 'icon' => '🏦', 'type' => 'private'],
             ],
         ];
 
-        return $projectsData[$period] ?? $projectsData['7d'];
+        $allProjects = $projectsData[$period] ?? $projectsData['7d'];
+
+        // Filter projects based on user access
+        $filteredProjects = [];
+        foreach ($allProjects as $project) {
+            // Create a pseudo-project array for canAccessProject check
+            $pseudoProject = [
+                'name' => $project['name'],
+                'type' => $project['type'] ?? 'gov',
+            ];
+
+            if ($this->canAccessProject($pseudoProject)) {
+                $filteredProjects[] = $project;
+            }
+        }
+
+        return $filteredProjects;
     }
 
     private function getChartDataForPeriod(string $period): array
