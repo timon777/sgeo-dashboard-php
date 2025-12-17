@@ -79,10 +79,17 @@ class ReportsController extends BaseController
             }
         }
 
-        // Get projects for project report dropdown
+        // Get projects for project report dropdown (apply user's project filter)
         $projectModel = new Project();
         $projectsResult = $projectModel->all();
-        $projects = $projectsResult['data'] ?? [];
+        $projects = [];
+        if (isset($projectsResult['data']) && is_array($projectsResult['data'])) {
+            foreach ($projectsResult['data'] as $p) {
+                if ($this->canAccessProject($p)) {
+                    $projects[] = $p;
+                }
+            }
+        }
 
         $this->render('reports/index', [
             'pageTitle' => 'Отчёты',
@@ -91,6 +98,7 @@ class ReportsController extends BaseController
             'reportTypes' => $reportTypes,
             'recentReports' => $recentReports,
             'projects' => $projects,
+            'projectCount' => count($projects),
         ]);
     }
 

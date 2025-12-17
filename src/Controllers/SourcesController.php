@@ -72,12 +72,29 @@ class SourcesController extends BaseController
 
         $totalSources = count($sources);
 
+        // Get filtered project count for sidebar
+        $projectFilter = $this->getProjectFilter();
+        $projectCount = Cache::remember("sources_project_count_{$projectFilter}", function() use ($sourceModel) {
+            $db = new \App\Services\SupabaseClient();
+            $result = $db->from('projects')->select('*')->get();
+            $count = 0;
+            if (isset($result['data']) && is_array($result['data'])) {
+                foreach ($result['data'] as $project) {
+                    if ($this->canAccessProject($project)) {
+                        $count++;
+                    }
+                }
+            }
+            return $count;
+        }, 600);
+
         $this->render('sources/index', [
             'pageTitle' => 'Источники информации',
             'currentPage' => 'sources',
             'breadcrumb' => 'Источники',
             'sources' => $sources,
             'totalSources' => $totalSources,
+            'projectCount' => $projectCount,
             'stats' => $stats,
         ]);
     }

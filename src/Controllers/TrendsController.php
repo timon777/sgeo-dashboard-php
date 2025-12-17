@@ -25,6 +25,22 @@ class TrendsController extends BaseController
         $topProjects = $this->getTopProjectsForPeriod($period);
         $chartData = $this->getChartDataForPeriod($period);
 
+        // Get filtered project count for sidebar
+        $projectFilter = $this->getProjectFilter();
+        $projectCount = Cache::remember("trends_project_count_{$projectFilter}", function() {
+            $db = new \App\Services\SupabaseClient();
+            $result = $db->from('projects')->select('*')->get();
+            $count = 0;
+            if (isset($result['data']) && is_array($result['data'])) {
+                foreach ($result['data'] as $project) {
+                    if ($this->canAccessProject($project)) {
+                        $count++;
+                    }
+                }
+            }
+            return $count;
+        }, 600);
+
         $this->render('trends/index', [
             'pageTitle' => 'Тренды и динамика',
             'currentPage' => 'trends',
@@ -34,6 +50,7 @@ class TrendsController extends BaseController
             'chartData' => $chartData,
             'currentPeriod' => $period,
             'periodConfig' => $this->periodConfig,
+            'projectCount' => $projectCount,
         ]);
     }
 

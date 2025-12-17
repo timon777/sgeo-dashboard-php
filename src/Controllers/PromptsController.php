@@ -21,9 +21,18 @@ class PromptsController extends BaseController
         $offset = ($page - 1) * $perPage;
         $projectFilter = $_GET['project'] ?? null;
 
-        // Get projects for filter
+        // Get projects for filter (apply user's project filter)
         $projectsResult = $projectModel->all();
-        $projects = $projectsResult['data'] ?? [];
+        $projects = [];
+        $allowedProjectIds = [];
+        if (isset($projectsResult['data']) && is_array($projectsResult['data'])) {
+            foreach ($projectsResult['data'] as $p) {
+                if ($this->canAccessProject($p)) {
+                    $projects[] = $p;
+                    $allowedProjectIds[] = $p['id'];
+                }
+            }
+        }
 
         // Get total count from cache
         $totalPrompts = Cache::remember('prompts_total_count', function() {
@@ -45,6 +54,12 @@ class PromptsController extends BaseController
         $prompts = [];
         if (isset($evaluationsResult['data']) && is_array($evaluationsResult['data'])) {
             foreach ($evaluationsResult['data'] as $eval) {
+                // Filter out prompts from projects user doesn't have access to
+                $evalProjectId = $eval['project_id'] ?? null;
+                if ($evalProjectId && !in_array($evalProjectId, $allowedProjectIds)) {
+                    continue;
+                }
+
                 $prompts[] = [
                     'id' => $eval['ai_response_id'],
                     'prompt' => $this->truncateText($eval['prompt'] ?? '', 200),
@@ -71,6 +86,12 @@ class PromptsController extends BaseController
             }
             if (isset($responsesResult['data']) && is_array($responsesResult['data'])) {
                 foreach ($responsesResult['data'] as $resp) {
+                    // Filter out prompts from projects user doesn't have access to
+                    $respProjectId = $resp['project_id'] ?? null;
+                    if ($respProjectId && !in_array($respProjectId, $allowedProjectIds)) {
+                        continue;
+                    }
+
                     $prompts[] = [
                         'id' => $resp['id'],
                         'prompt' => $this->truncateText($resp['prompt'] ?? '', 200),
@@ -94,6 +115,7 @@ class PromptsController extends BaseController
             'breadcrumb' => 'Промты',
             'prompts' => $prompts,
             'projects' => $projects,
+            'projectCount' => count($projects),
             'projectFilter' => $projectFilter,
             'totalPrompts' => $totalPrompts,
             'paginationPage' => $page,

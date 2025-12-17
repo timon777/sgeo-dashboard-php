@@ -38,12 +38,29 @@ class SettingsController extends BaseController
             }
         }
 
+        // Get filtered project count for sidebar
+        $projectFilter = $this->getProjectFilter();
+        $projectCount = Cache::remember("settings_project_count_{$projectFilter}", function() {
+            $db = new \App\Services\SupabaseClient();
+            $result = $db->from('projects')->select('*')->get();
+            $count = 0;
+            if (isset($result['data']) && is_array($result['data'])) {
+                foreach ($result['data'] as $project) {
+                    if ($this->canAccessProject($project)) {
+                        $count++;
+                    }
+                }
+            }
+            return $count;
+        }, 600);
+
         $this->render('settings/index', [
             'pageTitle' => 'Настройки',
             'currentPage' => 'settings',
             'breadcrumb' => 'Настройки',
             'settings' => $settings,
             'apiKeys' => $apiKeys,
+            'projectCount' => $projectCount,
         ]);
     }
 
