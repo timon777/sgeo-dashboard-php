@@ -27,6 +27,21 @@ class ResponsesController extends BaseController
         // Get model comparison stats (cached)
         $modelComparison = $this->getModelComparison();
 
+        // Get filtered project count for sidebar
+        $projectFilter = $this->getProjectFilter();
+        $projectCount = Cache::remember("responses_project_count_{$projectFilter}", function() {
+            $result = $this->db->from('projects')->select('*')->get();
+            $count = 0;
+            if (isset($result['data']) && is_array($result['data'])) {
+                foreach ($result['data'] as $project) {
+                    if ($this->canAccessProject($project)) {
+                        $count++;
+                    }
+                }
+            }
+            return $count;
+        }, 600);
+
         $this->render('responses/index', [
             'pageTitle' => 'Ответы LLM',
             'currentPage' => 'responses',
@@ -35,6 +50,7 @@ class ResponsesController extends BaseController
             'totalCount' => $responses['totalCount'],
             'hasMore' => $responses['hasMore'],
             'modelComparison' => $modelComparison,
+            'projectCount' => $projectCount,
         ]);
     }
 

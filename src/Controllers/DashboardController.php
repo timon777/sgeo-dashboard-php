@@ -109,6 +109,7 @@ class DashboardController extends BaseController
             'currentPage' => 'dashboard',
             'breadcrumb' => 'Дашборд',
             'stats' => $stats,
+            'projectCount' => $projectCount,
             'llmData' => $llmData,
             'projectData' => $projectData,
             'modelPerformance' => $modelPerformance,

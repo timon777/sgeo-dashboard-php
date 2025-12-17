@@ -80,6 +80,7 @@ class TopicController extends BaseController
             'currentPage' => 'projects',
             'topic' => $topic,
             'allProjects' => $allProjects,
+            'projectCount' => count($allProjects),
             'stats' => $stats,
             'activeTab' => $tab,
             'tabData' => $tabData,
