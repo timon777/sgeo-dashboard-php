@@ -69,6 +69,7 @@
             </a>
         </div>
 
+        <?php if (($_SESSION['user_role'] ?? 'user') === 'admin'): ?>
         <div class="nav-divider"></div>
 
         <div class="nav-section">
@@ -95,6 +96,7 @@
                 Гос. партнёры
             </a>
         </div>
+        <?php endif; ?>
     </nav>
 
     <div class="user-section">
