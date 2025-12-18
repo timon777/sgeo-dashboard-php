@@ -140,7 +140,39 @@
 
     /* Header adjustments */
     .header {
-        padding: 0 16px 0 75px;
+        padding: 8px 16px 8px 75px;
+        flex-wrap: wrap;
+        min-height: 60px;
+    }
+
+    .header-left {
+        flex: 0 0 auto;
+        order: 1;
+    }
+
+    .header-right {
+        flex: 1 1 auto;
+        justify-content: flex-end;
+        order: 2;
+    }
+
+    .breadcrumbs {
+        flex: 1 1 100%;
+        order: 3;
+        margin-top: 8px;
+        padding-left: 0;
+        font-size: 13px;
+    }
+
+    .breadcrumb-item {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
+    }
+
+    .breadcrumb-item.active {
+        max-width: none;
     }
 
     .page-header-top {
