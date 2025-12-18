@@ -26,7 +26,6 @@
     <div class="tabs-container">
         <a href="/" class="tab active">Обзор</a>
         <a href="/projects" class="tab">По проектам</a>
-        <a href="/llm-monitoring" class="tab">По LLM</a>
         <a href="/sources" class="tab">По источникам</a>
     </div>
 </div>
