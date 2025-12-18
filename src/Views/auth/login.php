@@ -2,10 +2,44 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Вход — SGEO Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f1419;
+            --bg-card: #1a1f2e;
+            --border-subtle: rgba(255, 255, 255, 0.1);
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-primary: #6366f1;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.1);
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
     <style>
         .login-page {
             min-height: 100vh;
@@ -87,7 +121,7 @@
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-md);
             color: var(--text-primary);
-            font-size: 15px;
+            font-size: 16px; /* 16px prevents zoom on iOS */
             font-family: inherit;
             transition: all 0.2s ease;
         }
@@ -211,14 +245,46 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+
+        /* Simple background - no heavy animations on mobile */
+        .bg-simple {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .login-card {
+                padding: 24px;
+            }
+
+            .login-title {
+                font-size: 20px;
+            }
+
+            .login-logo {
+                width: 56px;
+                height: 56px;
+            }
+
+            .login-logo span {
+                font-size: 24px;
+            }
+
+            .login-btn:hover {
+                transform: none; /* Disable transform on mobile */
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="bg-effects">
-        <div class="bg-gradient-orb"></div>
-        <div class="bg-gradient-orb"></div>
-        <div class="bg-noise"></div>
-    </div>
+    <!-- Simple background for better mobile performance -->
+    <div class="bg-simple"></div>
 
     <div class="login-page">
         <div class="login-container">
@@ -246,7 +312,7 @@
                             class="form-input"
                             placeholder="admin"
                             required
-                            autofocus
+                            autocomplete="username"
                         >
                     </div>
 
@@ -259,6 +325,7 @@
                             class="form-input"
                             placeholder="Введите пароль"
                             required
+                            autocomplete="current-password"
                         >
                     </div>
 
