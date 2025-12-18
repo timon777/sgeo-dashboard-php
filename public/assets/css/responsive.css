@@ -237,6 +237,30 @@
         padding: 8px 10px;
     }
 
+    /* Table container for prompts and other tables */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -16px;
+        padding: 0 16px;
+    }
+
+    .table {
+        min-width: 600px;
+        font-size: 12px;
+    }
+
+    .table th,
+    .table td {
+        padding: 8px 10px;
+        white-space: nowrap;
+    }
+
+    .table .prompt-cell {
+        max-width: 200px;
+        white-space: normal;
+    }
+
     /* Hide less important table columns on mobile */
     .data-table .hide-mobile {
         display: none;

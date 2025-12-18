@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/main.css?v=3">
     <link rel="stylesheet" href="/assets/css/ui-components.css?v=2">
-    <link rel="stylesheet" href="/assets/css/responsive.css?v=3">
+    <link rel="stylesheet" href="/assets/css/responsive.css?v=4">
     <script>
         (function() {
             if (localStorage.getItem('sgeo-theme') === 'light') {
