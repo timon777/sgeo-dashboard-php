@@ -104,6 +104,11 @@
         display: block;
     }
 
+    /* Hide old mobile menu button - we use mobile-menu-toggle instead */
+    .mobile-menu-btn {
+        display: none !important;
+    }
+
     /* Sidebar - Hidden by default */
     .sidebar {
         position: fixed;
