@@ -23,11 +23,13 @@
         </div>
     </div>
 
+    <?php if (($_SESSION['user_project_filter'] ?? 'all') === 'all'): ?>
     <div class="tabs-container" id="project-tabs">
         <button class="tab <?= empty($_GET['type']) ? 'active' : '' ?>" data-filter="all">Все проекты</button>
         <button class="tab <?= ($_GET['type'] ?? '') === 'gov' ? 'active' : '' ?>" data-filter="gov">Государственные</button>
         <button class="tab <?= ($_GET['type'] ?? '') === 'private' ? 'active' : '' ?>" data-filter="private">Частные</button>
     </div>
+    <?php endif; ?>
 </div>
 
 <!-- Projects Grid -->
