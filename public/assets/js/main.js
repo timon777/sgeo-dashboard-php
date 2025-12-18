@@ -148,6 +148,63 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // =====================================================
+    // Mobile Menu Toggle
+    // =====================================================
+    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.querySelector('.sidebar-overlay');
+
+    if (mobileMenuToggle && sidebar && sidebarOverlay) {
+        // Toggle mobile menu
+        mobileMenuToggle.addEventListener('click', function() {
+            const isActive = sidebar.classList.contains('mobile-active');
+
+            if (isActive) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+
+        // Close menu when clicking overlay
+        sidebarOverlay.addEventListener('click', closeMobileMenu);
+
+        // Close menu when clicking a nav link
+        const navLinks = sidebar.querySelectorAll('.nav-item');
+        navLinks.forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && sidebar.classList.contains('mobile-active')) {
+                closeMobileMenu();
+            }
+        });
+
+        // Close menu when window is resized to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768 && sidebar.classList.contains('mobile-active')) {
+                closeMobileMenu();
+            }
+        });
+    }
+
+    function openMobileMenu() {
+        sidebar.classList.add('mobile-active');
+        sidebarOverlay.classList.add('active');
+        mobileMenuToggle.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    }
+
+    function closeMobileMenu() {
+        sidebar.classList.remove('mobile-active');
+        sidebarOverlay.classList.remove('active');
+        mobileMenuToggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
 });
 
 // Export functions globally

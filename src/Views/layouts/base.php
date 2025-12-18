@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/main.css?v=3">
     <link rel="stylesheet" href="/assets/css/ui-components.css?v=2">
+    <link rel="stylesheet" href="/assets/css/responsive.css?v=1">
     <script>
         (function() {
             if (localStorage.getItem('sgeo-theme') === 'light') {
@@ -22,6 +23,15 @@
 <body>
     <a href="#main-content" class="skip-link">Перейти к контенту</a>
     <div class="sidebar-overlay" aria-hidden="true"></div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" aria-label="Открыть меню" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+    </button>
 
     <div class="bg-effects">
         <div class="bg-gradient-orb"></div>
