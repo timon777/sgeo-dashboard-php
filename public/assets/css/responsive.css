@@ -118,6 +118,11 @@
         transform: translateX(0);
     }
 
+    /* App container - Higher z-index to contain sidebar above overlay */
+    .app-container {
+        z-index: 1100;
+    }
+
     /* Main content - Full width on mobile */
     .main-content {
         margin-left: 0;
