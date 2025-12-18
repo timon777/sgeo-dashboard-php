@@ -140,39 +140,49 @@
 
     /* Header adjustments */
     .header {
-        padding: 8px 16px 8px 75px;
+        padding: 8px 16px;
         flex-wrap: wrap;
         min-height: 60px;
+        padding-left: 16px;
     }
 
     .header-left {
-        flex: 0 0 auto;
-        order: 1;
+        flex: 1 1 100%;
+        flex-wrap: wrap;
+        padding-left: 60px;
+        gap: 8px;
     }
 
     .header-right {
         flex: 1 1 auto;
         justify-content: flex-end;
-        order: 2;
+        margin-top: 4px;
     }
 
     .breadcrumbs {
         flex: 1 1 100%;
-        order: 3;
-        margin-top: 8px;
+        margin-top: 4px;
         padding-left: 0;
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .breadcrumb-item {
+        display: inline-flex;
+        align-items: center;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 150px;
+        max-width: 120px;
+        vertical-align: middle;
+    }
+
+    .breadcrumb-item svg {
+        flex-shrink: 0;
+        margin-right: 4px;
     }
 
     .breadcrumb-item.active {
-        max-width: none;
+        max-width: 200px;
     }
 
     .page-header-top {
