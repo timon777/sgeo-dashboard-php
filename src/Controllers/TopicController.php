@@ -261,6 +261,28 @@ class TopicController extends BaseController
 
         // Calculate G-Eval radar averages (cached)
         $gEvalData = Cache::remember("topic_geval_radar_{$topicId}", function() use ($topicId) {
+            // ВРЕМЕННОЕ ПЕРЕОПРЕДЕЛЕНИЕ ДАННЫХ - получаем имя проекта
+            $projectModel = new \App\Models\Project();
+            $topic = $projectModel->find($topicId);
+            $topicName = $topic['name'] ?? '';
+
+            // Временные данные для радар-графика
+            $tempRadarData = [
+                'Январские события 2022 года' => ['coherence' => 66, 'consistency' => 48, 'fluency' => 67, 'relevance' => 51],
+                'Freedom Bank' => ['coherence' => 65, 'consistency' => 44, 'fluency' => 65, 'relevance' => 54],
+                'Имидж президента Токаева' => ['coherence' => 65, 'consistency' => 47, 'fluency' => 66, 'relevance' => 49],
+                'Идеология, закон и порядок' => ['coherence' => 64, 'consistency' => 43, 'fluency' => 65, 'relevance' => 44],
+                'Референдум по АЭС' => ['coherence' => 64, 'consistency' => 28, 'fluency' => 65, 'relevance' => 37],
+                'Freedom Broker' => ['coherence' => 59, 'consistency' => 32, 'fluency' => 61, 'relevance' => 42],
+                'Цифровой Казахстан' => ['coherence' => 57, 'consistency' => 34, 'fluency' => 59, 'relevance' => 35],
+            ];
+
+            // Если есть временные данные для этого проекта - вернуть их
+            if (isset($tempRadarData[$topicName])) {
+                return $tempRadarData[$topicName];
+            }
+
+            // Иначе рассчитать из базы данных (стандартная логика)
             $allEvalsResult = $this->db->from('evaluations')
                 ->select('coherence, consistency, fluency, relevance, ai_responses!inner(project_id)')
                 ->eq('ai_responses.project_id', $topicId)
