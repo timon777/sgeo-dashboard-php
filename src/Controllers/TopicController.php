@@ -154,6 +154,13 @@ class TopicController extends BaseController
                 ->eq('ai_responses.project_id', $topicId)
                 ->get();
 
+            // ВРЕМЕННО: Используем accuracy_score из таблицы projects вместо расчёта из evaluations
+            $projectModel = new Project();
+            $project = $projectModel->find($topicId);
+            $avgScore = (float)($project['accuracy_score'] ?? 0);
+
+            // Закомментировано - стандартный расчёт из evaluations
+            /*
             $avgScore = 0;
             $evalCount = count($evalResult['data'] ?? []);
 
@@ -165,6 +172,7 @@ class TopicController extends BaseController
                 }
                 $avgScore = round($sumScore / $evalCount, 1);
             }
+            */
 
             return [
                 'responsesCount' => $responsesCount,
