@@ -323,7 +323,6 @@ class ReportsController extends BaseController
 
     private function exportPdf(array $report, array $data): void
     {
-        // Simple HTML to PDF (requires additional library in production)
         header('Content-Type: text/html; charset=utf-8');
         header('Content-Disposition: attachment; filename="report_' . date('Y-m-d') . '.html"');
 
@@ -391,10 +390,33 @@ class ReportsController extends BaseController
 
     private function calculateTrends(): array
     {
+        $db = new SupabaseClient();
+
+        $today = date('Y-m-d');
+        $monthAgo = date('Y-m-d', strtotime('-30 days'));
+
+        $todayStats = $db->from('daily_stats')
+            ->select('*')
+            ->eq('stat_date', $today)
+            ->single();
+
+        $monthAgoStats = $db->from('daily_stats')
+            ->select('*')
+            ->eq('stat_date', $monthAgo)
+            ->single();
+
+        $calcChange = function($old, $new) {
+            $old = (float)($old ?? 0);
+            $new = (float)($new ?? 0);
+            if ($old == 0) return $new > 0 ? '+100%' : '0%';
+            $percent = round((($new - $old) / $old) * 100);
+            return ($percent >= 0 ? '+' : '') . $percent . '%';
+        };
+
         return [
-            'accuracy_change' => '+5%',
-            'prompts_change' => '+12%',
-            'sources_change' => '+3%',
+            'accuracy_change' => $calcChange($monthAgoStats['avg_accuracy'] ?? 0, $todayStats['avg_accuracy'] ?? 0),
+            'prompts_change' => $calcChange($monthAgoStats['total_prompts'] ?? 0, $todayStats['total_prompts'] ?? 0),
+            'sources_change' => $calcChange($monthAgoStats['total_sources'] ?? 0, $todayStats['total_sources'] ?? 0),
         ];
     }
 }

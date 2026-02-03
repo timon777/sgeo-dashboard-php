@@ -2,8 +2,9 @@
 
 namespace App\Controllers;
 
-use App\Models\AiResponse;
-use App\Models\Source;
+use App\Models\Project;
+use App\Services\Cache;
+use App\Services\SupabaseClient;
 
 class TrendsController extends BaseController
 {
@@ -63,137 +64,189 @@ class TrendsController extends BaseController
     {
         $days = $this->periodConfig[$period]['days'];
 
-        // Base values that scale with period
-        $baseAccuracy = 78;
-        $baseRequests = 400;
-        $baseProblematic = 18;
-        $baseSources = 13;
+        return Cache::remember("trends_stats_{$period}", function() use ($days) {
+            $db = new SupabaseClient();
+            $since = date('Y-m-d\TH:i:s', strtotime("-{$days} days"));
 
-        // Scale based on period
-        $multiplier = match($period) {
-            '24h' => 0.15,
-            '7d' => 1,
-            '30d' => 4.3,
-            '90d' => 13,
-            default => 1,
-        };
+            $responsesResult = $db->from('ai_responses')
+                ->select('id, risk_level')
+                ->gte('created_at', $since)
+                ->get();
+            $responses = $responsesResult['data'] ?? [];
 
-        // Add some variation based on period
-        $accuracyVariation = match($period) {
-            '24h' => rand(-2, 3),
-            '7d' => 0,
-            '30d' => rand(-1, 2),
-            '90d' => rand(-3, 1),
-            default => 0,
-        };
+            $evaluationsResult = $db->from('evaluations')
+                ->select('avg_score')
+                ->gte('evaluated_at', $since)
+                ->get();
+            $evaluations = $evaluationsResult['data'] ?? [];
 
-        return [
-            'avgAccuracy' => $baseAccuracy + $accuracyVariation,
-            'processedRequests' => (int)round($baseRequests * $multiplier),
-            'problematicResponses' => (int)round($baseProblematic * $multiplier),
-            'newSources' => (int)round($baseSources * $multiplier),
-        ];
+            $avgAccuracy = 0;
+            if (!empty($evaluations)) {
+                $totalScore = 0;
+                foreach ($evaluations as $e) {
+                    $totalScore += (float)($e['avg_score'] ?? 0);
+                }
+                $avgAccuracy = round($totalScore / count($evaluations));
+            }
+
+            $sourcesResult = $db->from('sources')
+                ->select('id')
+                ->gte('created_at', $since)
+                ->get();
+
+            $problematicCount = 0;
+            foreach ($responses as $r) {
+                if (($r['risk_level'] ?? 'low') === 'high') {
+                    $problematicCount++;
+                }
+            }
+
+            return [
+                'avgAccuracy' => $avgAccuracy,
+                'processedRequests' => count($responses),
+                'problematicResponses' => $problematicCount,
+                'newSources' => count($sourcesResult['data'] ?? []),
+            ];
+        }, 300);
     }
 
     private function getTopProjectsForPeriod(string $period): array
     {
-        // Different growth rates per period
-        $projectsData = [
-            '24h' => [
-                ['name' => 'Цифровой Казахстан', 'growth' => '+2.5%', 'icon' => '💻'],
-                ['name' => 'Имидж Президента', 'growth' => '+1.8%', 'icon' => '🏛️'],
-                ['name' => 'Freedom Bank', 'growth' => '+1.5%', 'icon' => '🏦'],
-                ['name' => 'Закон и порядок', 'growth' => '+1.2%', 'icon' => '⚖️'],
-                ['name' => 'АЭС', 'growth' => '+0.8%', 'icon' => '⚛️'],
-            ],
-            '7d' => [
-                ['name' => 'Цифровой Казахстан', 'growth' => '+12%', 'icon' => '💻'],
-                ['name' => 'Имидж Президента', 'growth' => '+10%', 'icon' => '🏛️'],
-                ['name' => 'Закон и порядок', 'growth' => '+8%', 'icon' => '⚖️'],
-                ['name' => 'Freedom Bank', 'growth' => '+7%', 'icon' => '🏦'],
-                ['name' => 'Январь 2022', 'growth' => '+5%', 'icon' => '📅'],
-            ],
-            '30d' => [
-                ['name' => 'Имидж Президента', 'growth' => '+28%', 'icon' => '🏛️'],
-                ['name' => 'Цифровой Казахстан', 'growth' => '+24%', 'icon' => '💻'],
-                ['name' => 'АЭС', 'growth' => '+19%', 'icon' => '⚛️'],
-                ['name' => 'Закон и порядок', 'growth' => '+15%', 'icon' => '⚖️'],
-                ['name' => 'Freedom Bank', 'growth' => '+12%', 'icon' => '🏦'],
-            ],
-            '90d' => [
-                ['name' => 'АЭС', 'growth' => '+45%', 'icon' => '⚛️'],
-                ['name' => 'Имидж Президента', 'growth' => '+38%', 'icon' => '🏛️'],
-                ['name' => 'Цифровой Казахстан', 'growth' => '+35%', 'icon' => '💻'],
-                ['name' => 'Январь 2022', 'growth' => '+22%', 'icon' => '📅'],
-                ['name' => 'Freedom Bank', 'growth' => '+18%', 'icon' => '🏦'],
-            ],
-        ];
+        $days = $this->periodConfig[$period]['days'];
 
-        return $projectsData[$period] ?? $projectsData['7d'];
+        return Cache::remember("trends_top_projects_{$period}", function() use ($days) {
+            $db = new SupabaseClient();
+            $since = date('Y-m-d\TH:i:s', strtotime("-{$days} days"));
+
+            $projectsResult = $db->from('projects')
+                ->select('id, name, icon, accuracy_score, trend_direction, trend_percent')
+                ->eq('is_active', 'true')
+                ->get();
+
+            $responsesResult = $db->from('ai_responses')
+                ->select('project_id')
+                ->gte('created_at', $since)
+                ->get();
+
+            $responsesByProject = [];
+            foreach ($responsesResult['data'] ?? [] as $r) {
+                $pid = $r['project_id'] ?? null;
+                if ($pid) {
+                    $responsesByProject[$pid] = ($responsesByProject[$pid] ?? 0) + 1;
+                }
+            }
+
+            $projects = [];
+            foreach ($projectsResult['data'] ?? [] as $p) {
+                $count = $responsesByProject[$p['id']] ?? 0;
+                $trendSign = ($p['trend_direction'] ?? 'up') === 'up' ? '+' : '-';
+                $trendPercent = (float)($p['trend_percent'] ?? 0);
+
+                $projects[] = [
+                    'name' => $p['name'],
+                    'growth' => $trendSign . $trendPercent . '%',
+                    'icon' => $p['icon'] ?? '📊',
+                    'responses' => $count,
+                ];
+            }
+
+            usort($projects, fn($a, $b) => $b['responses'] - $a['responses']);
+
+            return array_slice($projects, 0, 5);
+        }, 300);
     }
 
     private function getChartDataForPeriod(string $period): array
     {
+        $days = $this->periodConfig[$period]['days'];
         $labels = $this->periodConfig[$period]['chartLabels'];
 
-        // Generate chart data based on period
-        $mainTrendData = match($period) {
-            '24h' => [
-                'labels' => $labels,
-                'datasets' => [
-                    ['label' => 'Имидж Президента', 'data' => [75, 76, 77, 78, 77, 78, 78]],
-                    ['label' => 'Январь 2022', 'data' => [71, 71, 72, 72, 71, 72, 72]],
-                    ['label' => 'Цифровой Казахстан', 'data' => [84, 84, 85, 85, 84, 85, 85]],
-                    ['label' => 'АЭС', 'data' => [69, 69, 69, 70, 69, 69, 69]],
-                ],
-            ],
-            '7d' => [
-                'labels' => $labels,
-                'datasets' => [
-                    ['label' => 'Имидж Президента', 'data' => [68, 70, 72, 74, 75, 77, 78]],
-                    ['label' => 'Январь 2022', 'data' => [65, 67, 68, 70, 71, 71, 72]],
-                    ['label' => 'Цифровой Казахстан', 'data' => [80, 81, 82, 83, 84, 84, 85]],
-                    ['label' => 'АЭС', 'data' => [72, 71, 70, 70, 69, 69, 69]],
-                ],
-            ],
-            '30d' => [
-                'labels' => $labels,
-                'datasets' => [
-                    ['label' => 'Имидж Президента', 'data' => [62, 70, 75, 78]],
-                    ['label' => 'Январь 2022', 'data' => [58, 64, 68, 72]],
-                    ['label' => 'Цифровой Казахстан', 'data' => [76, 80, 83, 85]],
-                    ['label' => 'АЭС', 'data' => [74, 72, 70, 69]],
-                ],
-            ],
-            '90d' => [
-                'labels' => $labels,
-                'datasets' => [
-                    ['label' => 'Имидж Президента', 'data' => [55, 68, 78]],
-                    ['label' => 'Январь 2022', 'data' => [50, 62, 72]],
-                    ['label' => 'Цифровой Казахстан', 'data' => [70, 78, 85]],
-                    ['label' => 'АЭС', 'data' => [45, 58, 69]],
-                ],
-            ],
-            default => [
-                'labels' => $labels,
-                'datasets' => [],
-            ],
-        };
+        return Cache::remember("trends_chart_{$period}", function() use ($days, $labels) {
+            $db = new SupabaseClient();
+            $since = date('Y-m-d\TH:i:s', strtotime("-{$days} days"));
 
-        $llmDistData = match($period) {
-            '24h' => [180, 124, 105, 92, 60],
-            '7d' => [1247, 856, 723, 634, 412],
-            '30d' => [5340, 3680, 3102, 2720, 1768],
-            '90d' => [16020, 11040, 9306, 8160, 5304],
-            default => [1247, 856, 723, 634, 412],
-        };
+            $projectsResult = $db->from('projects')
+                ->select('id, name')
+                ->eq('is_active', 'true')
+                ->get();
+            $projects = $projectsResult['data'] ?? [];
 
-        return [
-            'mainTrend' => $mainTrendData,
-            'llmDistribution' => [
-                'labels' => ['ChatGPT', 'DeepSeek', 'Gemini', 'Grok', 'Perplexity'],
-                'data' => $llmDistData,
-            ],
-        ];
+            $evaluationsResult = $db->from('evaluations')
+                ->select('avg_score, evaluated_at, ai_responses!inner(project_id)')
+                ->gte('evaluated_at', $since)
+                ->order('evaluated_at', true)
+                ->get();
+
+            $bucketCount = count($labels);
+            $projectScores = [];
+            $projectNames = [];
+            foreach ($projects as $p) {
+                $projectScores[$p['id']] = array_fill(0, $bucketCount, ['sum' => 0, 'count' => 0]);
+                $projectNames[$p['id']] = $p['name'];
+            }
+
+            $startTime = strtotime("-{$days} days");
+            $endTime = time();
+            $bucketSize = ($endTime - $startTime) / $bucketCount;
+
+            foreach ($evaluationsResult['data'] ?? [] as $eval) {
+                $projectId = $eval['ai_responses']['project_id'] ?? null;
+                if (!$projectId || !isset($projectScores[$projectId])) continue;
+
+                $evalTime = strtotime($eval['evaluated_at']);
+                $bucket = (int)floor(($evalTime - $startTime) / $bucketSize);
+                $bucket = max(0, min($bucketCount - 1, $bucket));
+
+                $projectScores[$projectId][$bucket]['sum'] += (float)($eval['avg_score'] ?? 0);
+                $projectScores[$projectId][$bucket]['count']++;
+            }
+
+            $colors = ['#8b5cf6', '#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#ef4444', '#06b6d4'];
+            $datasets = [];
+            $colorIndex = 0;
+
+            foreach ($projectScores as $projectId => $buckets) {
+                $hasData = false;
+                foreach ($buckets as $b) {
+                    if ($b['count'] > 0) { $hasData = true; break; }
+                }
+                if (!$hasData) continue;
+
+                $data = [];
+                foreach ($buckets as $b) {
+                    $data[] = $b['count'] > 0 ? round($b['sum'] / $b['count'], 1) : null;
+                }
+
+                $datasets[] = [
+                    'label' => $projectNames[$projectId],
+                    'data' => $data,
+                ];
+                $colorIndex++;
+                if (count($datasets) >= 7) break;
+            }
+
+            $llmResult = $db->from('ai_responses')
+                ->select('model_name')
+                ->gte('created_at', $since)
+                ->get();
+
+            $llmCounts = [];
+            foreach ($llmResult['data'] ?? [] as $r) {
+                $model = $r['model_name'] ?? 'Unknown';
+                $llmCounts[$model] = ($llmCounts[$model] ?? 0) + 1;
+            }
+            arsort($llmCounts);
+
+            return [
+                'mainTrend' => [
+                    'labels' => $labels,
+                    'datasets' => $datasets,
+                ],
+                'llmDistribution' => [
+                    'labels' => !empty($llmCounts) ? array_keys($llmCounts) : [],
+                    'data' => !empty($llmCounts) ? array_values($llmCounts) : [],
+                ],
+            ];
+        }, 300);
     }
 }

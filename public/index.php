@@ -3,9 +3,9 @@
  * SGEO Dashboard - Main Entry Point
  */
 
-// Enable error reporting for debugging (remove in production)
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
 session_start();
 
@@ -116,7 +116,6 @@ $routes = [
         '/api/settings/change-password' => ['App\\Controllers\\SettingsController', 'changePassword'],
         '/api/settings/reset-statistics' => ['App\\Controllers\\SettingsController', 'resetStatistics'],
         '/api/settings/delete-all-data' => ['App\\Controllers\\SettingsController', 'deleteAllData'],
-        '/api/settings/seed-prompt-evaluations' => ['App\\Controllers\\SettingsController', 'seedPromptEvaluations'],
         '/api/settings/api-keys' => ['App\\Controllers\\SettingsController', 'createApiKey'],
 
         // API CRUD

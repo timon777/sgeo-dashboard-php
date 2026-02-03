@@ -95,15 +95,48 @@ class LlmMonitoringController extends BaseController
 
     private function calculateTrend(string $modelName): string
     {
-        // In production, calculate from historical data
-        // For now, return placeholder
-        return '+0%';
+        $db = new SupabaseClient();
+
+        $weekAgo = date('Y-m-d\TH:i:s', strtotime('-7 days'));
+        $twoWeeksAgo = date('Y-m-d\TH:i:s', strtotime('-14 days'));
+
+        $currentResult = $db->from('evaluations')
+            ->select('avg_score, ai_responses!inner(model_name)')
+            ->gte('evaluated_at', $weekAgo)
+            ->get();
+
+        $previousResult = $db->from('evaluations')
+            ->select('avg_score, ai_responses!inner(model_name)')
+            ->gte('evaluated_at', $twoWeeksAgo)
+            ->lt('evaluated_at', $weekAgo)
+            ->get();
+
+        $calcAvg = function(array $data, string $model) {
+            $sum = 0;
+            $count = 0;
+            foreach ($data as $e) {
+                if (($e['ai_responses']['model_name'] ?? '') === $model) {
+                    $sum += (float)($e['avg_score'] ?? 0);
+                    $count++;
+                }
+            }
+            return $count > 0 ? $sum / $count : 0;
+        };
+
+        $currentAvg = $calcAvg($currentResult['data'] ?? [], $modelName);
+        $previousAvg = $calcAvg($previousResult['data'] ?? [], $modelName);
+
+        if ($previousAvg == 0 && $currentAvg == 0) return '0%';
+        if ($previousAvg == 0) return '+100%';
+
+        $percent = round((($currentAvg - $previousAvg) / $previousAvg) * 100);
+        return ($percent >= 0 ? '+' : '') . $percent . '%';
     }
 
     private function isTrendUp(string $modelName): bool
     {
-        // In production, calculate from historical data
-        return true;
+        $trend = $this->calculateTrend($modelName);
+        return !str_starts_with($trend, '-');
     }
 
     private function getFallbackLlmData(): array

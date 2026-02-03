@@ -325,7 +325,6 @@ class DashboardController extends BaseController
 
     private function buildRadarChartData(array $modelPerformance): array
     {
-        // Calculate average metrics from all models for radar charts
         $metrics = [
             'coherence' => 0,
             'consistency' => 0,
@@ -346,10 +345,12 @@ class DashboardController extends BaseController
             }
         }
 
-        // Calculate average for legend
         $avgScore = $count > 0 ? round(array_sum($metrics) / count($metrics), 1) : 0;
 
-        // 4 parameters for each radar chart (matching project pages)
+        // E-E-A-T from actual source data
+        $eeatMetrics = $this->getSourceEeatAverages();
+        $eeatAvg = !empty(array_filter($eeatMetrics)) ? round(array_sum($eeatMetrics) / count($eeatMetrics), 1) : 0;
+
         return [
             'prompts' => [
                 'labels' => ['Нейтральность', 'Стабильность', 'Корректность', 'Анти-гал.'],
@@ -374,14 +375,46 @@ class DashboardController extends BaseController
             'eeat' => [
                 'labels' => ['Опыт', 'Экспертность', 'Авторитетность', 'Доверие'],
                 'data' => [
-                    $metrics['coherence'],
-                    $metrics['fluency'],
-                    $metrics['consistency'],
-                    $metrics['relevance']
+                    $eeatMetrics['experience'],
+                    $eeatMetrics['expertise'],
+                    $eeatMetrics['authority'],
+                    $eeatMetrics['trust']
                 ],
-                'avg' => $avgScore,
+                'avg' => $eeatAvg,
             ],
         ];
+    }
+
+    private function getSourceEeatAverages(): array
+    {
+        return Cache::remember('dashboard_source_eeat', function() {
+            $db = new SupabaseClient();
+            $result = $db->from('sources')
+                ->select('experience_score, expertise_score, authority_score, trust_score')
+                ->get();
+
+            $totals = ['experience' => 0, 'expertise' => 0, 'authority' => 0, 'trust' => 0];
+            $count = 0;
+
+            foreach ($result['data'] ?? [] as $source) {
+                $totals['experience'] += (int)($source['experience_score'] ?? 0);
+                $totals['expertise'] += (int)($source['expertise_score'] ?? 0);
+                $totals['authority'] += (int)($source['authority_score'] ?? 0);
+                $totals['trust'] += (int)($source['trust_score'] ?? 0);
+                $count++;
+            }
+
+            if ($count === 0) {
+                return $totals;
+            }
+
+            return [
+                'experience' => round($totals['experience'] / $count),
+                'expertise' => round($totals['expertise'] / $count),
+                'authority' => round($totals['authority'] / $count),
+                'trust' => round($totals['trust'] / $count),
+            ];
+        }, 600);
     }
 
     private function buildSourceStats(Source $sourceModel): array
@@ -529,7 +562,7 @@ class DashboardController extends BaseController
 
             // Fill nulls with interpolated values or average
             $validValues = array_filter($data, fn($v) => $v !== null);
-            $avg = !empty($validValues) ? round(array_sum($validValues) / count($validValues), 1) : 70;
+            $avg = !empty($validValues) ? round(array_sum($validValues) / count($validValues), 1) : null;
             $data = array_map(fn($v) => $v ?? $avg, $data);
 
             $datasets[] = [
@@ -543,18 +576,6 @@ class DashboardController extends BaseController
             if (count($datasets) >= 7) break;
         }
 
-        // If no real data, use demo data
-        if (empty($datasets)) {
-            $datasets = [
-                ['label' => 'Имидж Президента', 'data' => [68, 70, 72, 74, 75, 77, 78], 'color' => '#8b5cf6'],
-                ['label' => 'Январь 2022', 'data' => [65, 67, 68, 70, 71, 71, 72], 'color' => '#6366f1'],
-                ['label' => 'Цифровой Казахстан', 'data' => [80, 81, 82, 83, 84, 84, 85], 'color' => '#22c55e'],
-                ['label' => 'АЭС', 'data' => [72, 71, 70, 70, 69, 69, 69], 'color' => '#f59e0b'],
-                ['label' => 'Образование', 'data' => [75, 76, 77, 78, 79, 80, 81], 'color' => '#ec4899'],
-                ['label' => 'Здравоохранение', 'data' => [70, 72, 73, 74, 75, 76, 77], 'color' => '#ef4444'],
-                ['label' => 'Экономика', 'data' => [78, 79, 80, 81, 82, 82, 83], 'color' => '#06b6d4'],
-            ];
-        }
 
         return [
             'labels' => $dayLabels,
