@@ -7,6 +7,14 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Use application-local session directory to avoid permission issues
+// with the system session path (/var/lib/php/session)
+$sessionPath = __DIR__ . '/../storage/sessions';
+if (!is_dir($sessionPath)) {
+    mkdir($sessionPath, 0700, true);
+}
+session_save_path($sessionPath);
+
 session_start();
 
 // Autoloader
