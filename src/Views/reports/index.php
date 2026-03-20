@@ -334,9 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Download buttons
     document.querySelectorAll('.download-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const format = this.dataset.format;
-            window.location.href = `/api/reports/export/${id}?format=${format}`;
+            window.open('https://url.reportview.kz/table/', '_blank');
         });
     });
 
