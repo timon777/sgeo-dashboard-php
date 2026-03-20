@@ -366,3 +366,39 @@ ON CONFLICT DO NOTHING;
 INSERT INTO evaluations (ai_response_id, evaluator_model, coherence_score, consistency_score, fluency_score, relevance_score, avg_score)
 SELECT id, 'GPT-4', 88, 90, 92, 85, 88.75 FROM ai_responses WHERE model_name = 'DeepSeek' LIMIT 1
 ON CONFLICT DO NOTHING;
+
+-- =====================================================
+-- LOGIN ATTEMPTS TABLE (brute force protection)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS login_attempts (
+    id BIGSERIAL PRIMARY KEY,
+    login VARCHAR(255),
+    ip_address VARCHAR(45),
+    is_successful BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_attempts_ip ON login_attempts(ip_address, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_login_attempts_login ON login_attempts(login, created_at DESC);
+
+-- =====================================================
+-- AUDIT LOGS TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT,
+    action VARCHAR(100) NOT NULL,
+    details JSONB,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action, created_at DESC);
+
+-- =====================================================
+-- UPDATE USERS TABLE - add auditor role
+-- =====================================================
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'manager', 'auditor', 'user'));

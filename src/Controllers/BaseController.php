@@ -4,6 +4,40 @@ namespace App\Controllers;
 
 abstract class BaseController
 {
+    public function __construct()
+    {
+        $this->checkSessionTimeout();
+    }
+
+    protected function checkSessionTimeout(): void
+    {
+        if (!isset($_SESSION['user_id'])) {
+            return;
+        }
+
+        // Check inactivity timeout (15 minutes)
+        if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > 900) {
+            $this->destroySessionAndRedirect();
+            return;
+        }
+
+        // Check max session lifetime (10 hours)
+        if (isset($_SESSION['created_at']) && (time() - $_SESSION['created_at']) > 36000) {
+            $this->destroySessionAndRedirect();
+            return;
+        }
+
+        // Update last activity
+        $_SESSION['last_activity'] = time();
+    }
+
+    private function destroySessionAndRedirect(): void
+    {
+        session_destroy();
+        header('Location: /login');
+        exit;
+    }
+
     protected function render(string $view, array $data = [], string $layout = 'base'): void
     {
         extract($data);
@@ -12,7 +46,6 @@ abstract class BaseController
         include __DIR__ . '/../Views/' . $view . '.php';
         $content = ob_get_clean();
 
-        // If hideLayout is set, just output content without layout (for login page)
         if (!empty($hideLayout)) {
             echo $content;
             return;

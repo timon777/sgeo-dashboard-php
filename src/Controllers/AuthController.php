@@ -3,12 +3,12 @@
 namespace App\Controllers;
 
 use App\Services\SupabaseClient;
+use App\Services\AuditLog;
 
 class AuthController extends BaseController
 {
     public function loginForm(): void
     {
-        // If already logged in, redirect to dashboard
         if ($this->isAuthenticated()) {
             header('Location: /');
             exit;
@@ -40,6 +40,40 @@ class AuthController extends BaseController
         }
 
         $db = new SupabaseClient();
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        // Brute force protection: check failed attempts in last 15 minutes
+        $fifteenMinAgo = date('c', time() - 900);
+        
+        // Check by IP
+        $ipAttempts = $db->from('login_attempts')
+            ->select('id')
+            ->eq('ip_address', $ip)
+            ->eq('is_successful', 'false')
+            ->gte('created_at', $fifteenMinAgo)
+            ->get();
+        
+        $ipCount = count($ipAttempts['data'] ?? []);
+
+        // Check by login
+        $loginAttempts = $db->from('login_attempts')
+            ->select('id')
+            ->eq('login', $login)
+            ->eq('is_successful', 'false')
+            ->gte('created_at', $fifteenMinAgo)
+            ->get();
+        
+        $loginCount = count($loginAttempts['data'] ?? []);
+
+        if ($ipCount >= 5 || $loginCount >= 5) {
+            AuditLog::log('login_blocked', null, ['login' => $login, 'ip' => $ip, 'reason' => 'brute_force']);
+            $this->render('auth/login', [
+                'pageTitle' => 'Вход в систему',
+                'hideLayout' => true,
+                'error' => 'Ошибка авторизации',
+            ]);
+            return;
+        }
 
         // Find user by login
         $result = $db->from('users')
@@ -49,13 +83,29 @@ class AuthController extends BaseController
             ->single();
 
         if (!$result || !password_verify($password, $result['password_hash'])) {
+            // Log failed attempt
+            $db->from('login_attempts')->insert([
+                'login' => $login,
+                'ip_address' => $ip,
+                'is_successful' => false,
+            ]);
+
+            AuditLog::log('login_failed', null, ['login' => $login, 'ip' => $ip]);
+
             $this->render('auth/login', [
                 'pageTitle' => 'Вход в систему',
                 'hideLayout' => true,
-                'error' => 'Неверный логин или пароль',
+                'error' => 'Ошибка авторизации',
             ]);
             return;
         }
+
+        // Log successful attempt
+        $db->from('login_attempts')->insert([
+            'login' => $login,
+            'ip_address' => $ip,
+            'is_successful' => true,
+        ]);
 
         // Create session
         $token = bin2hex(random_bytes(32));
@@ -65,7 +115,7 @@ class AuthController extends BaseController
             'user_id' => $result['id'],
             'token' => $token,
             'expires_at' => $expiresAt,
-            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
+            'ip_address' => $ip,
             'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
         ]);
 
@@ -81,14 +131,19 @@ class AuthController extends BaseController
         $_SESSION['user_role'] = $result['role'];
         $_SESSION['user_avatar'] = $result['avatar_initials'];
         $_SESSION['auth_token'] = $token;
+        $_SESSION['last_activity'] = time();
+        $_SESSION['created_at'] = time();
 
-        // Redirect to dashboard
+        AuditLog::log('login', $result['id']);
+
         header('Location: /');
         exit;
     }
 
     public function logout(): void
     {
+        AuditLog::log('logout');
+
         $token = $_SESSION['auth_token'] ?? null;
 
         if ($token) {
@@ -98,7 +153,6 @@ class AuthController extends BaseController
                 ->delete();
         }
 
-        // Clear session
         session_destroy();
 
         header('Location: /login');
@@ -138,7 +192,7 @@ class AuthController extends BaseController
         $this->requireAuth();
 
         $userRole = $_SESSION['user_role'] ?? 'user';
-        $roleHierarchy = ['admin' => 3, 'manager' => 2, 'user' => 1];
+        $roleHierarchy = ['admin' => 4, 'manager' => 3, 'auditor' => 2, 'user' => 1];
 
         $requiredLevel = $roleHierarchy[$role] ?? 1;
         $userLevel = $roleHierarchy[$userRole] ?? 1;

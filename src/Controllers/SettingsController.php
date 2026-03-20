@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Setting;
 use App\Services\Cache;
+use App\Services\AuditLog;
 
 class SettingsController extends BaseController
 {
@@ -210,28 +211,54 @@ class SettingsController extends BaseController
             return;
         }
 
-        if (strlen($data['new_password']) < 6) {
+        $newPassword = $data['new_password'];
+
+        // Password policy: min 13 chars with letters+digits+special, OR 18+ chars letters only
+        if (strlen($newPassword) < 13) {
             http_response_code(400);
-            echo json_encode(['error' => 'Пароль должен быть минимум 6 символов']);
+            echo json_encode(['error' => 'Пароль должен содержать минимум 13 символов, включая буквы, цифры и специальные символы']);
+            return;
+        }
+
+        $hasLetters = preg_match('/[a-zA-Zа-яА-ЯёЁ]/u', $newPassword);
+        $hasDigits = preg_match('/[0-9]/', $newPassword);
+        $hasSpecial = preg_match('/[^a-zA-Zа-яА-ЯёЁ0-9\s]/u', $newPassword);
+
+        if (!($hasLetters && $hasDigits && $hasSpecial) && !(strlen($newPassword) >= 18 && $hasLetters)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Пароль должен содержать минимум 13 символов, включая буквы, цифры и специальные символы']);
             return;
         }
 
         try {
-            // Get current user from session
             $userId = $_SESSION['user_id'] ?? null;
             if (!$userId) {
-                // For demo, just return success
-                echo json_encode(['success' => true, 'message' => 'Пароль изменён']);
+                http_response_code(401);
+                echo json_encode(['error' => 'Не авторизован']);
                 return;
             }
 
-            // In real implementation, verify current password and update
-            // $userModel = new User();
-            // $user = $userModel->find($userId);
-            // if (!password_verify($data['current_password'], $user['password_hash'])) {
-            //     throw new \Exception('Неверный текущий пароль');
-            // }
-            // $userModel->update($userId, ['password_hash' => password_hash($data['new_password'], PASSWORD_DEFAULT)]);
+            $db = new \App\Services\SupabaseClient();
+
+            // Get current user
+            $user = $db->from('users')
+                ->select('id,password_hash')
+                ->eq('id', $userId)
+                ->single();
+
+            if (!$user || !password_verify($data['current_password'], $user['password_hash'])) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Неверный текущий пароль']);
+                return;
+            }
+
+            $hash = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+
+            $db->from('users')
+                ->eq('id', $userId)
+                ->update(['password_hash' => $hash]);
+
+            AuditLog::log('password_changed');
 
             echo json_encode(['success' => true, 'message' => 'Пароль изменён']);
         } catch (\Exception $e) {
