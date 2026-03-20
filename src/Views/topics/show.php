@@ -907,7 +907,7 @@
                     </thead>
                     <tbody id="sourcesBody">
                         <?php foreach ($tabData['sources'] as $source): ?>
-                        <tr>
+                        <tr data-geo="<?= (strpos($source['domain'] ?? '', '.kz') !== false) ? 'kz' : 'foreign' ?>" data-llm="<?= strtolower(htmlspecialchars($source['llm'] ?? '')) ?>">
                             <td>
                                 <a href="https://<?= htmlspecialchars($source['domain']) ?>" target="_blank" class="domain-link">
                                     <?= htmlspecialchars($source['domain']) ?>
@@ -2348,6 +2348,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const group = this.closest('.filter-group');
             group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
+            
+            // Get active filters
+            const groups = document.querySelectorAll('.filter-group');
+            const geoFilter = groups[0]?.querySelector('.filter-btn.active')?.textContent?.trim() || 'Все источники';
+            const llmFilter = groups[1]?.querySelector('.filter-btn.active')?.textContent?.trim() || 'Все LLM';
+            
+            // Filter table rows
+            document.querySelectorAll('#sourcesBody tr').forEach(row => {
+                const geo = row.dataset.geo || '';
+                const llm = row.dataset.llm || '';
+                
+                const matchGeo = geoFilter === 'Все источники' || 
+                    (geoFilter === 'Казахстанские' && geo === 'kz') || 
+                    (geoFilter === 'Зарубежные' && geo !== 'kz');
+                const matchLlm = llmFilter === 'Все LLM' || llm.toLowerCase().includes(llmFilter.toLowerCase());
+                
+                row.style.display = matchGeo && matchLlm ? '' : 'none';
+            });
         });
     });
 });

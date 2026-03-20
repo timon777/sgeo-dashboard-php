@@ -1282,6 +1282,16 @@ a.sidebar-header:hover,
     resize: vertical;
 }
 
+/* Fix option elements in dark theme */
+.select-field option {
+    background-color: #1e2030;
+    color: #e0e0e0;
+}
+:root.light-theme .select-field option {
+    background-color: #ffffff;
+    color: #1a1a2e;
+}
+
 /* Filters */
 .filters-row {
     display: flex;

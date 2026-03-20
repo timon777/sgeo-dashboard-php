@@ -20,6 +20,8 @@ class PromptsController extends BaseController
         $perPage = 20;
         $offset = ($page - 1) * $perPage;
         $projectFilter = $_GET['project'] ?? null;
+        $llmFilter = $_GET['llm'] ?? 'all';
+        $toneFilter = $_GET['tone'] ?? 'all';
 
         // Get projects for filter
         $projectsResult = $projectModel->all();
@@ -86,6 +88,14 @@ class PromptsController extends BaseController
                     ];
                 }
             }
+        }
+
+        // Server-side LLM and tone filtering
+        if ($llmFilter !== 'all') {
+            $prompts = array_values(array_filter($prompts, fn($p) => $p['llm'] === $llmFilter));
+        }
+        if ($toneFilter !== 'all') {
+            $prompts = array_values(array_filter($prompts, fn($p) => $p['tone'] === $toneFilter));
         }
 
         $this->render('prompts/index', [

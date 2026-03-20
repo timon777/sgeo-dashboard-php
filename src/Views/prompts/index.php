@@ -28,18 +28,18 @@
         <?php endforeach; ?>
     </select>
     <select class="select-field" id="llm-filter" style="width: auto; min-width: 150px;">
-        <option value="all">Все LLM</option>
-        <option value="gpt">ChatGPT</option>
-        <option value="deepseek">DeepSeek</option>
-        <option value="grok">Grok</option>
-        <option value="gemini">Gemini</option>
-        <option value="perplexity">Perplexity</option>
+        <option value="all" <?= ($_GET['llm'] ?? 'all') === 'all' ? 'selected' : '' ?>>Все LLM</option>
+        <option value="gpt" <?= ($_GET['llm'] ?? '') === 'gpt' ? 'selected' : '' ?>>ChatGPT</option>
+        <option value="deepseek" <?= ($_GET['llm'] ?? '') === 'deepseek' ? 'selected' : '' ?>>DeepSeek</option>
+        <option value="grok" <?= ($_GET['llm'] ?? '') === 'grok' ? 'selected' : '' ?>>Grok</option>
+        <option value="gemini" <?= ($_GET['llm'] ?? '') === 'gemini' ? 'selected' : '' ?>>Gemini</option>
+        <option value="perplexity" <?= ($_GET['llm'] ?? '') === 'perplexity' ? 'selected' : '' ?>>Perplexity</option>
     </select>
     <select class="select-field" id="tone-filter" style="width: auto; min-width: 150px;">
-        <option value="all">Все тональности</option>
-        <option value="positive">Позитивная</option>
-        <option value="neutral">Нейтральная</option>
-        <option value="negative">Негативная</option>
+        <option value="all" <?= ($_GET['tone'] ?? 'all') === 'all' ? 'selected' : '' ?>>Все тональности</option>
+        <option value="positive" <?= ($_GET['tone'] ?? '') === 'positive' ? 'selected' : '' ?>>Позитивная</option>
+        <option value="neutral" <?= ($_GET['tone'] ?? '') === 'neutral' ? 'selected' : '' ?>>Нейтральная</option>
+        <option value="negative" <?= ($_GET['tone'] ?? '') === 'negative' ? 'selected' : '' ?>>Негативная</option>
     </select>
     <div class="search-filter" style="flex: 1; max-width: 300px;">
         <input type="text" class="input-field" id="prompts-search" placeholder="Поиск по промтам...">
@@ -528,8 +528,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    llmFilter.addEventListener('change', applyFilters);
-    toneFilter.addEventListener('change', applyFilters);
+    llmFilter.addEventListener('change', function() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('llm', this.value);
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    });
+    toneFilter.addEventListener('change', function() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tone', this.value);
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    });
     searchInput.addEventListener('input', applyFilters);
 });
 </script>

@@ -40,13 +40,38 @@
             <span>Поиск...</span>
             <span class="shortcut">⌘K</span>
         </button>
-        <button class="header-btn" data-tooltip="Уведомления" data-tooltip-pos="bottom" aria-label="Уведомления">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            <span class="notification-dot"></span>
-        </button>
+        <div class="notification-wrapper" style="position:relative">
+            <button class="header-btn" id="notifications-btn" data-tooltip="Уведомления" data-tooltip-pos="bottom" aria-label="Уведомления">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span class="notification-dot" id="notification-dot"></span>
+            </button>
+            <div class="notification-dropdown" id="notification-dropdown" style="display:none;position:absolute;right:0;top:48px;width:320px;background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:1000;padding:16px;">
+                <div style="font-weight:600;font-size:14px;margin-bottom:12px;color:var(--text-primary)">Уведомления</div>
+                <div id="notifications-list" style="color:var(--text-secondary);font-size:13px;text-align:center;padding:20px 0">Нет новых уведомлений</div>
+            </div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifBtn = document.getElementById('notifications-btn');
+            const notifDropdown = document.getElementById('notification-dropdown');
+            if (notifBtn && notifDropdown) {
+                notifBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = notifDropdown.style.display !== 'none';
+                    notifDropdown.style.display = isOpen ? 'none' : 'block';
+                    if (!isOpen) {
+                        document.getElementById('notification-dot')?.classList.remove('active');
+                    }
+                });
+                document.addEventListener('click', function() {
+                    notifDropdown.style.display = 'none';
+                });
+            }
+        });
+        </script>
         <div class="status-badge">
             <span class="status-dot"></span>
             Система активна
