@@ -95,15 +95,22 @@ class LlmMonitoringController extends BaseController
 
     private function calculateTrend(string $modelName): string
     {
-        // In production, calculate from historical data
-        // For now, return placeholder
-        return '+0%';
+        $db = new SupabaseClient();
+        $now = date('Y-m-d');
+        $prev = date('Y-m-d', strtotime('-7 days'));
+        $curr = $db->from('ai_responses')->select('id')->eq('model_name', $modelName)->gte('created_at', $now . 'T00:00:00')->get();
+        $prevR = $db->from('ai_responses')->select('id')->eq('model_name', $modelName)->gte('created_at', $prev . 'T00:00:00')->lt('created_at', $now . 'T00:00:00')->get();
+        $currCount = count($curr['data'] ?? []);
+        $prevCount = count($prevR['data'] ?? []);
+        if ($prevCount === 0) return '+0%';
+        $diff = round(($currCount - $prevCount) / $prevCount * 100);
+        return ($diff >= 0 ? '+' : '') . $diff . '%';
     }
 
     private function isTrendUp(string $modelName): bool
     {
-        // In production, calculate from historical data
-        return true;
+        $trend = $this->calculateTrend($modelName);
+        return (float)$trend >= 0;
     }
 
     private function getFallbackLlmData(): array

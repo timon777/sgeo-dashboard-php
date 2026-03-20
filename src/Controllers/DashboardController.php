@@ -543,18 +543,6 @@ class DashboardController extends BaseController
             if (count($datasets) >= 7) break;
         }
 
-        // If no real data, use demo data
-        if (empty($datasets)) {
-            $datasets = [
-                ['label' => 'Имидж Президента', 'data' => [68, 70, 72, 74, 75, 77, 78], 'color' => '#8b5cf6'],
-                ['label' => 'Январь 2022', 'data' => [65, 67, 68, 70, 71, 71, 72], 'color' => '#6366f1'],
-                ['label' => 'Цифровой Казахстан', 'data' => [80, 81, 82, 83, 84, 84, 85], 'color' => '#22c55e'],
-                ['label' => 'АЭС', 'data' => [72, 71, 70, 70, 69, 69, 69], 'color' => '#f59e0b'],
-                ['label' => 'Образование', 'data' => [75, 76, 77, 78, 79, 80, 81], 'color' => '#ec4899'],
-                ['label' => 'Здравоохранение', 'data' => [70, 72, 73, 74, 75, 76, 77], 'color' => '#ef4444'],
-                ['label' => 'Экономика', 'data' => [78, 79, 80, 81, 82, 82, 83], 'color' => '#06b6d4'],
-            ];
-        }
 
         return [
             'labels' => $dayLabels,
