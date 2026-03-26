@@ -24,13 +24,14 @@
                     <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                 </svg>
             </button>
-            <button class="lang-toggle" onclick="toggleLanguage()" title="Switch language">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
-                <span>Рус</span>
-            </button>
+            <!-- language toggle hidden -->
+
+
+
+
+
+
+
         </div>
         <button class="global-search-trigger" aria-label="Поиск">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
