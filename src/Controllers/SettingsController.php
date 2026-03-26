@@ -56,10 +56,11 @@ class SettingsController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
 
-        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
+
+        Csrf::verifyOrDie();
 
         $data = json_decode(file_get_contents('php://input'), true);
         $settingModel = new Setting();
@@ -92,10 +93,11 @@ class SettingsController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
 
-        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
+
+        Csrf::verifyOrDie();
 
         $data = json_decode(file_get_contents('php://input'), true);
         $settingModel = new Setting();
@@ -125,10 +127,11 @@ class SettingsController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
 
-        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
+
+        Csrf::verifyOrDie();
 
         try {
             Cache::flush();
@@ -146,10 +149,11 @@ class SettingsController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
 
-        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
+
+        Csrf::verifyOrDie();
 
         $data = json_decode(file_get_contents('php://input'), true);
 
@@ -191,6 +195,8 @@ class SettingsController extends BaseController
             return;
         }
 
+        Csrf::verifyOrDie();
+
         $settingModel = new Setting();
 
         try {
@@ -209,10 +215,11 @@ class SettingsController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
 
-        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
+
+        Csrf::verifyOrDie();
 
         $data = json_decode(file_get_contents('php://input'), true);
 
@@ -285,10 +292,11 @@ class SettingsController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
 
-        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
+
+        Csrf::verifyOrDie();
 
         try {
             // Reset statistics tables
@@ -323,10 +331,11 @@ class SettingsController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
 
-        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
+
+        Csrf::verifyOrDie();
 
         try {
             $db = new \App\Services\SupabaseClient();
@@ -356,10 +365,11 @@ class SettingsController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
 
-        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
+
+        Csrf::verifyOrDie();
 
         try {
             $db = new \App\Services\SupabaseClient();
@@ -486,3 +496,4 @@ class SettingsController extends BaseController
         }
     }
 }
+

@@ -30,9 +30,10 @@ class AuthController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
 
-        Csrf::verifyOrDie();
             return;
         }
+        Csrf::verifyOrDie();
+
 
         $login = $_POST['login'] ?? '';
         $password = $_POST['password'] ?? '';
