@@ -103,8 +103,8 @@
     <div class="chart-card chart-card-wide">
         <div class="chart-header">
             <div>
-                <div class="chart-title">Динамика качества ответов</div>
-                <div class="chart-description">Средний показатель качества за последние 7 дней</div>
+                <div class="chart-title">Динамика изменений по проектам</div>
+                <div class="chart-description">Изменение показателей по проектам за последние 7 дней</div>
             </div>
         </div>
         <div class="chart-container chart-container-wide">
