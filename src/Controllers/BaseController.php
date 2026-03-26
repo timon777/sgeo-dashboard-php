@@ -31,7 +31,7 @@ abstract class BaseController
         if (!empty($_SESSION['force_password_change'])) {
             $uri = $_SERVER['REQUEST_URI'] ?? '';
             if (strpos($uri, '/settings') === false && strpos($uri, '/logout') === false) {
-                header('Location: /settings');
+                header('Location: /settings#security');
                 exit;
             }
         }

@@ -12,7 +12,7 @@ class AuthController extends BaseController
     {
         if ($this->isAuthenticated()) {
             if (!empty($_SESSION['force_password_change'])) {
-            header('Location: /settings');
+            header('Location: /settings#security');
         } else {
             header('Location: /');
         }
@@ -146,7 +146,7 @@ class AuthController extends BaseController
         AuditLog::log('login', $result['id']);
 
         if (!empty($_SESSION['force_password_change'])) {
-            header('Location: /settings');
+            header('Location: /settings#security');
         } else {
             header('Location: /');
         }
