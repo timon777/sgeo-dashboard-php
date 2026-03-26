@@ -233,27 +233,28 @@
 <!-- Sources Section -->
 <h2 class="section-title">Распределение источников</h2>
 <div class="sources-section">
-    <div class="source-card">
-        <div class="source-title">География источников</div>
-        <div class="source-subtitle">Распределение по странам происхождения</div>
-        <div class="pie-container">
-            <canvas id="geoPieChart"></canvas>
-        </div>
-        <div class="legend">
-            <?php
-            $geoColors = ['#6366f1', '#22c55e', '#f59e0b', '#8b5cf6'];
-            $geoLabels = $sourceStats['geography']['labels'] ?? [];
-            $geoData = $sourceStats['geography']['data'] ?? [];
-            foreach ($geoLabels as $i => $label):
-            ?>
-            <div class="legend-item">
-                <span class="legend-dot" style="background: <?= $geoColors[$i] ?? '#6366f1' ?>;"></span>
-                <span><?= $geoData[$i] ?? 0 ?>% — <?= htmlspecialchars($label) ?></span>
-            </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-
+    <!-- geography chart hidden -->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
     <div class="source-card">
         <div class="source-title">Типология источников</div>
         <div class="source-subtitle">Распределение по характеру площадок</div>
