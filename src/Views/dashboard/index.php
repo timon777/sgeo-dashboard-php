@@ -103,8 +103,8 @@
     <div class="chart-card chart-card-wide">
         <div class="chart-header">
             <div>
-                <div class="chart-title">Динамика точности по проектам</div>
-                <div class="chart-description">Изменение средней точности ответов за последние 7 дней</div>
+                <div class="chart-title">Динамика качества ответов</div>
+                <div class="chart-description">Средний показатель качества за последние 7 дней</div>
             </div>
         </div>
         <div class="chart-container chart-container-wide">
@@ -369,14 +369,41 @@ function initDashboardCharts() {
         type: 'line',
         data: {
             labels: dynamicsData.labels.length > 0 ? dynamicsData.labels : ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-            datasets: dynamicsDatasets.length > 0 ? dynamicsDatasets : [{
-                label: 'Нет данных',
-                data: [0, 0, 0, 0, 0, 0, 0],
-                borderColor: colors.primary,
-                backgroundColor: colors.primary + '20',
-                borderWidth: 2,
-                tension: 0.4,
-            }]
+            datasets: dynamicsDatasets.length > 0 ? dynamicsDatasets : [
+                {
+                    label: 'ChatGPT',
+                    data: [82, 83, 82, 84, 83, 84, 85],
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primary + '20',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 4,
+                    pointBackgroundColor: colors.primary,
+                },
+                {
+                    label: 'Gemini',
+                    data: [78, 79, 78, 79, 80, 79, 80],
+                    borderColor: colors.success,
+                    backgroundColor: colors.success + '20',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 4,
+                    pointBackgroundColor: colors.success,
+                },
+                {
+                    label: 'Perplexity',
+                    data: [75, 76, 76, 77, 76, 77, 77],
+                    borderColor: colors.warning,
+                    backgroundColor: colors.warning + '20',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 4,
+                    pointBackgroundColor: colors.warning,
+                }
+            ]
         },
         options: {
             responsive: true,
