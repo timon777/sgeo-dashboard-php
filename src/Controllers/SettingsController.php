@@ -43,9 +43,7 @@ class SettingsController extends BaseController
 
         // Подтягиваем ключи из .env
         $envKeys = [
-            ['name' => 'OpenAI', 'provider' => 'openai', 'env' => 'OPENAI_API_KEY'],
-            ['name' => 'Anthropic', 'provider' => 'anthropic', 'env' => 'ANTHROPIC_API_KEY'],
-            ['name' => 'Google AI', 'provider' => 'google', 'env' => 'GOOGLE_API_KEY'],
+            ['name' => 'OpenRouter', 'provider' => 'openrouter', 'env' => 'OPENROUTER_API_KEY'],
         ];
         foreach ($envKeys as $ek) {
             $val = getenv($ek['env']);

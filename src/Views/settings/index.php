@@ -126,10 +126,7 @@
                 <div class="form-group">
                     <label class="form-label">Провайдер</label>
                     <select class="select-field" id="api_provider">
-                        <option value="openai">OpenAI</option>
-                        <option value="anthropic">Anthropic</option>
-                        <option value="google">Google</option>
-                        <option value="perplexity">Perplexity</option>
+                        <option value="openrouter">OpenRouter</option>
                     </select>
                 </div>
                 <div class="form-group">
