@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto-open security tab if hash or force_password_change
     const hash = window.location.hash.replace("#", "");
     if (hash) {
-        const targetTab = document.querySelector(".tab[data-tab="" + hash + ""]");
+        const targetTab = document.querySelector(".tab[data-tab='" + hash + "']");
         if (targetTab) targetTab.click();
     }
 
