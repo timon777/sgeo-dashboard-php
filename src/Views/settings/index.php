@@ -105,7 +105,7 @@
                     <?= $key['status'] === 'active' ? 'Активен' : 'Неактивен' ?>
                 </div>
                 <div class="api-key-actions">
-                    <button class="btn btn-secondary btn-sm delete-api-key" style="color: var(--danger);">Удалить</button>
+                    <?php if (($key["source"] ?? "db") !== "env"): ?><button class="btn btn-secondary btn-sm delete-api-key" style="color: var(--danger);">Удалить</button><?php else: ?><span style="color: var(--text-muted); font-size: 12px;">.env</span><?php endif; ?>
                 </div>
             </div>
             <?php endforeach; ?>

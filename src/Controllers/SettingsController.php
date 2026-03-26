@@ -24,7 +24,7 @@ class SettingsController extends BaseController
             'rating_change_notify' => $settingModel->get('rating_change_notify', 5),
         ];
 
-        // Получаем API ключи
+        // Получаем API ключи из БД
         $apiKeysResult = $settingModel->getApiKeys();
         $apiKeys = [];
         if (isset($apiKeysResult['data'])) {
@@ -36,6 +36,28 @@ class SettingsController extends BaseController
                     'key' => $k['key_hint'] ?? '***',
                     'status' => $k['status'],
                     'lastUsed' => $k['last_used_at'] ? date('Y-m-d', strtotime($k['last_used_at'])) : null,
+                    'source' => 'db',
+                ];
+            }
+        }
+
+        // Подтягиваем ключи из .env
+        $envKeys = [
+            ['name' => 'OpenAI', 'provider' => 'openai', 'env' => 'OPENAI_API_KEY'],
+            ['name' => 'Anthropic', 'provider' => 'anthropic', 'env' => 'ANTHROPIC_API_KEY'],
+            ['name' => 'Google AI', 'provider' => 'google', 'env' => 'GOOGLE_API_KEY'],
+        ];
+        foreach ($envKeys as $ek) {
+            $val = getenv($ek['env']);
+            if (!empty($val)) {
+                $apiKeys[] = [
+                    'id' => 'env-' . $ek['provider'],
+                    'name' => $ek['name'] . ' (.env)',
+                    'provider' => $ek['provider'],
+                    'key' => substr($val, 0, 8) . '***',
+                    'status' => 'active',
+                    'lastUsed' => null,
+                    'source' => 'env',
                 ];
             }
         }
