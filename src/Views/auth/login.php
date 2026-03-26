@@ -237,6 +237,7 @@
                 <?php endif; ?>
 
                 <form class="login-form" method="POST" action="/login">
+                    <?= AppServicesCsrf::field() ?>
                     <div class="form-group">
                         <label class="form-label" for="login">Логин</label>
                         <input

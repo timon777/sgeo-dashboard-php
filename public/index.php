@@ -4,8 +4,8 @@
  */
 
 // Enable error reporting for debugging (remove in production)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// error_reporting(E_ALL);
+ini_set('display_errors', 0);
 
 session_set_cookie_params([
     'lifetime' => 36000,
@@ -14,6 +14,14 @@ session_set_cookie_params([
     'samesite' => 'Strict'
 ]);
 session_start();
+
+// Security headers
+header("X-Content-Type-Options: nosniff");
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("Referrer-Policy: strict-origin-when-cross-origin");
+header("Permissions-Policy: camera=(), microphone=(), geolocation=()");
+header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
 
 // Autoloader
 spl_autoload_register(function ($class) {

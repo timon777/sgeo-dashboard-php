@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         try {
             const resp = await fetch('/api/settings/general', {
-                method: 'POST',
+                method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken, 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         try {
             const resp = await fetch('/api/settings/monitoring', {
-                method: 'POST',
+                method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken, 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('clear-cache-btn').addEventListener('click', async function() {
         if (!confirm('Вы уверены, что хотите очистить кэш?')) return;
         try {
-            const resp = await fetch('/api/settings/clear-cache', { method: 'POST' });
+            const resp = await fetch('/api/settings/clear-cache', { method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken} });
             const result = await resp.json();
             if (result.success) {
                 showToast(result.message, 'success');
@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         try {
             const resp = await fetch('/api/settings/api-keys', {
-                method: 'POST',
+                method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken, 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const item = this.closest('.api-key-item');
             const id = item.dataset.id;
             try {
-                const resp = await fetch('/api/settings/api-keys/' + id, { method: 'DELETE' });
+                const resp = await fetch('/api/settings/api-keys/' + id, { method: 'DELETE', headers: {'X-CSRF-TOKEN': window._csrfToken} });
                 const result = await resp.json();
                 if (result.success) {
                     showToast(result.message, 'success');
@@ -463,7 +463,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const resp = await fetch('/api/settings/change-password', {
-                method: 'POST',
+                method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken, 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     current_password: currentPassword,
@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!confirm('Подтвердите ещё раз: сбросить ВСЮ статистику?')) return;
 
         try {
-            const resp = await fetch('/api/settings/reset-statistics', { method: 'POST' });
+            const resp = await fetch('/api/settings/reset-statistics', { method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken} });
             const result = await resp.json();
             if (result.success) {
                 showToast(result.message, 'success');
@@ -509,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const resp = await fetch('/api/settings/delete-all-data', { method: 'POST' });
+            const resp = await fetch('/api/settings/delete-all-data', { method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken} });
             const result = await resp.json();
             if (result.success) {
                 showToast(result.message, 'success');

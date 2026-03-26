@@ -27,6 +27,15 @@ abstract class BaseController
             return;
         }
 
+        // Force password change - block all navigation except change-password and logout
+        if (!empty($_SESSION['force_password_change'])) {
+            $uri = $_SERVER['REQUEST_URI'] ?? '';
+            if (strpos($uri, '/settings/change-password') === false && strpos($uri, '/logout') === false) {
+                header('Location: /settings/change-password');
+                exit;
+            }
+        }
+
         // Update last activity
         $_SESSION['last_activity'] = time();
     }

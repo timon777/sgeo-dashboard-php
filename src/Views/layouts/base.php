@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <meta name="csrf-token" content="<?= AppServicesCsrf::generate() ?>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SGEO — <?= $pageTitle ?? 'Дашборд' ?></title>
@@ -48,5 +49,6 @@
     <?php if (isset($pageScripts)): ?>
         <?= $pageScripts ?>
     <?php endif; ?>
+<script>window._csrfToken=document.querySelector("meta[name=csrf-token]")?.content||"";</script>
 </body>
 </html>

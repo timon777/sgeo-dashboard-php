@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\Setting;
 use App\Services\Cache;
 use App\Services\AuditLog;
+use App\Services\Csrf;
 
 class SettingsController extends BaseController
 {
@@ -54,6 +55,8 @@ class SettingsController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
+
+        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
@@ -88,6 +91,8 @@ class SettingsController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
+
+        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
@@ -119,6 +124,8 @@ class SettingsController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
+
+        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
@@ -138,6 +145,8 @@ class SettingsController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
+
+        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
@@ -199,6 +208,8 @@ class SettingsController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
+
+        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
@@ -273,6 +284,8 @@ class SettingsController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
+
+        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
@@ -309,6 +322,8 @@ class SettingsController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
+
+        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }
@@ -340,6 +355,8 @@ class SettingsController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
+
+        Csrf::verifyOrDie();
             echo json_encode(['error' => 'Method not allowed']);
             return;
         }

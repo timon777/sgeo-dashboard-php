@@ -4,13 +4,18 @@ namespace App\Controllers;
 
 use App\Services\SupabaseClient;
 use App\Services\AuditLog;
+use App\Services\Csrf;
 
 class AuthController extends BaseController
 {
     public function loginForm(): void
     {
         if ($this->isAuthenticated()) {
+            if (!empty($_SESSION['force_password_change'])) {
+            header('Location: /settings/change-password');
+        } else {
             header('Location: /');
+        }
             exit;
         }
 
@@ -24,6 +29,8 @@ class AuthController extends BaseController
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
+
+        Csrf::verifyOrDie();
             return;
         }
 
@@ -133,10 +140,15 @@ class AuthController extends BaseController
         $_SESSION['auth_token'] = $token;
         $_SESSION['last_activity'] = time();
         $_SESSION['created_at'] = time();
+        $_SESSION['force_password_change'] = !empty($result['force_password_change']);
 
         AuditLog::log('login', $result['id']);
 
-        header('Location: /');
+        if (!empty($_SESSION['force_password_change'])) {
+            header('Location: /settings/change-password');
+        } else {
+            header('Location: /');
+        }
         exit;
     }
 
