@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta name="csrf-token" content="<?= AppServicesCsrf::generate() ?>">
+    <meta name="csrf-token" content="<?= \App\Services\Csrf::generate() ?>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SGEO — <?= $pageTitle ?? 'Дашборд' ?></title>
