@@ -327,8 +327,8 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         try {
             const resp = await fetch('/api/settings/general', {
-                method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken, 
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window._csrfToken },
                 body: JSON.stringify(data)
             });
             const result = await resp.json();
@@ -352,8 +352,8 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         try {
             const resp = await fetch('/api/settings/monitoring', {
-                method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken, 
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window._csrfToken },
                 body: JSON.stringify(data)
             });
             const result = await resp.json();
@@ -404,8 +404,8 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         try {
             const resp = await fetch('/api/settings/api-keys', {
-                method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken, 
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window._csrfToken },
                 body: JSON.stringify(data)
             });
             const result = await resp.json();
@@ -463,8 +463,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const resp = await fetch('/api/settings/change-password', {
-                method: 'POST', headers: {'X-CSRF-TOKEN': window._csrfToken, 
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window._csrfToken },
                 body: JSON.stringify({
                     current_password: currentPassword,
                     new_password: newPassword
